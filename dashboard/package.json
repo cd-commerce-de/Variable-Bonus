@@ -1,0 +1,6 @@
+{
+  "name": "cd-commerce-bonus-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=18" }
+}
