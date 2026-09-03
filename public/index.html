@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>CD Commerce — Variable Bonus Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#0F172A; --ink-2:#1E293B; --ember:#D97757; --ember-light:#E8956F;
+    --ember-subtle:#FDF2EE; --paper:#FFFFFF;
+    --line-50:#F8FAFC; --line-100:#F1F5F9; --line-200:#E2E8F0; --line-300:#CBD5E1;
+    --line-400:#94A3B8; --line-500:#64748B; --line-700:#334155;
+    --good:#10B981; --warn:#F59E0B; --bad:#EF4444;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Inter',sans-serif; color:var(--ink); background:var(--line-50); font-variant-numeric: tabular-nums;}
+  h1,h2,h3,.brand-word{font-family:'Poppins',sans-serif;}
+  .num{font-variant-numeric: tabular-nums; letter-spacing:-0.01em;}
+
+  header.top{
+    background:linear-gradient(135deg,var(--ink),var(--ink-2));
+    color:#fff; padding:28px 40px 24px; position:relative; overflow:hidden;
+  }
+  header.top::after{content:"";position:absolute; left:0; right:0; bottom:0; height:3px; background:var(--ember);}
+  .wordmark{font-size:22px; font-weight:800; margin:0; display:flex; align-items:baseline; gap:2px;}
+  .wordmark .light{font-weight:400;}
+  .top-row{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;}
+  .subtitle{color:var(--line-300); font-size:14px; margin-top:2px;}
+  .top-controls{display:flex; gap:10px; align-items:center;}
+  select, .btn, input[type=file]::file-selector-button{
+    font-family:'Inter',sans-serif; font-size:13px; font-weight:600;
+    border-radius:10px; border:1px solid var(--line-300); padding:9px 14px;
+    background:#fff; color:var(--ink); cursor:pointer;
+  }
+  .btn.primary{background:var(--ember); border-color:var(--ember); color:#fff;}
+  .btn.primary:hover{background:#C4623F;}
+  .btn.ghost{background:transparent; border-color:rgba(255,255,255,.35); color:#fff;}
+  .btn.ghost:hover{border-color:#fff;}
+
+  main{max-width:1180px; margin:0 auto; padding:28px 40px 80px;}
+  section{margin-bottom:36px;}
+  .section-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; gap:16px; flex-wrap:wrap;}
+  .section-head h2{font-size:19px; font-weight:600; margin:0;}
+  .section-note{font-size:13px; color:var(--line-500);}
+
+  .upload-zone{
+    border:1.5px dashed var(--line-300); border-radius:16px; background:#fff;
+    padding:26px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  }
+  .upload-zone.drag{border-color:var(--ember); background:var(--ember-subtle);}
+  .upload-zone p{margin:0 0 4px; font-size:14px; color:var(--line-700);}
+  .upload-zone .hint{font-size:12.5px; color:var(--line-400);}
+
+  .banner{border-radius:12px; padding:14px 18px; font-size:13.5px; display:flex; gap:10px; align-items:flex-start;}
+  .banner.info{background:var(--line-100); color:var(--line-700); border:1px solid var(--line-200);}
+  .banner.warn{background:#FFFBEB; color:#92400E; border:1px solid #FDE68A;}
+  .banner.error{background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;}
+  .banner b{font-weight:700;}
+
+  .stat-strip{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px; background:var(--line-200); border:1px solid var(--line-200); border-radius:16px; overflow:hidden;}
+  .stat{background:#fff; padding:20px 22px;}
+  .stat .label{font-size:12.5px; color:var(--line-500); margin-bottom:8px;}
+  .stat .value{font-size:26px; font-weight:700; font-family:'Poppins',sans-serif;}
+  .stat .sub{font-size:12px; color:var(--line-400); margin-top:6px;}
+  .pill{display:inline-block; padding:2px 9px; border-radius:100px; font-size:11px; font-weight:600;}
+  .pill.pending{background:#FFFBEB; color:#92400E;}
+  .pill.ready{background:#ECFDF5; color:#065F46;}
+
+  table{width:100%; border-collapse:collapse; background:#fff; border-radius:14px; overflow:hidden; border:1px solid var(--line-200);}
+  thead th{
+    text-align:right; font-size:11.5px; font-weight:600; color:var(--line-500);
+    padding:10px 16px; border-bottom:1px solid var(--line-200); background:var(--line-50);
+  }
+  thead th:first-child, tbody td:first-child{text-align:left;}
+  tbody td{padding:11px 16px; font-size:13.5px; text-align:right; border-bottom:1px solid var(--line-100);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--line-50);}
+  tbody td.name{font-weight:600;}
+  tfoot td{padding:12px 16px; font-weight:700; border-top:2px solid var(--line-200); text-align:right;}
+  tfoot td:first-child{text-align:left;}
+
+  .target-input{width:100px; padding:5px 8px; border:1px solid var(--line-300); border-radius:7px; font-size:12.5px; text-align:right; font-family:'Inter',sans-serif;}
+  .tier-tag{font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:6px;}
+  .tier-tag.gold{background:#FEF3C7; color:#92400E;}
+  .tier-tag.green{background:#D1FAE5; color:#065F46;}
+  .tier-tag.miss{background:var(--line-100); color:var(--line-500);}
+  .tier-tag.pending{background:var(--line-100); color:var(--line-400);}
+
+  .chart-card{background:#fff; border:1px solid var(--line-200); border-radius:16px; padding:20px;}
+
+  details.data-quality{background:#fff; border:1px solid var(--line-200); border-radius:14px; padding:16px 20px;}
+  details.data-quality summary{cursor:pointer; font-weight:600; font-size:13.5px;}
+  .asin-chip{display:inline-block; font-size:11.5px; background:var(--line-100); border-radius:6px; padding:2px 7px; margin:3px 4px 0 0; color:var(--line-700);}
+
+  footer{max-width:1180px; margin:0 auto; padding:0 40px 40px; color:var(--line-400); font-size:12px;}
+  footer .confidential{font-weight:600; color:var(--line-500);}
+
+  .locked{filter:blur(6px); pointer-events:none; user-select:none;}
+  #authGate{
+    position:fixed; inset:0; background:rgba(15,23,42,.92); display:flex; align-items:center; justify-content:center; z-index:50;
+  }
+  .auth-card{background:#fff; border-radius:18px; padding:36px 40px; width:340px; text-align:center;}
+  .auth-card h2{margin:0 0 6px;}
+  .auth-card p{font-size:13px; color:var(--line-500); margin:0 0 18px;}
+  .auth-card input{width:100%; padding:11px 12px; border:1px solid var(--line-300); border-radius:10px; margin-bottom:12px; font-size:14px;}
+  .auth-card .btn{width:100%;}
+  .auth-error{color:var(--bad); font-size:12.5px; min-height:16px; margin-bottom:6px;}
+</style>
+</head>
+<body>
+
+<div id="authGate">
+  <div class="auth-card">
+    <h2>CD Commerce</h2>
+    <p>Enter the dashboard passcode to continue.<br>Access is limited to authorized finance &amp; leadership staff.</p>
+    <input type="password" id="passcodeInput" placeholder="Passcode" autocomplete="off">
+    <div class="auth-error" id="authError"></div>
+    <button class="btn primary" onclick="tryLogin()">Unlock dashboard</button>
+  </div>
+</div>
+
+<header class="top">
+  <div class="top-row">
+    <div>
+      <p class="wordmark">CD<span class="light">&nbsp;Commerce</span></p>
+      <div class="subtitle">Variable Bonus Dashboard · Internal use only</div>
+    </div>
+    <div class="top-controls">
+      <select id="monthSelect" onchange="onMonthChange()"></select>
+      <button class="btn ghost" onclick="logout()">Lock</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <div class="section-head">
+      <h2>Upload this month's Sellerboard export</h2>
+      <span class="section-note">"Group by Parent" export · child SKU rows only are used</span>
+    </div>
+    <div class="upload-zone" id="dropZone">
+      <div>
+        <p>Drop the CSV here, or choose a file</p>
+        <p class="hint">Computation happens in your browser — nothing is uploaded anywhere until you choose to save it.</p>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="month" id="monthPicker">
+        <input type="file" id="fileInput" accept=".csv">
+      </div>
+    </div>
+    <div id="uploadStatus" style="margin-top:14px;"></div>
+  </section>
+
+  <section id="dataQualitySection" style="display:none;">
+    <details class="data-quality" open>
+      <summary id="dqSummary">Data quality</summary>
+      <div id="dqBody" style="margin-top:10px; font-size:13px; color:var(--line-700);"></div>
+    </details>
+  </section>
+
+  <section id="statsSection" style="display:none;">
+    <div class="section-head"><h2>August at a glance</h2></div>
+    <div class="stat-strip" id="statStrip"></div>
+  </section>
+
+  <section id="rdSection" style="display:none;">
+    <div class="section-head">
+      <h2>R&amp;D Team — Y1 products (pooled)</h2>
+      <span class="section-note">Bonus track: pooled actuals across all brands' Y1 (M4-12) SKUs</span>
+    </div>
+    <table>
+      <thead><tr><th>Metric</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th></tr></thead>
+      <tbody id="rdBody"></tbody>
+    </table>
+  </section>
+
+  <section id="launchSection" style="display:none;">
+    <div class="section-head">
+      <h2>Launch Manager — F3M</h2>
+      <span class="section-note">Germany vs. Pan-EU split pending a marketplace column in the source export</span>
+    </div>
+    <div class="banner warn" style="margin-bottom:12px;">
+      <span>⚠</span>
+      <span><b>Marketplace split unavailable.</b> This export blends all marketplaces, so DE and Pan-EU F3M can't be separated yet. Showing combined F3M actuals only — export per marketplace from Sellerboard to unlock the split.</span>
+    </div>
+    <table>
+      <thead><tr><th>Metric</th><th>Combined actual</th></tr></thead>
+      <tbody id="launchBody"></tbody>
+    </table>
+  </section>
+
+  <section id="bmSection" style="display:none;">
+    <div class="section-head">
+      <h2>Brand Manager — per brand</h2>
+      <span class="section-note">PY1 + Y1 (F4-12) + Discontinued, blended per brand</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Brand</th><th>PY1</th><th>Y1 (F4-12)</th><th>Discontinued</th><th>Combined actual</th><th>Green target</th><th>Gold target</th><th>Tier</th></tr>
+      </thead>
+      <tbody id="bmBody"></tbody>
+      <tfoot><tr><td>Total</td><td></td><td></td><td></td><td class="num" id="bmTotal"></td><td></td><td></td><td></td></tr></tfoot>
+    </table>
+  </section>
+
+  <section id="mpSection" style="display:none;">
+    <div class="section-head">
+      <h2>Marketplace Team</h2>
+      <span class="section-note">Not derivable from Sellerboard data — enter manually</span>
+    </div>
+    <table>
+      <thead><tr><th>Metric</th><th>Actual (manual)</th><th>Green target</th><th>Gold target</th><th>Tier</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="name">Actual Revenue (€)</td>
+          <td><input class="target-input" id="mpActual" type="number" step="0.01"></td>
+          <td><input class="target-input" id="mpGreen" type="number" step="0.01"></td>
+          <td><input class="target-input" id="mpGold" type="number" step="0.01"></td>
+          <td id="mpTier"><span class="tier-tag pending">— </span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="chartSection" style="display:none;">
+    <div class="section-head"><h2>Revenue by brand</h2></div>
+    <div class="chart-card"><canvas id="brandChart" height="90"></canvas></div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Save this month</h2></div>
+    <button class="btn primary" onclick="saveMonth()">Save to history</button>
+    <span id="saveStatus" class="section-note" style="margin-left:10px;"></span>
+  </section>
+
+</main>
+
+<footer>
+  <p><span class="confidential">Confidential — Internal Use Only.</span> Tier and bonus figures require Green/Gold revenue targets, which are not present in the Sellerboard export; they will populate once target data is connected.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
