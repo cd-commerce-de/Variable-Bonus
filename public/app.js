@@ -688,8 +688,8 @@ function renderInner(data, viewLabel) {
         <td class="num tint-green">${fmtEUR(r.green_target)}${sourceTag(r.target_source)}</td>
         <td class="num tint-gold">${fmtEUR(r.gold_target)}</td>
         <td class="num">${fmtPct(r.actual_margin_pct)}</td>
-        <td class="num tint-green">${r.green_margin_pct != null ? fmtPct(r.green_margin_pct) : '<span style="color:var(--line-400); font-size:11.5px;">no target yet</span>'}</td>
-        <td class="num tint-gold">${r.gold_margin_pct != null ? fmtPct(r.gold_margin_pct) : '<span style="color:var(--line-400); font-size:11.5px;">no target yet — gate assumed pass</span>'}</td>
+        <td class="num tint-green">${fmtPct(r.green_margin_pct)}</td>
+        <td class="num tint-gold">${fmtPct(r.gold_margin_pct)}</td>
         <td>${tierTag(r.tier)}</td>
         <td class="num ${tierCellClass(r.tier)}">${fmtEUR(r.bonus_eur)}</td>
       </tr>
