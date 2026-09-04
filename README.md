@@ -36,6 +36,43 @@ wins when present. F3M ASINs with no marketplace entry at all are excluded
 from the DE/Pan-EU split (but still counted in "Combined") and listed in
 a data-quality banner on the page.
 
+## Stage is computed live, not read from a fixed TOC column
+
+This is the core fix: a SKU's stage (F3M / Y1 "M4-12" / PY1) is a **function
+of (Launch Date, the month being attributed)**, computed fresh every time —
+not a static label that goes stale as months pass. The same ASIN
+correctly reports a different stage in different months, with zero manual
+TOC editing required as existing products age:
+
+- Months 1-3 since launch → **F3M**
+- Months 4-12 since launch → **M4-12** ("Y1 (F4-12)")
+- Month 13+ since launch → **PY1**
+- **Discontinued** / **Quality Issue** are manual overrides (there's no
+  calendar rule for these) — once their start date (still set in the TOC)
+  is reached, they take over from whatever the calendar would otherwise
+  say, for that month and every month after.
+
+Verified directly: a real ASIN launched 2026-05-07 computes F3M for
+June/July 2026 and automatically flips to M4-12 for August 2026 — no TOC
+change involved.
+
+Implemented in `computeStageForMonth()` in `app.js`. The TOC's own `Stage`
+column is still extracted (as `toc_stage_snapshot`) but only used as a
+fallback for the rare ASIN with no Launch Date on file — everything else
+uses the live calculation.
+
+**Bonus totals will shift slightly** compared to earlier versions of this
+dashboard that read the TOC's static Stage column directly — that's
+expected and correct, not a regression: some ASINs were sitting in a
+stage the TOC hadn't gotten around to updating.
+
+### ASIN Masterlist (Upload tab)
+
+A searchable, live view of every ASIN's Brand, Product, Launch Date, and
+computed stage **for whichever month is currently selected**. Doesn't
+render all ~2,400 rows by default (search box requires 2+ characters) to
+stay fast; results cap at 200 matches with a note if there are more.
+
 ## Targets — how they get in
 
 Targets are **not entered manually in the dashboard.** There are two layers:
@@ -295,11 +332,13 @@ Ask me if you want this built out.
 
 ## Updating targets or the TOC mapping
 
-Whenever Finance updates rates/targets in the calculator, or brands/stages
-change in the TOC:
+Whenever Finance updates rates/targets in the calculator, or the TOC
+itself changes (new products, brand reassignment, a corrected Launch
+Date, or a newly-set Discontinued/Quality Issue date) — **not** just
+because a month has passed, since stage now recalculates on its own:
 ```bash
 python3 scripts/extract_targets.py path/to/calculator.xlsx --quarter Q3
-python3 scripts/build_mapping.py
+python3 scripts/build_mapping.py path/to/TOC.xlsx
 cp mapping/targets.json public/targets.json
 cp mapping/toc_mapping.json public/toc_mapping.json
 ```

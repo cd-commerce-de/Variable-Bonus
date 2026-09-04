@@ -16,9 +16,32 @@ const PASSCODE_HASH = "REPLACE_WITH_SHA256_HASH"; // set via scripts/hash_passco
 
 const STAGE_LABELS = { 'PY1': 'PY1', 'M4-12': 'Y1 (F4-12)', 'Discontinued': 'Discontinued', 'F3M': 'F3M', 'Quality Issue': 'Quality Issue (unassigned)' };
 
-// TOC brand names sometimes differ in case/styling from the calculator's
-// brand names (e.g. "NASSWERK" vs "Nasswerk"). Normalize for matching.
-function normBrand(b) { return (b || '').trim().toLowerCase(); }
+// ---------- Stage computation, embedded (no manual TOC updates needed) ----------
+// A SKU's stage is a function of (launch date, the month being attributed),
+// NOT a fixed label -- it moves forward every month on its own:
+//   months 1-3 since launch  -> F3M
+//   months 4-12 since launch -> M4-12 ("Y1 (F4-12)")
+//   month 13+ since launch   -> PY1
+// Discontinued / Quality Issue are manual overrides (there's no calendar
+// rule for them) -- once their start date is reached, they take over from
+// whatever the calendar would otherwise say, for that month and onward.
+function monthIndex(dateStr) { // "2026-08" or "2026-08-15" -> single comparable integer
+  const [y, m] = dateStr.split('-').map(Number);
+  return y * 12 + (m - 1);
+}
+function computeStageForMonth(info, targetMonth) {
+  if (!info.launch_date) return info.toc_stage_snapshot || null; // no launch date on file -- fall back to whatever the TOC last recorded
+  const targetIdx = monthIndex(targetMonth);
+  if (info.quality_issue_start_date && monthIndex(info.quality_issue_start_date) <= targetIdx) return 'Quality Issue';
+  if (info.discontinued_start_date && monthIndex(info.discontinued_start_date) <= targetIdx) return 'Discontinued';
+  const monthsSinceLaunch = targetIdx - monthIndex(info.launch_date);
+  if (monthsSinceLaunch < 0) return null; // hasn't launched yet as of this month
+  if (monthsSinceLaunch < 3) return 'F3M';
+  if (monthsSinceLaunch < 12) return 'M4-12';
+  return 'PY1';
+}
+
+function normBrand(b) { return (b || '').trim().toLowerCase(); } // TOC brand names sometimes differ in case/styling from the calculator's (e.g. "NASSWERK" vs "Nasswerk")
 
 // The Brand Manager bonus track covers exactly these 9 brands, grouped
 // under 4 supervisors -- confirmed against the calculator's All Tracks
@@ -248,6 +271,51 @@ async function onMonthChange() {
     CURRENT = applyTargetsAndTiers(data, false, await loadMonthlyTargets(month));
     render(CURRENT, 'monthly');
   }
+  renderMasterlist();
+}
+
+function referenceMonthForMasterlist() {
+  return document.getElementById('monthSelect').value || document.getElementById('monthPicker').value || null;
+}
+
+function renderMasterlist() {
+  const month = referenceMonthForMasterlist();
+  document.getElementById('masterlistMonthLabel').textContent = month ? formatMonthLabel(month) : 'the selected month';
+  const filterEl = document.getElementById('masterlistFilter');
+  const filter = (filterEl.value || '').trim().toLowerCase();
+  const bodyEl = document.getElementById('masterlistBody');
+  const footerEl = document.getElementById('masterlistFooter');
+
+  if (!MAPPING || !month) { bodyEl.innerHTML = ''; footerEl.textContent = ''; return; }
+  if (filter.length < 2) {
+    bodyEl.innerHTML = '';
+    footerEl.textContent = `${Object.keys(MAPPING).length.toLocaleString('en-US')} ASINs on file. Type at least 2 characters above to search.`;
+    return;
+  }
+
+  const CAP = 200;
+  const matches = [];
+  for (const [asin, info] of Object.entries(MAPPING)) {
+    const hay = `${asin} ${info.product || ''} ${info.brand || ''}`.toLowerCase();
+    if (hay.includes(filter)) matches.push([asin, info]);
+    if (matches.length > CAP) break;
+  }
+
+  bodyEl.innerHTML = matches.slice(0, CAP).map(([asin, info]) => {
+    const stage = computeStageForMonth(info, month);
+    const stageDisplay = stage ? (STAGE_LABELS[stage] || stage) : '<span style="color:var(--line-400);">not yet launched</span>';
+    return `<tr>
+      <td class="name">${asin}</td>
+      <td class="name">${info.brand || '—'}</td>
+      <td class="name" title="${info.product || ''}">${info.product || '—'}</td>
+      <td class="num">${info.launch_date || '—'}</td>
+      <td>${stageDisplay}</td>
+    </tr>`;
+  }).join('');
+
+  footerEl.textContent = matches.length > CAP
+    ? `Showing first ${CAP} matches of ${matches.length}+ — refine your search to see more specific results.`
+    : `${matches.length} match${matches.length === 1 ? '' : 'es'}.`;
 }
 
 function setTab(t) {
@@ -466,7 +534,9 @@ async function computeFromRows(rows, month) {
       refunds: cleanNumber(r.Refunds),
     };
     if (!info) { unmapped.push(rec); return; }
-    rec.brand = info.brand; rec.stage = info.stage; rec.status = info.status; rec.product_code = info.product_code;
+    const stage = computeStageForMonth(info, month);
+    if (!stage) { rec.reason = 'future_launch_or_unknown'; unmapped.push(rec); return; } // launch date is after this month, or genuinely undetermined -- don't silently lose this revenue
+    rec.brand = info.brand; rec.stage = stage; rec.status = info.status; rec.product_code = info.product_code;
     byAsin.push(rec);
   });
 
@@ -551,8 +621,10 @@ async function computeFromRows(rows, month) {
     meta: {
       total_rows_processed: children.length,
       mapped_rows: byAsin.length,
-      unmapped_rows: unmapped.length,
-      unmapped_asins: Array.from(new Set(unmapped.map(u => u.asin))).filter(Boolean).sort(),
+      unmapped_rows: unmapped.filter(u => u.reason !== 'future_launch_or_unknown').length,
+      unmapped_asins: Array.from(new Set(unmapped.filter(u => u.reason !== 'future_launch_or_unknown').map(u => u.asin))).filter(Boolean).sort(),
+      future_launch_rows: unmapped.filter(u => u.reason === 'future_launch_or_unknown').length,
+      future_launch_asins: Array.from(new Set(unmapped.filter(u => u.reason === 'future_launch_or_unknown').map(u => u.asin))).filter(Boolean).sort(),
     },
   };
   return applyTargetsAndTiers(result, false, await loadMonthlyTargets(month));
@@ -750,12 +822,20 @@ function renderInner(data, viewLabel) {
   updateTargetsNote(data.month, !!(data._targets_meta && data._targets_meta.used_real_monthly));
 
   // Data quality
+  const futureCount = data.meta.future_launch_rows || 0;
   document.getElementById('dqSummary').textContent =
-    `Data quality — ${data.meta.mapped_rows.toLocaleString('en-US')} SKUs mapped, ${data.meta.unmapped_rows} unmapped`;
-  document.getElementById('dqBody').innerHTML = data.meta.unmapped_rows
-    ? `<p>${data.meta.unmapped_rows} ASIN(s) in this export aren't in the TOC mapping yet, so their revenue is <b>excluded</b> from every track below rather than silently misassigned. Add them to the TOC "ASIN Report" tab and re-upload to include them.</p>
-       <div>${data.meta.unmapped_asins.map(a => `<span class="asin-chip">${a}</span>`).join('')}</div>`
-    : `<p>Every SKU in this export matched the TOC mapping.</p>`;
+    `Data quality — ${data.meta.mapped_rows.toLocaleString('en-US')} SKUs mapped, ${data.meta.unmapped_rows} unmapped${futureCount ? `, ${futureCount} pre-launch` : ''}`;
+  let dqHtml = '';
+  if (data.meta.unmapped_rows) {
+    dqHtml += `<p>${data.meta.unmapped_rows} ASIN(s) in this export aren't in the TOC mapping at all, so their revenue is <b>excluded</b> from every track below rather than silently misassigned. Add them to the TOC "ASIN Report" tab and re-upload to include them.</p>
+       <div>${data.meta.unmapped_asins.map(a => `<span class="asin-chip">${a}</span>`).join('')}</div>`;
+  }
+  if (futureCount) {
+    dqHtml += `<p style="margin-top:${data.meta.unmapped_rows ? '14px' : '0'};">${futureCount} ASIN(s) are in the TOC but their Launch Date is after ${formatMonthLabel(data.month)} (or has no computable stage) — excluded from every track for this month rather than guessed at.</p>
+       <div>${(data.meta.future_launch_asins || []).map(a => `<span class="asin-chip">${a}</span>`).join('')}</div>`;
+  }
+  if (!dqHtml) dqHtml = `<p>Every SKU in this export matched the TOC mapping and has a computable stage for this month.</p>`;
+  document.getElementById('dqBody').innerHTML = dqHtml;
   document.getElementById('dataQualitySection').style.display = 'block';
 
   // Reveal every section up front — each block below fills in its own

@@ -207,6 +207,25 @@
   </section>
 
   <section>
+    <div class="section-head">
+      <h2>ASIN Masterlist</h2>
+      <span class="section-note">Stage is computed live from Launch Date, not read from a fixed TOC column — see explanation below</span>
+    </div>
+    <div class="banner info" style="margin-bottom:12px;">
+      <span>ℹ</span>
+      <span>Stage moves forward on its own as months pass: 1st-3rd month since launch = F3M, 4th-12th = Y1 (F4-12), 13th onward = PY1. Discontinued/Quality Issue only apply once their start date (set in the TOC) is reached. No manual TOC edits needed for existing products as they age — this list always reflects <span id="masterlistMonthLabel">the selected month</span>.</span>
+    </div>
+    <input type="text" id="masterlistFilter" placeholder="Search by ASIN, product, or brand… (type at least 2 characters)" style="width:100%; max-width:480px; padding:9px 12px; border:1px solid var(--line-300); border-radius:10px; font-size:13px; margin-bottom:12px;" oninput="renderMasterlist()">
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>ASIN</th><th>Brand</th><th>Product</th><th>Launch Date</th><th>Stage this month</th></tr></thead>
+      <tbody id="masterlistBody"></tbody>
+    </table>
+    </div>
+    <p class="section-note" id="masterlistFooter" style="margin-top:8px;"></p>
+  </section>
+
+  <section>
     <div class="section-head"><h2>Save this month</h2></div>
     <button class="btn primary" onclick="saveMonth()">Save to history</button>
     <span id="saveStatus" class="section-note" style="margin-left:10px;"></span>
