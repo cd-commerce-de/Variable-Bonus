@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>CD Commerce — Variable Bonus Dashboard</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -27,8 +31,7 @@
     color:#fff; padding:28px 40px 24px; position:relative; overflow:hidden;
   }
   header.top::after{content:"";position:absolute; left:0; right:0; bottom:0; height:3px; background:var(--ember);}
-  .wordmark{font-size:22px; font-weight:800; margin:0; display:flex; align-items:baseline; gap:2px;}
-  .wordmark .light{font-weight:400;}
+  .brand-icon{height:28px; width:auto; display:block; margin-bottom:4px;}
   .top-row{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;}
   .subtitle{color:var(--line-300); font-size:14px; margin-top:2px;}
   .top-controls{display:flex; gap:10px; align-items:center;}
@@ -127,7 +130,7 @@
 
 <div id="authGate">
   <div class="auth-card">
-    <h2>CD Commerce</h2>
+    <img src="assets/icon-black.png" alt="CD Commerce" class="brand-icon" style="height:40px; margin:0 auto 14px;">
     <p>Enter the dashboard passcode to continue.<br>Access is limited to authorized finance &amp; leadership staff.</p>
     <input type="password" id="passcodeInput" placeholder="Passcode" autocomplete="off">
     <div class="auth-error" id="authError"></div>
@@ -138,7 +141,7 @@
 <header class="top">
   <div class="top-row">
     <div>
-      <p class="wordmark">CD<span class="light">&nbsp;Commerce</span></p>
+      <img src="assets/icon-white.png" alt="CD Commerce" class="brand-icon">
       <div class="subtitle">Variable Bonus Dashboard · Internal use only</div>
     </div>
     <div class="top-controls">

@@ -232,6 +232,7 @@ Commit and push — the dashboard picks up the new files on next load.
 
 ```
 public/index.html, app.js     the dashboard itself (static, client-side compute + tiering)
+public/favicon.ico, assets/*  CD Commerce icon mark (icon only, no wordmark) -- favicon + header/login branding
 public/toc_mapping.json       ASIN → brand/stage/product code (regenerate via build_mapping.py)
 public/targets.json           Q3 targets + rates/weights (regenerate via extract_targets.py)
 public/targets_monthly/*.json real per-month Good/Better/Best targets (regenerate via extract_monthly_targets.py)
