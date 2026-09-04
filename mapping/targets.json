@@ -1,0 +1,499 @@
+{
+ "source_quarter": "Q3",
+ "note": "Monthly targets = quarterly target / 3 (interim, per instruction). Replace with real monthly targets once available.",
+ "rd_team": {
+  "GWK": {
+   "label": "Mulled wine kettle - GWK",
+   "quarter_green_rev": 2043.72,
+   "quarter_gold_rev": 2270.8,
+   "monthly_green_rev": 681.24,
+   "monthly_gold_rev": 756.9333333333334,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "DSD": {
+   "label": "Dartstand - DSD",
+   "quarter_green_rev": 0,
+   "quarter_gold_rev": 0,
+   "monthly_green_rev": 0.0,
+   "monthly_gold_rev": 0.0,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "TSE": {
+   "label": "Toilet seat - TSE",
+   "quarter_green_rev": 0,
+   "quarter_gold_rev": 0,
+   "monthly_green_rev": 0.0,
+   "monthly_gold_rev": 0.0,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "TSF": {
+   "label": "Toilet seat kids - TSF",
+   "quarter_green_rev": 17058.6,
+   "quarter_gold_rev": 18954,
+   "monthly_green_rev": 5686.2,
+   "monthly_gold_rev": 6318.0,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "KMS": {
+   "label": "Fireplace guard - KMS",
+   "quarter_green_rev": 18696.15,
+   "quarter_gold_rev": 20773.5,
+   "monthly_green_rev": 6232.05,
+   "monthly_gold_rev": 6924.5,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "FES": {
+   "label": "Fire Bowl - FES",
+   "quarter_green_rev": 45400.95,
+   "quarter_gold_rev": 50445.5,
+   "monthly_green_rev": 15133.65,
+   "monthly_gold_rev": 16815.166666666668,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "FRM02": {
+   "label": "Bicycle mounting stand - FRM02",
+   "quarter_green_rev": 109863,
+   "quarter_gold_rev": 122070,
+   "monthly_green_rev": 36621.0,
+   "monthly_gold_rev": 40690.0,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "WHS": {
+   "label": "Waders - WHS",
+   "quarter_green_rev": 0,
+   "quarter_gold_rev": 0,
+   "monthly_green_rev": 0.0,
+   "monthly_gold_rev": 0.0,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "SLP": {
+   "label": "Solar cover - SLP",
+   "quarter_green_rev": 82272.591,
+   "quarter_gold_rev": 91413.99,
+   "monthly_green_rev": 27424.197,
+   "monthly_gold_rev": 30471.33,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "VZW": {
+   "label": "Awning caravan - VZW",
+   "quarter_green_rev": 0,
+   "quarter_gold_rev": 0,
+   "monthly_green_rev": 0.0,
+   "monthly_gold_rev": 0.0,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "AKS": {
+   "label": "Cordless screwdriver - AKS",
+   "quarter_green_rev": 20142,
+   "quarter_gold_rev": 22380,
+   "monthly_green_rev": 6714.0,
+   "monthly_gold_rev": 7460.0,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "WGH25": {
+   "label": "WGH25 - Car Jack 2.5ton",
+   "quarter_green_rev": 54575.28,
+   "quarter_gold_rev": 60639.2,
+   "monthly_green_rev": 18191.76,
+   "monthly_gold_rev": 20213.066666666666,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  },
+  "KMK": {
+   "label": "Clamping Awning - KMK",
+   "quarter_green_rev": 134645.04,
+   "quarter_gold_rev": 149605.6,
+   "monthly_green_rev": 44881.68,
+   "monthly_gold_rev": 49868.53333333333,
+   "green_margin_pct": null,
+   "gold_margin_pct": null,
+   "gate": "✅ PASS"
+  }
+ },
+ "launch_manager": {
+  "germany": {
+   "label": "Germany F3M",
+   "quarter_green_rev": 435914.15,
+   "quarter_gold_rev": 458857,
+   "monthly_green_rev": 145304.71666666667,
+   "monthly_gold_rev": 152952.33333333334,
+   "green_margin_pct": 0.133,
+   "gold_margin_pct": 0.143,
+   "gate": "✅ PASS"
+  },
+  "pan_eu": {
+   "label": "PAN EU Expansion F3M",
+   "quarter_green_rev": 24791.2,
+   "quarter_gold_rev": 26096,
+   "monthly_green_rev": 8263.733333333334,
+   "monthly_gold_rev": 8698.666666666666,
+   "green_margin_pct": 0.13,
+   "gold_margin_pct": 0.143,
+   "gate": "✅ PASS"
+  }
+ },
+ "brand_manager": {
+  "Tarpofix": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 1170880.862,
+    "quarter_gold_rev": 1232506.17,
+    "monthly_green_rev": 390293.62066666665,
+    "monthly_gold_rev": 410835.38999999996,
+    "green_margin_pct": 0.23541,
+    "gold_margin_pct": 0.24662,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": 115123.926,
+    "quarter_gold_rev": 121183.08,
+    "monthly_green_rev": 38374.642,
+    "monthly_gold_rev": 40394.36,
+    "green_margin_pct": 0.171,
+    "gold_margin_pct": 0.18,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": 41800.95,
+    "quarter_gold_rev": 44001,
+    "monthly_green_rev": 13933.65,
+    "monthly_gold_rev": 14667.0,
+    "green_margin_pct": 0.05,
+    "gold_margin_pct": 0.1,
+    "gate": "✅ PASS"
+   }
+  },
+  "Darwin": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 18143.89,
+    "quarter_gold_rev": 19051.0845,
+    "monthly_green_rev": 6047.963333333333,
+    "monthly_gold_rev": 6350.3615,
+    "green_margin_pct": 0.2822166667,
+    "gold_margin_pct": 0.2891,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": null,
+    "quarter_gold_rev": null,
+    "monthly_green_rev": null,
+    "monthly_gold_rev": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": null,
+    "quarter_gold_rev": null,
+    "monthly_green_rev": null,
+    "monthly_gold_rev": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   }
+  },
+  "Planenfux": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 770598.2,
+    "quarter_gold_rev": 811156,
+    "monthly_green_rev": 256866.06666666665,
+    "monthly_gold_rev": 270385.3333333333,
+    "green_margin_pct": 0.19546,
+    "gold_margin_pct": 0.2117533333,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": 144363.9,
+    "quarter_gold_rev": 151962,
+    "monthly_green_rev": 48121.299999999996,
+    "monthly_gold_rev": 50654.0,
+    "green_margin_pct": 0.171,
+    "gold_margin_pct": 0.18,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": null,
+    "quarter_gold_rev": null,
+    "monthly_green_rev": null,
+    "monthly_gold_rev": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   }
+  },
+  "Heimfleiss": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 1397020,
+    "quarter_gold_rev": 1466871,
+    "monthly_green_rev": 465673.3333333333,
+    "monthly_gold_rev": 488957.0,
+    "green_margin_pct": 0.1937816667,
+    "gold_margin_pct": 0.2081966667,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": 1096435.85,
+    "quarter_gold_rev": 1657214,
+    "monthly_green_rev": 365478.6166666667,
+    "monthly_gold_rev": 552404.6666666666,
+    "green_margin_pct": 0.171,
+    "gold_margin_pct": 0.18,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": 120660.45,
+    "quarter_gold_rev": 127011,
+    "monthly_green_rev": 40220.15,
+    "monthly_gold_rev": 42337.0,
+    "green_margin_pct": 0.05,
+    "gold_margin_pct": 0.1,
+    "gate": "✅ PASS"
+   }
+  },
+  "Mattenheld": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 45731.822,
+    "quarter_gold_rev": 48138.76,
+    "monthly_green_rev": 15243.940666666667,
+    "monthly_gold_rev": 16046.253333333334,
+    "green_margin_pct": 0.118,
+    "gold_margin_pct": 0.225,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": null,
+    "quarter_gold_rev": null,
+    "monthly_green_rev": null,
+    "monthly_gold_rev": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": null,
+    "quarter_gold_rev": null,
+    "monthly_green_rev": null,
+    "monthly_gold_rev": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   }
+  },
+  "PD": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 619516,
+    "quarter_gold_rev": 650491.8,
+    "monthly_green_rev": 206505.33333333334,
+    "monthly_gold_rev": 216830.6,
+    "green_margin_pct": 0.224,
+    "gold_margin_pct": 0.244,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": null,
+    "quarter_gold_rev": null,
+    "monthly_green_rev": null,
+    "monthly_gold_rev": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": null,
+    "quarter_gold_rev": null,
+    "monthly_green_rev": null,
+    "monthly_gold_rev": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   }
+  },
+  "Nasswerk": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 610461,
+    "quarter_gold_rev": 640984.05,
+    "monthly_green_rev": 203487.0,
+    "monthly_gold_rev": 213661.35,
+    "green_margin_pct": 0.1684333333,
+    "gold_margin_pct": 0.1876666667,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": 85781.2,
+    "quarter_gold_rev": 90296,
+    "monthly_green_rev": 28593.733333333334,
+    "monthly_gold_rev": 30098.666666666668,
+    "green_margin_pct": 0.171,
+    "gold_margin_pct": 0.18,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": 29073.8,
+    "quarter_gold_rev": 30604,
+    "monthly_green_rev": 9691.266666666666,
+    "monthly_gold_rev": 10201.333333333334,
+    "green_margin_pct": 0.05,
+    "gold_margin_pct": 0.1,
+    "gate": "✅ PASS"
+   }
+  },
+  "PoolLöwe": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 206560,
+    "quarter_gold_rev": 216888,
+    "monthly_green_rev": 68853.33333333333,
+    "monthly_gold_rev": 72296.0,
+    "green_margin_pct": 0.198395,
+    "gold_margin_pct": 0.2186233333,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": 3199.6,
+    "quarter_gold_rev": 3368,
+    "monthly_green_rev": 1066.5333333333333,
+    "monthly_gold_rev": 1122.6666666666667,
+    "green_margin_pct": 0.171,
+    "gold_margin_pct": 0.18,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": 36681.4,
+    "quarter_gold_rev": 38612,
+    "monthly_green_rev": 12227.133333333333,
+    "monthly_gold_rev": 12870.666666666666,
+    "green_margin_pct": 0.05,
+    "gold_margin_pct": 0.1,
+    "gate": "✅ PASS"
+   }
+  },
+  "TeichHeld": {
+   "PY1": {
+    "label": null,
+    "quarter_green_rev": 41306,
+    "quarter_gold_rev": 43371.3,
+    "monthly_green_rev": 13768.666666666666,
+    "monthly_gold_rev": 14457.1,
+    "green_margin_pct": 0.1363333333,
+    "gold_margin_pct": 0.1563333333,
+    "gate": "✅ PASS"
+   },
+   "Y1 (F4-12)": {
+    "label": null,
+    "quarter_green_rev": 0,
+    "quarter_gold_rev": 0,
+    "monthly_green_rev": 0.0,
+    "monthly_gold_rev": 0.0,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   },
+   "Discontinued": {
+    "label": null,
+    "quarter_green_rev": 0,
+    "quarter_gold_rev": 0,
+    "monthly_green_rev": 0.0,
+    "monthly_gold_rev": 0.0,
+    "green_margin_pct": null,
+    "gold_margin_pct": null,
+    "gate": "✅ PASS"
+   }
+  }
+ },
+ "marketplace": {
+  "label": "Marketplace",
+  "quarter_green_rev": null,
+  "quarter_gold_rev": null,
+  "monthly_green_rev": null,
+  "monthly_gold_rev": null,
+  "green_margin_pct": null,
+  "gold_margin_pct": null,
+  "gate": "✅ PASS"
+ },
+ "rates": {
+  "rd_team": {
+   "green": 0.005,
+   "gold": 0.01,
+   "team_size": 3.0
+  },
+  "brand_manager": {
+   "green": 0.015,
+   "gold": 0.03
+  },
+  "launch_mgr_germany": {
+   "green": 0.0035,
+   "gold": 0.007
+  },
+  "launch_mgr_pan_eu": {
+   "green": 0.0015,
+   "gold": 0.003
+  },
+  "marketplace": {
+   "green": 0.005,
+   "gold": 0.01,
+   "team_size": 1.0
+  }
+ },
+ "stage_weights": {
+  "PY1": {
+   "weight": 0.6,
+   "eff_green": 0.009,
+   "eff_gold": 0.018
+  },
+  "Y1 (F4-12)": {
+   "weight": 0.3,
+   "eff_green": 0.0045,
+   "eff_gold": 0.009
+  },
+  "Discontinued": {
+   "weight": 0.1,
+   "eff_green": 0.0015,
+   "eff_gold": 0.003
+  }
+ }
+}

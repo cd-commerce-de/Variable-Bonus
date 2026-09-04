@@ -32,6 +32,10 @@
   .top-row{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;}
   .subtitle{color:var(--line-300); font-size:14px; margin-top:2px;}
   .top-controls{display:flex; gap:10px; align-items:center;}
+  .view-toggle{display:flex; background:rgba(255,255,255,.08); border-radius:10px; padding:3px; gap:2px;}
+  .toggle-btn{background:none; border:none; color:var(--line-300); font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:7px 14px; border-radius:8px; cursor:pointer;}
+  .toggle-btn.active{background:#fff; color:var(--ink);}
+  .period-badge{font-size:12px; font-weight:600; color:var(--line-300); border:1px solid rgba(255,255,255,.25); padding:5px 10px; border-radius:100px;}
   select, .btn, input[type=file]::file-selector-button{
     font-family:'Inter',sans-serif; font-size:13px; font-weight:600;
     border-radius:10px; border:1px solid var(--line-300); padding:9px 14px;
@@ -83,6 +87,8 @@
   tbody td.name{font-weight:600;}
   tfoot td{padding:12px 16px; font-weight:700; border-top:2px solid var(--line-200); text-align:right;}
   tfoot td:first-child{text-align:left;}
+  tr.brand-row td{background:var(--line-50); font-weight:700; border-top:1.5px solid var(--line-200);}
+  tr.stage-row td.name.sub{padding-left:30px; font-weight:400; color:var(--line-500); font-size:12.5px;}
 
   .target-input{width:100px; padding:5px 8px; border:1px solid var(--line-300); border-radius:7px; font-size:12.5px; text-align:right; font-family:'Inter',sans-serif;}
   .tier-tag{font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:6px;}
@@ -132,6 +138,11 @@
     </div>
     <div class="top-controls">
       <select id="monthSelect" onchange="onMonthChange()"></select>
+      <div class="view-toggle">
+        <button id="viewMonthlyBtn" class="toggle-btn active" onclick="setView('monthly')">Monthly</button>
+        <button id="viewQuarterlyBtn" class="toggle-btn" onclick="setView('quarterly')">Quarterly</button>
+      </div>
+      <span class="period-badge" id="periodBadge"></span>
       <button class="btn ghost" onclick="logout()">Lock</button>
     </div>
   </div>
@@ -155,7 +166,12 @@
       </div>
     </div>
     <div id="uploadStatus" style="margin-top:14px;"></div>
+    <p class="section-note" id="targetsNote" style="margin-top:8px;"></p>
   </section>
+
+  <div class="banner warn" id="quarterlyNote" style="display:none; margin-bottom:20px;">
+    <span>⚠</span><span></span>
+  </div>
 
   <section id="dataQualitySection" style="display:none;">
     <details class="data-quality" open>
@@ -165,18 +181,22 @@
   </section>
 
   <section id="statsSection" style="display:none;">
-    <div class="section-head"><h2>August at a glance</h2></div>
+    <div class="section-head"><h2>At a glance</h2></div>
     <div class="stat-strip" id="statStrip"></div>
   </section>
 
   <section id="rdSection" style="display:none;">
     <div class="section-head">
-      <h2>R&amp;D Team — Y1 products (pooled)</h2>
-      <span class="section-note">Bonus track: pooled actuals across all brands' Y1 (M4-12) SKUs</span>
+      <h2>R&amp;D Team — Y1 products</h2>
+      <span class="section-note">One row per product · targets from the calculator, ÷3 for the monthly view</span>
     </div>
     <table>
-      <thead><tr><th>Metric</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th></tr></thead>
+      <thead><tr><th>Product</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody id="rdBody"></tbody>
+      <tfoot>
+        <tr><td>Pool bonus total</td><td></td><td></td><td></td><td></td><td class="num" id="rdTotalBonus"></td></tr>
+        <tr><td style="font-weight:400;">÷ <span id="rdTeamSize"></span> team members</td><td></td><td></td><td></td><td></td><td class="num" id="rdPerPerson" style="font-weight:400;"></td></tr>
+      </tfoot>
     </table>
   </section>
 
@@ -187,10 +207,10 @@
     </div>
     <div class="banner warn" style="margin-bottom:12px;">
       <span>⚠</span>
-      <span><b>Marketplace split unavailable.</b> This export blends all marketplaces, so DE and Pan-EU F3M can't be separated yet. Showing combined F3M actuals only — export per marketplace from Sellerboard to unlock the split.</span>
+      <span><b>Marketplace split unavailable.</b> This export blends all marketplaces, so DE and Pan-EU F3M actuals can't be separated yet — targets are shown per country, but only a combined (approximate) tier can be calculated. Export per marketplace from Sellerboard to unlock the real split.</span>
     </div>
     <table>
-      <thead><tr><th>Metric</th><th>Combined actual</th></tr></thead>
+      <thead><tr><th>Market</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody id="launchBody"></tbody>
     </table>
   </section>
@@ -198,14 +218,14 @@
   <section id="bmSection" style="display:none;">
     <div class="section-head">
       <h2>Brand Manager — per brand</h2>
-      <span class="section-note">PY1 + Y1 (F4-12) + Discontinued, blended per brand</span>
+      <span class="section-note">PY1 + Y1 (F4-12) + Discontinued, each weighted and tiered separately per brand</span>
     </div>
     <table>
       <thead>
-        <tr><th>Brand</th><th>PY1</th><th>Y1 (F4-12)</th><th>Discontinued</th><th>Combined actual</th><th>Green target</th><th>Gold target</th><th>Tier</th></tr>
+        <tr><th>Brand / Stage</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr>
       </thead>
       <tbody id="bmBody"></tbody>
-      <tfoot><tr><td>Total</td><td></td><td></td><td></td><td class="num" id="bmTotal"></td><td></td><td></td><td></td></tr></tfoot>
+      <tfoot><tr><td>Total bonus, all brands</td><td></td><td></td><td></td><td></td><td class="num" id="bmTotalBonus"></td></tr></tfoot>
     </table>
   </section>
 

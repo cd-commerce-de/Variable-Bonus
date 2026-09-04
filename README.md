@@ -1,54 +1,84 @@
 # CD Commerce — Variable Bonus Dashboard
 
 Upload the monthly Sellerboard export, and the dashboard maps every SKU to
-its brand/stage (from the TOC) and computes actuals per bonus track. No
-database — data lives as JSON files in this (private) GitHub repo, and a
-small Vercel deployment provides login + serves that data.
+its brand/stage/product (from the TOC), pulls Green/Gold targets from your
+Variable Bonus Calculator workbook, and computes Tier + Bonus € per track —
+with a **Monthly** and **Quarterly** view, mirroring the calculator's own
+"All Tracks" layout. No database — data lives as JSON files in this
+(private) GitHub repo, and a small Vercel deployment provides login +
+serves that data.
 
-## What's real right now, and what's blocked
+## Targets — how they get in
 
-**Computed automatically, today:**
-- **R&D Team** — pooled Actual Revenue/Units/Net Profit for every SKU at
-  stage `M4-12` (= "Y1 (F4-12)"), across all brands.
-- **Brand Manager** — same metrics per brand, blended across `PY1`,
-  `M4-12`, and `Discontinued` stages.
-- Data-quality reporting: any ASIN in the Sellerboard export that isn't in
-  the TOC mapping is called out by ASIN, not silently dropped or
-  misassigned.
+Targets are **not entered manually in the dashboard**. They're extracted
+once from the calculator workbook's `📋 All Tracks` tab (Q3 quarter-total
+columns) and `⚙️ Config` tab (rates/weights), via:
 
-**Blocked, and why:**
-- **Tier (GREEN/GOLD/MISS) and €-bonus, for every track.** These require
-  Green/Gold revenue targets, which exist in the Variable Bonus
-  Calculator's Leadership Scorecard tabs, not in the Sellerboard export or
-  the TOC. The dashboard has target input fields wired up and ready — as
-  soon as target figures are available (manually entered, or exported from
-  that workbook), tier and bonus calculate immediately.
-- **Launch Manager's Germany vs. Pan-EU split.** The "Group by Parent"
-  export blends all marketplaces into one row per SKU. Export per
-  marketplace from Sellerboard (or ask them to add a Marketplace column)
-  to unlock this.
-- **Marketplace track.** Per the original spec this is manually entered,
-  not derived — there's a manual-entry row for it in the dashboard.
+```bash
+python3 scripts/extract_targets.py path/to/calculator.xlsx --quarter Q3
+cp mapping/targets.json public/targets.json
+```
+
+**Interim approach, exactly as requested:** monthly target = quarterly
+target ÷ 3, evenly. This is a simplification — the calculator's own
+Actuals are sourced weekly and aren't evenly distributed across a quarter,
+so a real month's target is probably not exactly 1/3 of the quarter. When
+real monthly targets exist (e.g. via the calculator's own monthly-broken-out
+`All Tracks` columns), re-point `extract_targets.py` at those columns
+instead of dividing — the rest of the dashboard doesn't need to change.
+
+Re-run `extract_targets.py` (and re-copy to `public/`) each time Finance
+updates targets or rates in the workbook.
+
+## Views
+
+- **Monthly** — the selected month's actuals vs. that month's target
+  (quarterly ÷ 3).
+- **Quarterly** — sums actuals from every month *already saved* within the
+  same quarter as the selected month, against the **full** quarterly
+  target. If not all 3 months of the quarter have been uploaded yet, a
+  banner says so explicitly rather than pretending the quarter is complete.
+
+## What's computed automatically, and how
+
+- **R&D Team** — per product (matched by TOC Product Code, e.g. `SLP`
+  rolls up `SLP120` + `SLP400`), against that product's calculator target.
+  Tier: GOLD if Actual ≥ Gold target, GREEN if ≥ Green target, MISS
+  otherwise — same logic as the workbook. Bonus pool total is shown, plus
+  ÷ team size (from Config).
+- **Brand Manager** — per brand, per stage (PY1 / Y1 (F4-12) /
+  Discontinued), each tiered and bonused independently using that stage's
+  *effective* weighted rate from Config (e.g. PY1 = 60% × base rate), then
+  summed to a per-brand and grand total.
+- **Launch Manager** — Germany and Pan-EU targets are both shown, but
+  **actuals are combined-only** (the Sellerboard export has no marketplace
+  column), so only an approximate combined tier can be computed. A warning
+  banner says so on the page itself.
+- **Marketplace** — still fully manual (actual and target), per the
+  original spec.
+- ASINs not in the TOC mapping are excluded from every track (never
+  silently misassigned) and listed by ASIN in the Data Quality panel.
 
 ## How it works
 
 ```
-TOC (.xlsx)  ──build_mapping.py──▶  mapping/toc_mapping.json  (ASIN → brand, stage)
-                                            │
-Sellerboard export (.csv) ─── uploaded in-browser ───▶ app.js computes actuals
-                                            │
-                                    render on screen
-                                            │
-                                   "Save to history" ──▶ POST /api/save-month
-                                                              │
-                                                    commits data/YYYY-MM.json
-                                                    to this private GitHub repo
+Calculator (.xlsx)  ──extract_targets.py──▶  mapping/targets.json  (Q3 Green/Gold targets, rates, weights)
+TOC (.xlsx)         ──build_mapping.py────▶  mapping/toc_mapping.json  (ASIN → brand, stage, product code)
+                                                       │
+Sellerboard export (.csv) ─── uploaded in-browser ───▶ app.js: joins actuals to mapping, applies targets, tiers, bonus €
+                                                       │
+                                               render on screen (Monthly / Quarterly toggle)
+                                                       │
+                                              "Save to history" ──▶ POST /api/save-month
+                                                                        │
+                                                              commits data/YYYY-MM.json
+                                                              to this private GitHub repo
 ```
 
 The CSV is parsed and computed **entirely in the browser** (via PapaParse)
-— nothing is sent anywhere until you click "Save to history." That keeps
-the raw Sellerboard export off any server. Only the aggregated result
-(brand/stage totals, no line-item cost data) gets committed to the repo.
+— nothing is sent anywhere until you click "Save to history." Only the
+aggregated result (brand/stage/product totals, no line-item cost data)
+gets committed to the repo.
 
 ## Security model — read this before deploying
 
@@ -101,24 +131,29 @@ Ask me if you want this built out.
 4. Click "Save to history" — commits `data/YYYY-MM.json` to the repo so
    everyone sees it and it's there next month for trend comparisons.
 
-## Updating the TOC mapping
+## Updating targets or the TOC mapping
 
-Whenever brands/stages change in the TOC workbook:
+Whenever Finance updates rates/targets in the calculator, or brands/stages
+change in the TOC:
 ```bash
+python3 scripts/extract_targets.py path/to/calculator.xlsx --quarter Q3
 python3 scripts/build_mapping.py
+cp mapping/targets.json public/targets.json
+cp mapping/toc_mapping.json public/toc_mapping.json
 ```
-Commit the regenerated `mapping/toc_mapping.json` (also copy it to
-`public/toc_mapping.json` — the dashboard reads it from there).
+Commit and push — the dashboard picks up the new files on next load.
 
 ## Files
 
 ```
-public/index.html, app.js     the dashboard itself (static, client-side compute)
-public/toc_mapping.json       ASIN → brand/stage/product (regenerate via script below)
-public/data/2026-08.json      seeded August data
+public/index.html, app.js     the dashboard itself (static, client-side compute + tiering)
+public/toc_mapping.json       ASIN → brand/stage/product code (regenerate via build_mapping.py)
+public/targets.json           Q3 targets + rates/weights (regenerate via extract_targets.py)
+public/data/2026-08.json      seeded August data (real Aug 2026 numbers, computed against Q3÷3 targets)
 api/login.js, _auth.js        real server-side passcode check + session verification
 api/data.js, save-month.js    read/write month JSON in the private GitHub repo
 scripts/build_mapping.py      TOC .xlsx -> mapping/toc_mapping.json
-scripts/process_month.py      CLI equivalent of the in-browser computation (for scripted/batch use)
+scripts/extract_targets.py    calculator .xlsx -> mapping/targets.json (Q3 targets, rates, weights)
+scripts/process_month.py      early CLI reference for the actuals-only aggregation (no targets/tiering yet — app.js is the source of truth)
 scripts/hash_passcode.py      generates the LOCAL-TESTING-ONLY passcode hash for app.js
 ```
