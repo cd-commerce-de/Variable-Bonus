@@ -192,7 +192,13 @@ Ask me if you want this built out.
 1. Export Sellerboard's "Dashboard Products — Group by Parent" report for
    the month, all marketplaces (or per-marketplace, once you want the
    Launch Manager split).
-2. Open the dashboard, pick the month, drop in the CSV.
+2. Open the dashboard's Upload tab and drop in the CSV — **the month is
+   detected automatically from the filename** (Sellerboard's own date
+   range, e.g. `01_07_2026-31_07_2026` → July 2026). The date field next
+   to the file picker is only a manual fallback for the rare file whose
+   name doesn't match that pattern; it does not need to be touched for a
+   normal upload, and a stale leftover value in it never overrides a
+   fresh detection.
 3. Review the numbers and the data-quality panel (unmapped ASINs).
 4. Click "Save to history" — commits `data/YYYY-MM.json` to the repo so
    everyone sees it and it's there next month for trend comparisons.

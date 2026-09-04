@@ -1,0 +1,394 @@
+{
+ "month": "2026-07",
+ "note": "Real per-month Good/Better/Best targets, sourced directly from BM Scorecard 3 (Launch Mgr, Brand Mgr) and Leadership Scorecard 3 (R&D, revenue only). Replaces the earlier quarterly/3 estimate for this month.",
+ "rd_team": {
+  "GWK": {
+   "label": "Mulled wine kettle - GWK",
+   "revenue": {
+    "good": 908.32,
+    "better": 1021.86,
+    "best": 1135.4
+   },
+   "profit_margin": null
+  },
+  "DSD": {
+   "label": "Dartstand - DSD",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "TSE": {
+   "label": "Toilet seat - TSE",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": 0
+   },
+   "profit_margin": null
+  },
+  "TSF": {
+   "label": "Toilet seat kids - TSF",
+   "revenue": {
+    "good": 7581.6,
+    "better": 8529.3,
+    "best": 9477
+   },
+   "profit_margin": null
+  },
+  "KMS": {
+   "label": "Fireplace guard - KMS",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": 0
+   },
+   "profit_margin": null
+  },
+  "FES": {
+   "label": "Fire Bowl - FES",
+   "revenue": {
+    "good": 9741.2,
+    "better": 10958.85,
+    "best": 12176.5
+   },
+   "profit_margin": null
+  },
+  "FRM02": {
+   "label": "Bicycle mounting stand - FRM02",
+   "revenue": {
+    "good": 48828,
+    "better": 54931.5,
+    "best": 61035
+   },
+   "profit_margin": null
+  },
+  "WHS": {
+   "label": "Waders - WHS",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "SLP": {
+   "label": "Solar cover - SLP",
+   "revenue": {
+    "good": 73131.192,
+    "better": 82272.591,
+    "best": 91413.99
+   },
+   "profit_margin": null
+  },
+  "VZW": {
+   "label": "Awning caravan - VZW",
+   "revenue": {
+    "good": null,
+    "better": null,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "AKS": {
+   "label": "Cordless screwdriver - AKS",
+   "revenue": {
+    "good": 8952,
+    "better": 10071,
+    "best": 11190
+   },
+   "profit_margin": null
+  },
+  "WGH25": {
+   "label": "WGH25 - Car Jack 2.5ton",
+   "revenue": {
+    "good": 27909.92,
+    "better": 31398.66,
+    "best": 34887.4
+   },
+   "profit_margin": null
+  },
+  "KMK": {
+   "label": "Clamping Awning - KMK",
+   "revenue": {
+    "good": 64942.08,
+    "better": 73059.84,
+    "best": 81177.6
+   },
+   "profit_margin": null
+  },
+  "SUP": {
+   "label": "SUP - Stand Up Paddling Board",
+   "revenue": {
+    "good": 89577.6,
+    "better": 100774.8,
+    "best": 111972
+   },
+   "profit_margin": null
+  }
+ },
+ "launch_manager": {
+  "germany": {
+   "revenue": {
+    "good": 241223.4,
+    "better": 254624.7,
+    "best": 268026
+   },
+   "profit_margin": {
+    "good": 0.123,
+    "better": 0.133,
+    "best": 0.143
+   }
+  },
+  "pan_eu": {
+   "revenue": {
+    "good": 17384.4,
+    "better": 18350.2,
+    "best": 19316
+   },
+   "profit_margin": {
+    "good": 0.123,
+    "better": 0.133,
+    "best": 0.143
+   }
+  }
+ },
+ "brand_manager": {
+  "Tarpofix": {
+   "PY1": {
+    "revenue": {
+     "good": 407154.753,
+     "better": 429774.4615,
+     "best": 452394.17
+    },
+    "profit_margin": {
+     "good": 0.2154,
+     "better": 0.22617,
+     "best": 0.23694
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 48674.952,
+     "better": 51379.116,
+     "best": 54083.28
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   },
+   "Discontinued": {
+    "revenue": {
+     "good": 13797,
+     "better": 14563.5,
+     "best": 15330
+    },
+    "profit_margin": {
+     "good": 0,
+     "better": 0.05,
+     "best": 0.1
+    }
+   }
+  },
+  "Darwin": {
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": null,
+     "better": null,
+     "best": null
+    },
+    "profit_margin": {
+     "good": null,
+     "better": null,
+     "best": null
+    }
+   }
+  },
+  "Planenfux": {
+   "PY1": {
+    "revenue": {
+     "good": 201267,
+     "better": 212448.5,
+     "best": 223630
+    },
+    "profit_margin": {
+     "good": 0.1372,
+     "better": 0.15778,
+     "best": 0.17836
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 101274.3,
+     "better": 106900.65,
+     "best": 112527
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   }
+  },
+  "Heimfleiss": {
+   "PY1": {
+    "revenue": {
+     "good": 546598.65,
+     "better": 575367,
+     "best": 604135.35
+    },
+    "profit_margin": {
+     "good": 0.2113,
+     "better": 0.221865,
+     "best": 0.23243
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 471974.4,
+     "better": 498195.2,
+     "best": 524416
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   },
+   "Discontinued": {
+    "revenue": {
+     "good": 43122.6,
+     "better": 45518.3,
+     "best": 47914
+    },
+    "profit_margin": {
+     "good": 0,
+     "better": 0.05,
+     "best": 0.1
+    }
+   }
+  },
+  "Mattenheld": {
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": null,
+     "better": null,
+     "best": null
+    },
+    "profit_margin": {
+     "good": null,
+     "better": null,
+     "best": null
+    }
+   }
+  },
+  "PD": {
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": null,
+     "better": null,
+     "best": null
+    },
+    "profit_margin": {
+     "good": null,
+     "better": null,
+     "best": null
+    }
+   }
+  },
+  "Nasswerk": {
+   "PY1": {
+    "revenue": {
+     "good": 274884.4,
+     "better": 289352,
+     "best": 303819.6
+    },
+    "profit_margin": {
+     "good": 0.1888,
+     "better": 0.20768,
+     "best": 0.22656
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 38146.5,
+     "better": 40265.75,
+     "best": 42385
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   },
+   "Discontinued": {
+    "revenue": {
+     "good": 14928.3,
+     "better": 15757.65,
+     "best": 16587
+    },
+    "profit_margin": {
+     "good": 0,
+     "better": 0.05,
+     "best": 0.1
+    }
+   }
+  },
+  "PoolLöwe": {
+   "PY1": {
+    "revenue": {
+     "good": 87744.85,
+     "better": 92363,
+     "best": 96981.15
+    },
+    "profit_margin": {
+     "good": 0.1942,
+     "better": 0.21362,
+     "best": 0.23304
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 234.9,
+     "better": 247.95,
+     "best": 261
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   },
+   "Discontinued": {
+    "revenue": {
+     "good": 19872.9,
+     "better": 20976.95,
+     "best": 22081
+    },
+    "profit_margin": {
+     "good": 0,
+     "better": 0.05,
+     "best": 0.1
+    }
+   }
+  },
+  "TeichHeld": {
+   "PY1": {
+    "revenue": {
+     "good": null,
+     "better": null,
+     "best": null
+    },
+    "profit_margin": {
+     "good": null,
+     "better": null,
+     "best": null
+    }
+   }
+  }
+ }
+}

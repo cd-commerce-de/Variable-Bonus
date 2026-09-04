@@ -172,10 +172,11 @@
         <p class="hint">Computation happens in your browser — nothing is uploaded anywhere until you choose to save it.</p>
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
-        <input type="month" id="monthPicker">
+        <input type="month" id="monthPicker" title="Only used as a fallback if the month can't be detected from the filename">
         <input type="file" id="fileInput" accept=".csv">
       </div>
     </div>
+    <p class="hint" style="margin-top:8px;">The month is detected automatically from the filename (e.g. "01_07_2026-31_07_2026" → July 2026). The date field is only used if that detection fails.</p>
     <div id="uploadStatus" style="margin-top:14px;"></div>
     <p class="section-note" id="targetsNote" style="margin-top:8px;"></p>
   </section>

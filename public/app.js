@@ -159,7 +159,7 @@ async function refreshMonthList() {
   const sel = document.getElementById('monthSelect');
   sel.innerHTML = '';
   const months = new Set();
-  months.add('2026-08');
+  months.add('2026-08'); months.add('2026-07');
   const local = JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY) || '{}');
   Object.keys(local).forEach(m => months.add(m));
   try {
@@ -292,10 +292,19 @@ function handleFile(file) {
     header: true, delimiter: ';', encoding: 'utf-8', skipEmptyLines: true,
     complete: async (results) => {
       try {
-        const monthVal = document.getElementById('monthPicker').value || guessMonthFromFilename(file.name);
-        if (!monthVal) throw new Error('Pick the month this export covers (top right of the upload box) before parsing.');
+        // Auto-detect the month from the filename first -- this is the
+        // reliable signal (it's the actual date range Sellerboard exported).
+        // The month picker is only a manual override for the rare file
+        // whose name doesn't match the expected pattern; it must NOT
+        // silently override a fresh detection with a stale leftover value
+        // from a previous upload.
+        const detected = guessMonthFromFilename(file.name);
+        const monthVal = detected || document.getElementById('monthPicker').value;
+        if (!monthVal) throw new Error("Couldn't detect the month from this filename, and no month is set in the picker. Set the month manually (top right of the upload box) and try again.");
+        document.getElementById('monthPicker').value = monthVal; // reflect what's actually being used
         const computed = await computeFromRows(results.data, monthVal);
-        statusEl.innerHTML = `<div class="banner info">Parsed ${results.data.length.toLocaleString()} rows for <b>${monthVal}</b>. Check the Dashboard tab to review, then come back here and click "Save to history" if it looks right.</div>`;
+        const howDetected = detected ? `auto-detected from the filename` : `from the month picker (couldn't detect it from the filename)`;
+        statusEl.innerHTML = `<div class="banner info">Parsed ${results.data.length.toLocaleString()} rows for <b>${monthVal}</b> (${howDetected}). Check the Dashboard tab to review, then come back here and click "Save to history" if it looks right.</div>`;
         CURRENT = computed;
         renderCurrentView();
       } catch (err) {
