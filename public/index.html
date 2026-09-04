@@ -90,6 +90,8 @@
   tbody td.name{font-weight:600;}
   tfoot td{padding:12px 16px; font-weight:700; border-top:2px solid var(--line-200); text-align:right;}
   tfoot td:first-child{text-align:left;}
+  tr.bm-group-row td{background:var(--ink); color:#fff; font-weight:700; font-family:'Poppins',sans-serif; font-size:13px;}
+  tr.brand-row td.name.sub-brand{padding-left:18px;}
   tr.brand-row td{background:var(--line-50); font-weight:700; border-top:1.5px solid var(--line-200);}
   tr.stage-row td.name.sub{padding-left:30px; font-weight:400; color:var(--line-500); font-size:12.5px;}
 
@@ -238,15 +240,26 @@
 
   <section id="bmSection" style="display:none;">
     <div class="section-head">
-      <h2>Brand Manager — per brand</h2>
-      <span class="section-note">PY1 + Y1 (F4-12) + Discontinued, each weighted and tiered separately per brand</span>
+      <h2>Brand Manager — grouped by supervisor</h2>
+      <span class="section-note">BM1 (Ilwyn), BM2 (Jico), BM3 (Camille), BM4 (Michael) — PY1 + Y1 (F4-12) + Discontinued per brand</span>
     </div>
     <table>
       <thead>
-        <tr><th>Brand / Stage</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr>
+        <tr><th>Group / Brand / Stage</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr>
       </thead>
       <tbody id="bmBody"></tbody>
       <tfoot><tr><td>Total bonus, all brands</td><td></td><td></td><td></td><td></td><td class="num" id="bmTotalBonus"></td></tr></tfoot>
+    </table>
+  </section>
+
+  <section id="otherBrandsSection" style="display:none;">
+    <div class="section-head">
+      <h2>Other brands (not in the Brand Manager bonus program)</h2>
+      <span class="section-note">Real revenue, shown for transparency — not counted toward any bonus track above</span>
+    </div>
+    <table>
+      <thead><tr><th>Brand</th><th>Revenue</th><th>Units</th></tr></thead>
+      <tbody id="otherBrandsBody"></tbody>
     </table>
   </section>
 

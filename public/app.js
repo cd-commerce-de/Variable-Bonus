@@ -20,6 +20,27 @@ const STAGE_LABELS = { 'PY1': 'PY1', 'M4-12': 'Y1 (F4-12)', 'Discontinued': 'Dis
 // brand names (e.g. "NASSWERK" vs "Nasswerk"). Normalize for matching.
 function normBrand(b) { return (b || '').trim().toLowerCase(); }
 
+// The Brand Manager bonus track covers exactly these 9 brands, grouped
+// under 4 supervisors -- confirmed against the calculator's All Tracks
+// tab section banners (rows 26-58: "BM1 (Ilwyn)", "BM2 (Jico)", etc.).
+// Any OTHER brand in the TOC/sales data (the company sells more brands
+// than these 9) is NOT part of this bonus program and must not be
+// silently folded in as if it were.
+const BM_GROUPS = {
+  'BM1 (Ilwyn)': ['Tarpofix', 'Darwin', 'Planenfux'],
+  'BM2 (Jico)': ['Heimfleiss', 'Mattenheld'],
+  'BM3 (Camille)': ['PD'],
+  'BM4 (Michael)': ['Nasswerk', 'PoolLöwe', 'TeichHeld'],
+};
+const OFFICIAL_BM_BRANDS = Object.values(BM_GROUPS).flat();
+function officialBrandGroup(brandName) {
+  const nb = normBrand(brandName);
+  for (const [group, brands] of Object.entries(BM_GROUPS)) {
+    if (brands.some(b => normBrand(b) === nb)) return group;
+  }
+  return null;
+}
+
 let MAPPING = null;     // ASIN -> {brand, stage, product_code, ...}
 let TARGETS = null;     // quarterly targets + rates/weights, from the calculator workbook (fallback: quarterly ÷ 3)
 let MONTHLY_TARGETS = {}; // month ("2026-08") -> real Good/Better/Best targets, when extracted for that month
@@ -237,6 +258,10 @@ async function mergeMonths(list) {
         out.brand_manager[brand].combined_actual = addBucket(out.brand_manager[brand].combined_actual, d.brand_manager[brand].combined_actual);
       }
     }
+    out.other_brands_unassigned = out.other_brands_unassigned || {};
+    for (const brand of Object.keys(d.other_brands_unassigned || {})) {
+      out.other_brands_unassigned[brand] = addBucket(out.other_brands_unassigned[brand], d.other_brands_unassigned[brand]);
+    }
     out.meta.total_rows_processed += d.meta.total_rows_processed;
     out.meta.mapped_rows += d.meta.mapped_rows;
     out.meta.unmapped_rows += d.meta.unmapped_rows;
@@ -341,12 +366,29 @@ async function computeFromRows(rows, month) {
   const brandsSeen = new Set(byAsin.map(r => normBrand(r.brand)));
   const brandDisplay = {}; // normalized -> original display name from TOC
   byAsin.forEach(r => { brandDisplay[normBrand(r.brand)] = r.brand; });
-  // Union with calculator's brand list so brands with zero August actuals still show up
+  // Union with the calculator's brand list so brands with zero August
+  // actuals still show up (e.g. Darwin, TeichHeld some months).
   Object.keys(TARGETS.brand_manager).forEach(b => brandsSeen.add(normBrand(b)));
 
   const brandManager = {};
+  const otherBrandsSeen = {}; // brands present in data but NOT in the official BM roster -- kept visible, never silently dropped
   brandsSeen.forEach(nb => {
-    const displayName = Object.keys(TARGETS.brand_manager).find(b => normBrand(b) === nb) || brandDisplay[nb] || nb;
+    const displayName = OFFICIAL_BM_BRANDS.find(b => normBrand(b) === nb) || brandDisplay[nb] || nb;
+    if (!officialBrandGroup(displayName)) {
+      if (brandDisplay[nb]) { // only track brands that actually appear in THIS month's data, not phantom TARGETS entries
+        const total = empty();
+        // Only PY1/Y1/Discontinued here -- F3M and Quality Issue revenue
+        // for this brand (if any) is already counted in the global
+        // Launch Manager / Quality Issue buckets above, regardless of
+        // brand, so including them here would double-count.
+        ['PY1', 'M4-12', 'Discontinued'].forEach(stageKey => {
+          const d = brandStage[`${brandDisplay[nb]}||${stageKey}`];
+          if (d) { total.sales += d.sales; total.units += d.units; total.net_profit += d.net_profit; total.sku_count += d.sku_count; }
+        });
+        if (total.sku_count > 0) otherBrandsSeen[displayName] = total;
+      }
+      return; // not part of the Brand Manager bonus program
+    }
     const stages = {};
     const combined = empty();
     ['PY1', 'M4-12', 'Discontinued'].forEach(stageKey => {
@@ -355,7 +397,7 @@ async function computeFromRows(rows, month) {
       stages[STAGE_LABELS[stageKey]] = d;
       combined.sales += d.sales; combined.units += d.units; combined.net_profit += d.net_profit; combined.sku_count += d.sku_count;
     });
-    brandManager[displayName] = { stages, combined_actual: combined };
+    brandManager[displayName] = { stages, combined_actual: combined, bm_group: officialBrandGroup(displayName) };
   });
 
   const result = {
@@ -363,6 +405,7 @@ async function computeFromRows(rows, month) {
     rd_team: { label: 'R&D Team — Y1 products (per product)', by_product: byProduct },
     launch_manager: { label: 'Launch Manager — F3M', actual_combined: launchPool },
     brand_manager: brandManager,
+    other_brands_unassigned: otherBrandsSeen, // brands with real revenue that AREN'T part of the Brand Manager bonus program (e.g. Van De Boos, MESSEREI, Arganoel Zauber) -- kept visible, not silently dropped
     marketplace: { label: 'Marketplace — manually entered' },
     quality_issue_unassigned: qualityIssue,
     meta: {
@@ -504,7 +547,22 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
     }
     v.stage_detail = stageDetail;
     v.total_bonus = brandBonus;
+    v.bm_group = v.bm_group || officialBrandGroup(brand);
   }
+  // BM-group subtotals (BM1/Ilwyn, BM2/Jico, BM3/Camille, BM4/Michael) --
+  // matches the calculator's own "BM# — BRAND BONUS" subtotal rows exactly.
+  const bmGroupTotals = {};
+  for (const [group, brands] of Object.entries(BM_GROUPS)) {
+    let groupBonus = 0;
+    let groupSales = 0;
+    for (const b of brands) {
+      const key = Object.keys(data.brand_manager).find(k => normBrand(k) === normBrand(b));
+      if (key) { groupBonus += data.brand_manager[key].total_bonus || 0; groupSales += data.brand_manager[key].combined_actual.sales || 0; }
+    }
+    bmGroupTotals[group] = { brands, total_bonus: groupBonus, total_sales: groupSales };
+  }
+  data.bm_groups = bmGroupTotals;
+  data.bm_grand_total_bonus = Object.values(bmGroupTotals).reduce((s, g) => s + g.total_bonus, 0);
   data._targets_meta = { quarter: TARGETS.source_quarter, is_quarterly_view: isQuarterly, used_real_monthly: !!mt };
   return data;
 }
@@ -599,29 +657,50 @@ function renderInner(data, viewLabel) {
       `Bonus uses the blended rate (Germany + PAN EU Config rates, which already sum to the base rate) applied to the combined overflow — an approximation until actuals can be split by country.`;
   } catch (err) { console.error('Launch section error:', err); document.getElementById('launchBody').innerHTML = `<tr><td colspan="6" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
-  // ---- Brand Manager ----
+  // ---- Brand Manager (grouped by BM1-4 supervisor, per calculator structure) ----
   let bmRows = [];
   let bmTotalBonus = 0;
   try {
-    bmRows = Object.entries(data.brand_manager).sort((a, b) => b[1].combined_actual.sales - a[1].combined_actual.sales);
+    bmTotalBonus = data.bm_grand_total_bonus || 0;
     let bmHtml = '';
-    bmRows.forEach(([brand, v]) => {
-      bmTotalBonus += v.total_bonus || 0;
-      bmHtml += `<tr class="brand-row"><td class="name">${brand}</td><td class="num">${fmtEUR(v.combined_actual.sales)}</td><td colspan="3"></td><td class="num">${fmtEUR(v.total_bonus)}</td></tr>`;
-      for (const [stageLabel, sd] of Object.entries(v.stage_detail)) {
-        bmHtml += `
-          <tr class="stage-row">
-            <td class="name sub">${stageLabel}</td>
-            <td class="num">${fmtEUR(sd.actual.sales)}</td>
-            <td class="num">${fmtEUR(sd.green_target)}${sourceTag(sd.target_source)}</td>
-            <td class="num">${fmtEUR(sd.gold_target)}</td>
-            <td>${tierTag(sd.tier)}</td>
-            <td class="num">${fmtEUR(sd.bonus_eur)}</td>
-          </tr>`;
+    for (const [group, groupData] of Object.entries(data.bm_groups || {})) {
+      bmHtml += `<tr class="bm-group-row"><td class="name">${group}</td><td class="num">${fmtEUR(groupData.total_sales)}</td><td colspan="3"></td><td class="num">${fmtEUR(groupData.total_bonus)}</td></tr>`;
+      for (const brandName of groupData.brands) {
+        const key = Object.keys(data.brand_manager).find(k => normBrand(k) === normBrand(brandName));
+        const v = key ? data.brand_manager[key] : null;
+        if (!v) continue;
+        bmRows.push([key, v]);
+        bmHtml += `<tr class="brand-row"><td class="name sub-brand">${key}</td><td class="num">${fmtEUR(v.combined_actual.sales)}</td><td colspan="3"></td><td class="num">${fmtEUR(v.total_bonus)}</td></tr>`;
+        for (const [stageLabel, sd] of Object.entries(v.stage_detail)) {
+          bmHtml += `
+            <tr class="stage-row">
+              <td class="name sub">${stageLabel}</td>
+              <td class="num">${fmtEUR(sd.actual.sales)}</td>
+              <td class="num">${fmtEUR(sd.green_target)}${sourceTag(sd.target_source)}</td>
+              <td class="num">${fmtEUR(sd.gold_target)}</td>
+              <td>${tierTag(sd.tier)}</td>
+              <td class="num">${fmtEUR(sd.bonus_eur)}</td>
+            </tr>`;
+        }
       }
-    });
+    }
     document.getElementById('bmBody').innerHTML = bmHtml;
     document.getElementById('bmTotalBonus').textContent = fmtEUR(bmTotalBonus);
+
+    // Brands with real revenue that are NOT part of the Brand Manager
+    // bonus program (e.g. Van De Boos, MESSEREI, Arganoel Zauber) --
+    // shown for transparency, never silently dropped from the totals.
+    const other = data.other_brands_unassigned || {};
+    const otherEntries = Object.entries(other).filter(([, d]) => d.sales > 0).sort((a, b) => b[1].sales - a[1].sales);
+    const otherSection = document.getElementById('otherBrandsSection');
+    if (otherEntries.length) {
+      document.getElementById('otherBrandsBody').innerHTML = otherEntries.map(([b, d]) => `
+        <tr><td class="name">${b}</td><td class="num">${fmtEUR(d.sales)}</td><td class="num">${fmtInt(d.units)}</td></tr>
+      `).join('');
+      otherSection.style.display = 'block';
+    } else {
+      otherSection.style.display = 'none';
+    }
   } catch (err) { console.error('Brand Manager section error:', err); document.getElementById('bmBody').innerHTML = `<tr><td colspan="6" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Stats strip ----

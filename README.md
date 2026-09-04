@@ -75,10 +75,25 @@ even if you're not touching targets.
   Tier: GOLD if Actual ≥ Gold target, GREEN if ≥ Green target, MISS
   otherwise — same logic as the workbook. Bonus pool total is shown, plus
   ÷ team size (from Config).
-- **Brand Manager** — per brand, per stage (PY1 / Y1 (F4-12) /
-  Discontinued), each tiered and bonused independently using that stage's
-  *effective* weighted rate from Config (e.g. PY1 = 60% × base rate), then
-  summed to a per-brand and grand total.
+- **Brand Manager** — restricted to exactly the 9 brands the calculator's
+  `📋 All Tracks` tab defines for this track, grouped under their 4
+  supervisors (confirmed against the tab's own section banners):
+  - **BM1 (Ilwyn)**: Tarpofix, Darwin, Planenfux
+  - **BM2 (Jico)**: Heimfleiss, Mattenheld
+  - **BM3 (Camille)**: PD
+  - **BM4 (Michael)**: Nasswerk, PoolLöwe, TeichHeld
+
+  Each brand's PY1 / Y1 (F4-12) / Discontinued stage is tiered and bonused
+  independently using that stage's *effective* weighted rate from Config
+  (e.g. PY1 = 60% × base rate), summing to a per-brand total, a per-group
+  (BM1-4) subtotal, and a grand total — matching the calculator's own
+  "BM# — BRAND BONUS" subtotal rows.
+
+  **The company sells other brands too** (the TOC lists ~17), and those
+  show up in the Sellerboard export like anything else. Any brand *not*
+  in the 9 above is excluded from every Brand Manager total — its revenue
+  is shown separately in an "Other brands" panel so it's never silently
+  folded into a bonus number it isn't part of.
 - **Launch Manager** — Germany and Pan-EU targets are both shown, but
   **actuals are combined-only** (the Sellerboard export has no marketplace
   column), so only an approximate combined tier and bonus can be computed.
