@@ -71,6 +71,44 @@ even if you're not touching targets.
   quarter have been uploaded, a banner says so explicitly rather than
   pretending the quarter is complete.
 
+## Tabs
+
+- **Dashboard** — the numbers: stats, R&D, Launch Manager, Brand Manager,
+  Marketplace, revenue chart.
+- **Upload data** — the CSV drop zone, data-quality panel, and Save button.
+- **Impact Analysis** — one row per role (R&D Team, Launch Manager) and per
+  official Brand Manager brand, showing two figures side by side: **Growth
+  % vs Target** (actual revenue vs. the Gold target — Gold because the
+  Variable Bonus Framework itself frames Gold as "the minimum expectation"
+  targets are set against) and **Bonus % of Revenue** (bonus paid ÷ actual
+  revenue). The point is to make it easy to spot whether payouts are
+  proportionate to overperformance — a big bonus % next to a small growth
+  % (or vice versa) is worth a second look. Follows whichever
+  Monthly/Quarterly view is active on the Dashboard tab. Marketplace isn't
+  included: its actual/target are manual inputs that aren't currently
+  saved with the rest of the month's data, so there's nothing to compute
+  from yet.
+
+## Table styling
+
+- **Sticky column headers** — each table's header row stays pinned to the
+  top of the viewport while you scroll through it, so you're never
+  guessing which column is which partway down a long list (this required
+  removing `overflow:hidden` from the table wrapper, which very slightly
+  softens the rounded-corner clipping on tables with a scrolled header —
+  a deliberate trade-off for the sticky behavior to work at all).
+- **Target/bonus coloring, matching the Excel** — Green target cells (both
+  revenue and margin) get a subtle green tint, Gold target cells get a
+  subtle amber tint. The Bonus (€) cell itself is tinted the same way
+  based on which tier was actually hit (green if GREEN, gold if GOLD, no
+  tint on a MISS).
+- **Total rows are solid, not subtle** — the R&D pool bonus total, Launch
+  Manager's combined row, and the Brand Manager grand total all get a
+  solid ember fill so they read as a hard stop/summary line rather than
+  blending in with the itemized rows above them. BM group (BM1-4)
+  subtotal rows keep their existing solid dark styling for the same
+  reason.
+
 ## What's computed automatically, and how
 
 - **R&D Team** — per product (matched by TOC Product Code, e.g. `SLP`

@@ -23,14 +23,16 @@ function normBrand(b) { return (b || '').trim().toLowerCase(); }
 // The Brand Manager bonus track covers exactly these 9 brands, grouped
 // under 4 supervisors -- confirmed against the calculator's All Tracks
 // tab section banners (rows 26-58: "BM1 (Ilwyn)", "BM2 (Jico)", etc.).
+// Supervisor names are kept here for reference but not shown in the UI
+// (group labels display as just "BM1", "BM2", etc.).
 // Any OTHER brand in the TOC/sales data (the company sells more brands
 // than these 9) is NOT part of this bonus program and must not be
 // silently folded in as if it were.
 const BM_GROUPS = {
-  'BM1 (Ilwyn)': ['Tarpofix', 'Darwin', 'Planenfux'],
-  'BM2 (Jico)': ['Heimfleiss', 'Mattenheld'],
-  'BM3 (Camille)': ['PD'],
-  'BM4 (Michael)': ['Nasswerk', 'PoolLöwe', 'TeichHeld'],
+  'BM1': ['Tarpofix', 'Darwin', 'Planenfux'],   // Ilwyn
+  'BM2': ['Heimfleiss', 'Mattenheld'],           // Jico
+  'BM3': ['PD'],                                 // Camille
+  'BM4': ['Nasswerk', 'PoolLöwe', 'TeichHeld'],  // Michael
 };
 const OFFICIAL_BM_BRANDS = Object.values(BM_GROUPS).flat();
 function officialBrandGroup(brandName) {
@@ -223,8 +225,10 @@ function setView(v) {
 function setTab(t) {
   document.getElementById('tabUpload').style.display = t === 'upload' ? 'block' : 'none';
   document.getElementById('tabDashboard').style.display = t === 'dashboard' ? 'block' : 'none';
+  document.getElementById('tabImpact').style.display = t === 'impact' ? 'block' : 'none';
   document.getElementById('tabUploadBtn').classList.toggle('active', t === 'upload');
   document.getElementById('tabDashboardBtn').classList.toggle('active', t === 'dashboard');
+  document.getElementById('tabImpactBtn').classList.toggle('active', t === 'impact');
 }
 
 async function renderCurrentView() {
@@ -611,6 +615,11 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
 function sourceTag(source) {
   return source === 'estimated' ? ' <span title="No real monthly target extracted yet — using quarterly target ÷ 3" style="color:var(--line-400); font-weight:400; font-size:11px;">(est.)</span>' : '';
 }
+function tierCellClass(tier) {
+  if (tier === '🥇 GOLD') return 'tint-gold';
+  if (tier === '🟢 GREEN') return 'tint-green';
+  return '';
+}
 function tierTag(tier) {
   if (!tier) return '<span class="tier-tag pending">—</span>';
   if (tier === '🥇 GOLD') return '<span class="tier-tag gold">🥇 GOLD</span>';
@@ -673,31 +682,32 @@ function renderInner(data, viewLabel) {
       <tr>
         <td class="name">${r.label}</td>
         <td class="num">${fmtEUR(r.actual.sales)}</td>
-        <td class="num">${fmtEUR(r.green_target)}${sourceTag(r.target_source)}</td>
-        <td class="num">${fmtEUR(r.gold_target)}</td>
+        <td class="num tint-green">${fmtEUR(r.green_target)}${sourceTag(r.target_source)}</td>
+        <td class="num tint-gold">${fmtEUR(r.gold_target)}</td>
         <td class="num">${fmtPct(r.actual_margin_pct)}</td>
-        <td class="num">${r.gold_margin_pct != null ? fmtPct(r.gold_margin_pct) : '<span style="color:var(--line-400); font-size:11.5px;">no target yet — gate assumed pass</span>'}</td>
+        <td class="num tint-green">${r.green_margin_pct != null ? fmtPct(r.green_margin_pct) : '<span style="color:var(--line-400); font-size:11.5px;">no target yet</span>'}</td>
+        <td class="num tint-gold">${r.gold_margin_pct != null ? fmtPct(r.gold_margin_pct) : '<span style="color:var(--line-400); font-size:11.5px;">no target yet — gate assumed pass</span>'}</td>
         <td>${tierTag(r.tier)}</td>
-        <td class="num">${fmtEUR(r.bonus_eur)}</td>
+        <td class="num ${tierCellClass(r.tier)}">${fmtEUR(r.bonus_eur)}</td>
       </tr>
     `).join('');
     document.getElementById('rdTotalBonus').textContent = fmtEUR(data.rd_team.total_bonus);
     document.getElementById('rdTeamSize').textContent = TARGETS.rates.rd_team.team_size;
     document.getElementById('rdPerPerson').textContent = fmtEUR(data.rd_team.total_bonus / TARGETS.rates.rd_team.team_size);
-  } catch (err) { console.error('R&D section error:', err); document.getElementById('rdBody').innerHTML = `<tr><td colspan="8" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
+  } catch (err) { console.error('R&D section error:', err); document.getElementById('rdBody').innerHTML = `<tr><td colspan="9" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Launch Manager ----
   let lm;
   try {
     lm = data.launch_manager;
     document.getElementById('launchBody').innerHTML = `
-      <tr><td class="name">Germany</td><td class="num">—</td><td class="num">${fmtEUR(lm.germany_target.green)}</td><td class="num">${fmtEUR(lm.germany_target.gold)}</td><td class="num">—</td><td class="num">${fmtPct(lm.germany_target.gold_margin)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
-      <tr><td class="name">PAN EU</td><td class="num">—</td><td class="num">${fmtEUR(lm.pan_eu_target.green)}</td><td class="num">${fmtEUR(lm.pan_eu_target.gold)}</td><td class="num">—</td><td class="num">${fmtPct(lm.pan_eu_target.gold_margin)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
-      <tr style="background:var(--ember-subtle);"><td class="name">Combined (approx.)</td><td class="num">${fmtEUR(lm.actual_combined.sales)}</td><td class="num">${fmtEUR(lm.approx_combined_target.green)}</td><td class="num">${fmtEUR(lm.approx_combined_target.gold)}</td><td class="num">${fmtPct(lm.approx_actual_margin_pct)}</td><td class="num">${fmtPct(lm.approx_combined_target.gold_margin)}</td><td>${tierTag(lm.approx_tier)}</td><td class="num">${fmtEUR(lm.approx_bonus_eur)}</td></tr>
+      <tr><td class="name">Germany</td><td class="num">—</td><td class="num tint-green">${fmtEUR(lm.germany_target.green)}</td><td class="num tint-gold">${fmtEUR(lm.germany_target.gold)}</td><td class="num">—</td><td class="num tint-green">${fmtPct(lm.germany_target.green_margin)}</td><td class="num tint-gold">${fmtPct(lm.germany_target.gold_margin)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
+      <tr><td class="name">PAN EU</td><td class="num">—</td><td class="num tint-green">${fmtEUR(lm.pan_eu_target.green)}</td><td class="num tint-gold">${fmtEUR(lm.pan_eu_target.gold)}</td><td class="num">—</td><td class="num tint-green">${fmtPct(lm.pan_eu_target.green_margin)}</td><td class="num tint-gold">${fmtPct(lm.pan_eu_target.gold_margin)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
+      <tr class="total-row-solid"><td class="name">Combined (approx.)</td><td class="num">${fmtEUR(lm.actual_combined.sales)}</td><td class="num">${fmtEUR(lm.approx_combined_target.green)}</td><td class="num">${fmtEUR(lm.approx_combined_target.gold)}</td><td class="num">${fmtPct(lm.approx_actual_margin_pct)}</td><td class="num">${fmtPct(lm.approx_combined_target.green_margin)}</td><td class="num">${fmtPct(lm.approx_combined_target.gold_margin)}</td><td>${tierTag(lm.approx_tier)}</td><td class="num">${fmtEUR(lm.approx_bonus_eur)}</td></tr>
     `;
     document.getElementById('launchNoteBonus').textContent =
       `Bonus uses the blended rate (Germany + PAN EU Config rates, which already sum to the base rate) applied to the combined overflow — an approximation until actuals can be split by country.`;
-  } catch (err) { console.error('Launch section error:', err); document.getElementById('launchBody').innerHTML = `<tr><td colspan="8" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
+  } catch (err) { console.error('Launch section error:', err); document.getElementById('launchBody').innerHTML = `<tr><td colspan="9" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Brand Manager (grouped by BM1-4 supervisor, per calculator structure) ----
   let bmRows = [];
@@ -706,31 +716,32 @@ function renderInner(data, viewLabel) {
     bmTotalBonus = data.bm_grand_total_bonus || 0;
     let bmHtml = '';
     for (const [group, groupData] of Object.entries(data.bm_groups || {})) {
-      bmHtml += `<tr class="bm-group-row"><td class="name">${group}</td><td class="num">${fmtEUR(groupData.total_sales)}</td><td colspan="5"></td><td class="num">${fmtEUR(groupData.total_bonus)}</td></tr>`;
+      bmHtml += `<tr class="bm-group-row"><td class="name">${group}</td><td class="num">${fmtEUR(groupData.total_sales)}</td><td colspan="6"></td><td class="num">${fmtEUR(groupData.total_bonus)}</td></tr>`;
       for (const brandName of groupData.brands) {
         const key = Object.keys(data.brand_manager).find(k => normBrand(k) === normBrand(brandName));
         const v = key ? data.brand_manager[key] : null;
         if (!v) continue;
         bmRows.push([key, v]);
-        bmHtml += `<tr class="brand-row"><td class="name sub-brand">${key}</td><td class="num">${fmtEUR(v.combined_actual.sales)}</td><td colspan="5"></td><td class="num">${fmtEUR(v.total_bonus)}</td></tr>`;
+        bmHtml += `<tr class="brand-row"><td class="name sub-brand">${key}</td><td class="num">${fmtEUR(v.combined_actual.sales)}</td><td colspan="6"></td><td class="num">${fmtEUR(v.total_bonus)}</td></tr>`;
         for (const [stageLabel, sd] of Object.entries(v.stage_detail)) {
           bmHtml += `
             <tr class="stage-row">
               <td class="name sub">${stageLabel}</td>
               <td class="num">${fmtEUR(sd.actual.sales)}</td>
-              <td class="num">${fmtEUR(sd.green_target)}${sourceTag(sd.target_source)}</td>
-              <td class="num">${fmtEUR(sd.gold_target)}</td>
+              <td class="num tint-green">${fmtEUR(sd.green_target)}${sourceTag(sd.target_source)}</td>
+              <td class="num tint-gold">${fmtEUR(sd.gold_target)}</td>
               <td class="num">${fmtPct(sd.actual_margin_pct)}</td>
-              <td class="num">${fmtPct(sd.gold_margin_pct)}</td>
+              <td class="num tint-green">${fmtPct(sd.green_margin_pct)}</td>
+              <td class="num tint-gold">${fmtPct(sd.gold_margin_pct)}</td>
               <td>${tierTag(sd.tier)}</td>
-              <td class="num">${fmtEUR(sd.bonus_eur)}</td>
+              <td class="num ${tierCellClass(sd.tier)}">${fmtEUR(sd.bonus_eur)}</td>
             </tr>`;
         }
       }
     }
     document.getElementById('bmBody').innerHTML = bmHtml;
     document.getElementById('bmTotalBonus').textContent = fmtEUR(bmTotalBonus);
-  } catch (err) { console.error('Brand Manager section error:', err); document.getElementById('bmBody').innerHTML = `<tr><td colspan="8" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
+  } catch (err) { console.error('Brand Manager section error:', err); document.getElementById('bmBody').innerHTML = `<tr><td colspan="9" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Stats strip ----
   try {
@@ -754,6 +765,76 @@ function renderInner(data, viewLabel) {
   } catch (err) { console.error('Chart error:', err); document.getElementById('chartSection').innerHTML = `<div class="banner error">Chart couldn't render: ${err.message}</div>`; }
 
   document.getElementById('monthPicker').value = (data.month || '').length === 7 ? data.month : '';
+
+  try { renderImpactAnalysis(data); } catch (err) { console.error('Impact Analysis error:', err); }
+}
+
+// ---------- Impact Analysis: is the bonus framework pulling its weight? ----------
+// For every role (R&D, Launch Manager) and every official Brand Manager
+// brand: Growth % vs (Gold) Target, and Bonus % of Revenue, side by side.
+// Gold is used as "the target" per the Variable Bonus Framework's own
+// framing ("GOLD is the minimum expectation... all targets are based on
+// GOLD targets").
+function growthPct(actual, goldTarget) {
+  if (!goldTarget) return null;
+  return (actual - goldTarget) / goldTarget;
+}
+function bonusPctOfRevenue(bonus, actual) {
+  if (!actual) return null;
+  return bonus / actual;
+}
+function impactRow(label, actual, goldTarget, bonus) {
+  return { label, actual, goldTarget, bonus, growth: growthPct(actual, goldTarget), bonusPct: bonusPctOfRevenue(bonus, actual) };
+}
+function growthPill(g) {
+  if (g == null) return '<span class="growth-pill neutral">—</span>';
+  const cls = g >= 0 ? 'positive' : 'negative';
+  const sign = g >= 0 ? '+' : '';
+  return `<span class="growth-pill ${cls}">${sign}${(g * 100).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>`;
+}
+
+function renderImpactAnalysis(data) {
+  const rows = [];
+
+  // R&D Team (pooled across all products with a real or estimated gold target)
+  const rdEntries = Object.values(data.rd_team.rows || {});
+  const rdActual = rdEntries.reduce((s, r) => s + r.actual.sales, 0);
+  const rdGold = rdEntries.reduce((s, r) => s + (r.gold_target || 0), 0);
+  rows.push({ section: 'R&D Team', row: impactRow('R&D Team (pooled)', rdActual, rdGold, data.rd_team.total_bonus) });
+
+  // Launch Manager (combined approx.)
+  const lm = data.launch_manager;
+  rows.push({ section: 'Launch Manager', row: impactRow('Launch Manager (combined, approx.)', lm.actual_combined.sales, lm.approx_combined_target.gold, lm.approx_bonus_eur) });
+
+  // Every official Brand Manager brand, grouped
+  for (const [group, groupData] of Object.entries(data.bm_groups || {})) {
+    for (const brandName of groupData.brands) {
+      const key = Object.keys(data.brand_manager || {}).find(k => normBrand(k) === normBrand(brandName));
+      const v = key ? data.brand_manager[key] : null;
+      if (!v) continue;
+      const goldSum = Object.values(v.stage_detail || {}).reduce((s, sd) => s + (sd.gold_target || 0), 0);
+      rows.push({ section: `Brand Manager — ${group}`, row: impactRow(key, v.combined_actual.sales, goldSum, v.total_bonus) });
+    }
+  }
+
+  let html = '';
+  let lastSection = null;
+  for (const { section, row } of rows) {
+    if (section !== lastSection) {
+      html += `<tr class="impact-role-row"><td colspan="6">${section}</td></tr>`;
+      lastSection = section;
+    }
+    html += `
+      <tr>
+        <td class="name" style="padding-left:24px;">${row.label}</td>
+        <td class="num">${fmtEUR(row.actual)}</td>
+        <td class="num">${fmtEUR(row.goldTarget)}</td>
+        <td>${growthPill(row.growth)}</td>
+        <td class="num">${fmtEUR(row.bonus)}</td>
+        <td class="num"><span class="bonus-pct-badge">${row.bonusPct != null ? fmtPct(row.bonusPct) : '—'}</span></td>
+      </tr>`;
+  }
+  document.getElementById('impactBody').innerHTML = html;
 }
 
 // ---------- Save month (server if deployed, else localStorage) ----------

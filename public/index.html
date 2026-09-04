@@ -81,10 +81,11 @@
   .pill.pending{background:#FFFBEB; color:#92400E;}
   .pill.ready{background:#ECFDF5; color:#065F46;}
 
-  table{width:100%; border-collapse:collapse; background:#fff; border-radius:14px; overflow:hidden; border:1px solid var(--line-200);}
+  table{width:100%; border-collapse:collapse; background:#fff; border-radius:14px; border:1px solid var(--line-200);}
   thead th{
     text-align:right; font-size:11.5px; font-weight:600; color:var(--line-500);
     padding:10px 16px; border-bottom:1px solid var(--line-200); background:var(--line-50);
+    position:sticky; top:0; z-index:3; box-shadow:0 1px 0 var(--line-200);
   }
   thead th:first-child, tbody td:first-child{text-align:left;}
   tbody td{padding:11px 16px; font-size:13.5px; text-align:right; border-bottom:1px solid var(--line-100);}
@@ -97,6 +98,19 @@
   tr.brand-row td.name.sub-brand{padding-left:18px;}
   tr.brand-row td{background:var(--line-50); font-weight:700; border-top:1.5px solid var(--line-200);}
   tr.stage-row td.name.sub{padding-left:30px; font-weight:400; color:var(--line-500); font-size:12.5px;}
+
+  /* Excel-style target/bonus tier coloring */
+  td.tint-green{background:#E7F8F0;}
+  td.tint-gold{background:#FDF3D8;}
+  tr.stage-row td.tint-green, tr.brand-row td.tint-green{background:#DCF3E8;}
+  tr.stage-row td.tint-gold, tr.brand-row td.tint-gold{background:#FBEDC4;}
+  .total-row-solid td{background:var(--ember) !important; color:#fff; font-weight:700;}
+  .growth-pill{display:inline-block; padding:3px 10px; border-radius:100px; font-weight:700; font-size:13px;}
+  .growth-pill.positive{background:#D1FAE5; color:#065F46;}
+  .growth-pill.negative{background:#FEE2E2; color:#991B1B;}
+  .growth-pill.neutral{background:var(--line-100); color:var(--line-500);}
+  .bonus-pct-badge{font-weight:600; color:var(--line-700);}
+  tr.impact-role-row td{background:var(--line-50); font-weight:700;}
 
   .target-input{width:100px; padding:5px 8px; border:1px solid var(--line-300); border-radius:7px; font-size:12.5px; text-align:right; font-family:'Inter',sans-serif;}
   .tier-tag{font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:6px;}
@@ -157,6 +171,7 @@
   <nav class="tab-nav">
     <button id="tabDashboardBtn" class="tab-btn active" onclick="setTab('dashboard')">Dashboard</button>
     <button id="tabUploadBtn" class="tab-btn" onclick="setTab('upload')">Upload data</button>
+    <button id="tabImpactBtn" class="tab-btn" onclick="setTab('impact')">Impact Analysis</button>
   </nav>
 </header>
 
@@ -217,11 +232,11 @@
       <span class="section-note">One row per product · targets from the calculator, ÷3 for the monthly view</span>
     </div>
     <table>
-      <thead><tr><th>Product</th><th>Actual Rev.</th><th>Green target</th><th>Gold target</th><th>Actual Margin %</th><th>Target Margin %</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
+      <thead><tr><th>Product</th><th>Actual Rev.</th><th class="th-green">Green target</th><th class="th-gold">Gold target</th><th>Actual Margin %</th><th class="th-green">Green Margin Target</th><th class="th-gold">Gold Margin Target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody id="rdBody"></tbody>
       <tfoot>
-        <tr><td>Pool bonus total</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="rdTotalBonus"></td></tr>
-        <tr><td style="font-weight:400;">÷ <span id="rdTeamSize"></span> team members</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="rdPerPerson" style="font-weight:400;"></td></tr>
+        <tr class="total-row-solid"><td>Pool bonus total</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="rdTotalBonus"></td></tr>
+        <tr><td style="font-weight:400;">÷ <span id="rdTeamSize"></span> team members</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="rdPerPerson" style="font-weight:400;"></td></tr>
       </tfoot>
     </table>
   </section>
@@ -236,7 +251,7 @@
       <span><b>Marketplace split unavailable.</b> This export blends all marketplaces, so DE and Pan-EU F3M actuals can't be separated yet — targets are shown per country, but only a combined (approximate) tier can be calculated. Export per marketplace from Sellerboard to unlock the real split.</span>
     </div>
     <table>
-      <thead><tr><th>Market</th><th>Actual Rev.</th><th>Green target</th><th>Gold target</th><th>Actual Margin %</th><th>Target Margin %</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
+      <thead><tr><th>Market</th><th>Actual Rev.</th><th class="th-green">Green target</th><th class="th-gold">Gold target</th><th>Actual Margin %</th><th class="th-green">Green Margin Target</th><th class="th-gold">Gold Margin Target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody id="launchBody"></tbody>
     </table>
     <p class="section-note" id="launchNoteBonus" style="margin-top:8px;"></p>
@@ -245,14 +260,14 @@
   <section id="bmSection" style="display:none;">
     <div class="section-head">
       <h2>Brand Manager — grouped by supervisor</h2>
-      <span class="section-note">BM1 (Ilwyn), BM2 (Jico), BM3 (Camille), BM4 (Michael) — PY1 + Y1 (F4-12) + Discontinued per brand</span>
+      <span class="section-note">BM1, BM2, BM3, BM4 — PY1 + Y1 (F4-12) + Discontinued per brand</span>
     </div>
     <table>
       <thead>
-        <tr><th>Group / Brand / Stage</th><th>Actual Rev.</th><th>Green target</th><th>Gold target</th><th>Actual Margin %</th><th>Target Margin %</th><th>Tier</th><th>Bonus (€)</th></tr>
+        <tr><th>Group / Brand / Stage</th><th>Actual Rev.</th><th class="th-green">Green target</th><th class="th-gold">Gold target</th><th>Actual Margin %</th><th class="th-green">Green Margin Target</th><th class="th-gold">Gold Margin Target</th><th>Tier</th><th>Bonus (€)</th></tr>
       </thead>
       <tbody id="bmBody"></tbody>
-      <tfoot><tr><td>Total bonus, all brands</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="bmTotalBonus"></td></tr></tfoot>
+      <tfoot><tr class="total-row-solid"><td>Total bonus, all brands</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="bmTotalBonus"></td></tr></tfoot>
     </table>
   </section>
 
@@ -278,6 +293,25 @@
   <section id="chartSection" style="display:none;">
     <div class="section-head"><h2>Revenue by brand</h2></div>
     <div class="chart-card"><canvas id="brandChart" height="90"></canvas></div>
+  </section>
+
+</div>
+
+<div id="tabImpact" style="display:none;">
+
+  <section>
+    <div class="section-head">
+      <h2>Is the bonus framework pulling its weight?</h2>
+      <span class="section-note">Every role and every brand, side by side: how far above target they performed, and how much of that revenue went out as bonus</span>
+    </div>
+    <div class="banner info" style="margin-bottom:16px;">
+      <span>ℹ</span>
+      <span>Growth % vs Target compares actual revenue to the <b>Gold</b> target (the framework's stated minimum expectation). Bonus % of Revenue is the bonus paid divided by actual revenue — a rough efficiency check: a high growth % paired with a very high bonus % may be worth a second look, and vice versa. Marketplace isn't included — its actual/target are manual entries not currently saved with the rest of the data.</span>
+    </div>
+    <table>
+      <thead><tr><th>Role / Brand</th><th>Actual Revenue</th><th>Gold Target</th><th>Growth % vs Target</th><th>Bonus (€)</th><th>Bonus % of Revenue</th></tr></thead>
+      <tbody id="impactBody"></tbody>
+    </table>
   </section>
 
 </div>

@@ -372,7 +372,7 @@
     "net_profit": 66442.66999999995,
     "sku_count": 1992
    },
-   "bm_group": "BM3 (Camille)",
+   "bm_group": "BM3",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -452,7 +452,7 @@
     "net_profit": 67028.85000000003,
     "sku_count": 102
    },
-   "bm_group": "BM1 (Ilwyn)",
+   "bm_group": "BM1",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -532,7 +532,7 @@
     "net_profit": 63782.280000000006,
     "sku_count": 292
    },
-   "bm_group": "BM2 (Jico)",
+   "bm_group": "BM2",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -612,7 +612,7 @@
     "net_profit": 90302.76000000001,
     "sku_count": 652
    },
-   "bm_group": "BM1 (Ilwyn)",
+   "bm_group": "BM1",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -692,7 +692,7 @@
     "net_profit": 12249.789999999999,
     "sku_count": 7
    },
-   "bm_group": "BM4 (Michael)",
+   "bm_group": "BM4",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -772,7 +772,7 @@
     "net_profit": 33917.73,
     "sku_count": 25
    },
-   "bm_group": "BM4 (Michael)",
+   "bm_group": "BM4",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -852,7 +852,7 @@
     "net_profit": 2964.94,
     "sku_count": 6
    },
-   "bm_group": "BM2 (Jico)",
+   "bm_group": "BM2",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -932,7 +932,7 @@
     "net_profit": 569.86,
     "sku_count": 3
    },
-   "bm_group": "BM4 (Michael)",
+   "bm_group": "BM4",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -1012,7 +1012,7 @@
     "net_profit": 724.69,
     "sku_count": 3
    },
-   "bm_group": "BM1 (Ilwyn)",
+   "bm_group": "BM1",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -1132,7 +1132,7 @@
   ]
  },
  "bm_groups": {
-  "BM1 (Ilwyn)": {
+  "BM1": {
    "brands": [
     "Tarpofix",
     "Darwin",
@@ -1141,7 +1141,7 @@
    "total_bonus": 1822.905180000002,
    "total_sales": 736876.0000000007
   },
-  "BM2 (Jico)": {
+  "BM2": {
    "brands": [
     "Heimfleiss",
     "Mattenheld"
@@ -1149,14 +1149,14 @@
    "total_bonus": 0,
    "total_sales": 461107.20999999973
   },
-  "BM3 (Camille)": {
+  "BM3": {
    "brands": [
     "PD"
    ],
    "total_bonus": 598.7665499999989,
    "total_sales": 275906.7999999999
   },
-  "BM4 (Michael)": {
+  "BM4": {
    "brands": [
     "Nasswerk",
     "PoolLöwe",
