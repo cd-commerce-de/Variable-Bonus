@@ -214,11 +214,11 @@
       <span class="section-note">One row per product · targets from the calculator, ÷3 for the monthly view</span>
     </div>
     <table>
-      <thead><tr><th>Product</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
+      <thead><tr><th>Product</th><th>Actual Rev.</th><th>Green target</th><th>Gold target</th><th>Actual Margin %</th><th>Target Margin %</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody id="rdBody"></tbody>
       <tfoot>
-        <tr><td>Pool bonus total</td><td></td><td></td><td></td><td></td><td class="num" id="rdTotalBonus"></td></tr>
-        <tr><td style="font-weight:400;">÷ <span id="rdTeamSize"></span> team members</td><td></td><td></td><td></td><td></td><td class="num" id="rdPerPerson" style="font-weight:400;"></td></tr>
+        <tr><td>Pool bonus total</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="rdTotalBonus"></td></tr>
+        <tr><td style="font-weight:400;">÷ <span id="rdTeamSize"></span> team members</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="rdPerPerson" style="font-weight:400;"></td></tr>
       </tfoot>
     </table>
   </section>
@@ -233,7 +233,7 @@
       <span><b>Marketplace split unavailable.</b> This export blends all marketplaces, so DE and Pan-EU F3M actuals can't be separated yet — targets are shown per country, but only a combined (approximate) tier can be calculated. Export per marketplace from Sellerboard to unlock the real split.</span>
     </div>
     <table>
-      <thead><tr><th>Market</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
+      <thead><tr><th>Market</th><th>Actual Rev.</th><th>Green target</th><th>Gold target</th><th>Actual Margin %</th><th>Target Margin %</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody id="launchBody"></tbody>
     </table>
     <p class="section-note" id="launchNoteBonus" style="margin-top:8px;"></p>
@@ -246,21 +246,10 @@
     </div>
     <table>
       <thead>
-        <tr><th>Group / Brand / Stage</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr>
+        <tr><th>Group / Brand / Stage</th><th>Actual Rev.</th><th>Green target</th><th>Gold target</th><th>Actual Margin %</th><th>Target Margin %</th><th>Tier</th><th>Bonus (€)</th></tr>
       </thead>
       <tbody id="bmBody"></tbody>
-      <tfoot><tr><td>Total bonus, all brands</td><td></td><td></td><td></td><td></td><td class="num" id="bmTotalBonus"></td></tr></tfoot>
-    </table>
-  </section>
-
-  <section id="otherBrandsSection" style="display:none;">
-    <div class="section-head">
-      <h2>Other brands (not in the Brand Manager bonus program)</h2>
-      <span class="section-note">Real revenue, shown for transparency — not counted toward any bonus track above</span>
-    </div>
-    <table>
-      <thead><tr><th>Brand</th><th>Revenue</th><th>Units</th></tr></thead>
-      <tbody id="otherBrandsBody"></tbody>
+      <tfoot><tr><td>Total bonus, all brands</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="bmTotalBonus"></td></tr></tfoot>
     </table>
   </section>
 

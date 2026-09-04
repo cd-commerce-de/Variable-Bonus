@@ -83,7 +83,10 @@
     "gold_target": 1135.4,
     "tier": "🥇 GOLD",
     "bonus_eur": 7.551800000000001,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": 0.23948735308741229,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "DSD": {
     "label": "Dartstand - DSD",
@@ -97,7 +100,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "TSE": {
     "label": "Toilet seat - TSE",
@@ -111,7 +117,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": 0.17657017160526017,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "TSF": {
     "label": "Toilet seat kids - TSF",
@@ -125,7 +134,10 @@
     "gold_target": 9477,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "KMS": {
     "label": "Fireplace guard - KMS",
@@ -139,7 +151,10 @@
     "gold_target": 20773.5,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": 0.19300898685394094,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "FES": {
     "label": "Fire Bowl - FES",
@@ -153,7 +168,10 @@
     "gold_target": 38269,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": 0.21567232750815765,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "FRM02": {
     "label": "Bicycle mounting stand - FRM02",
@@ -167,7 +185,10 @@
     "gold_target": 61035,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": 0.12396438250096786,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "WHS": {
     "label": "Waders - WHS",
@@ -181,7 +202,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.2977109814384283,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "SLP": {
     "label": "Solar cover - SLP",
@@ -195,7 +219,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": 0.03973766063681755,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "VZW": {
     "label": "Awning caravan - VZW",
@@ -209,7 +236,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.16400791464646827,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "AKS": {
     "label": "Cordless screwdriver - AKS",
@@ -223,7 +253,10 @@
     "gold_target": 11190,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": -0.7124320432043204,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "WGH25": {
     "label": "WGH25 - Car Jack 2.5ton",
@@ -237,7 +270,10 @@
     "gold_target": 25751.8,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": 0.0393363477789256,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "KMK": {
     "label": "Clamping Awning - KMK",
@@ -251,7 +287,10 @@
     "gold_target": 68428,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "SUP": {
     "label": "SUP - Stand Up Paddling Board",
@@ -265,7 +304,10 @@
     "gold_target": 163159.2,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "real"
+    "target_source": "real",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    }
   },
   "total_bonus": 7.551800000000001
@@ -281,17 +323,24 @@
   "germany_target": {
    "green": 181289.45,
    "gold": 190831,
+   "green_margin": 0.133,
+   "gold_margin": 0.143,
    "source": "real"
   },
   "pan_eu_target": {
    "green": 6441,
    "gold": 6780,
+   "green_margin": 0.133,
+   "gold_margin": 0.143,
    "source": "real"
   },
   "approx_combined_target": {
    "green": 187730.45,
-   "gold": 197611
+   "gold": 197611,
+   "green_margin": 0.133,
+   "gold_margin": 0.143
   },
+  "approx_actual_margin_pct": 0.07518267975774158,
   "approx_tier": "❌ MISS",
   "approx_bonus_eur": 0
  },
@@ -336,7 +385,10 @@
      "gold_target": 216830.6,
      "tier": "🟢 GREEN",
      "bonus_eur": 598.7665499999989,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.2411430478039532,
+     "green_margin_pct": 0.224,
+     "gold_margin_pct": 0.244
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -349,7 +401,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     },
     "Discontinued": {
      "actual": {
@@ -362,7 +417,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.20968713547016746,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 598.7665499999989
@@ -407,7 +465,10 @@
      "gold_target": 177070,
      "tier": "🥇 GOLD",
      "bonus_eur": 1822.905180000002,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.23593083212478036,
+     "green_margin_pct": 0.18227,
+     "gold_margin_pct": 0.19884
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -420,7 +481,10 @@
      "gold_target": 39435,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.03973766063681755,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -433,7 +497,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 1822.905180000002
@@ -478,7 +545,10 @@
      "gold_target": 471776.55,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.1495298334515396,
+     "green_margin_pct": 0.17105,
+     "gold_margin_pct": 0.1866
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -491,7 +561,10 @@
      "gold_target": 629727,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.18914461645859623,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -504,7 +577,10 @@
      "gold_target": 45737,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": -0.35907883521766387,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 0
@@ -549,7 +625,10 @@
      "gold_target": 365319,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.22832777993720932,
+     "green_margin_pct": 0.23541,
+     "gold_margin_pct": 0.24662
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -562,7 +641,10 @@
      "gold_target": 37772.8,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.06869098348726276,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -575,7 +657,10 @@
      "gold_target": 18051,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.07913933365695364,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 0
@@ -620,7 +705,10 @@
      "gold_target": 74122.65,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.19142513219108648,
+     "green_margin_pct": 0.21516,
+     "gold_margin_pct": 0.23472
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -633,7 +721,10 @@
      "gold_target": 3107,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -646,7 +737,10 @@
      "gold_target": 12951,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 0
@@ -691,7 +785,10 @@
      "gold_target": 226665.6,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.19279057631426233,
+     "green_margin_pct": 0.15433,
+     "gold_margin_pct": 0.17446
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -704,7 +801,10 @@
      "gold_target": 38870,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": 0.027373900410274613,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -717,7 +817,10 @@
      "gold_target": 11369,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "real"
+     "target_source": "real",
+     "actual_margin_pct": -2.633038348082596,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 0
@@ -762,7 +865,10 @@
      "gold_target": 16046.253333333334,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.0935933497975372,
+     "green_margin_pct": 0.118,
+     "gold_margin_pct": 0.225
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -775,7 +881,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.2609123461544232,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     },
     "Discontinued": {
      "actual": {
@@ -788,7 +897,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 0
@@ -833,7 +945,10 @@
      "gold_target": 14457.1,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.03340013046834384,
+     "green_margin_pct": 0.1363333333,
+     "gold_margin_pct": 0.1563333333
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -846,7 +961,10 @@
      "gold_target": 0,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     },
     "Discontinued": {
      "actual": {
@@ -859,7 +977,10 @@
      "gold_target": 0,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 0
@@ -904,7 +1025,10 @@
      "gold_target": 6350.3615,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.27371581809941076,
+     "green_margin_pct": 0.2822166667,
+     "gold_margin_pct": 0.2891
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -917,7 +1041,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     },
     "Discontinued": {
      "actual": {
@@ -930,7 +1057,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 0

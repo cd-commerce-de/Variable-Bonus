@@ -19,8 +19,11 @@ columns — no dividing, no estimating:
   = Pan-EU) and Brand Manager (each brand's `PY1` / `Y1` / `Discontinued`
   sections), both Revenue and Profit Margin.
 - `Leadership Scorecard 3`, row 13 onward → R&D, one row per named product.
-  Revenue only — margin is intentionally left blank, per instruction (no
-  margin target exists for R&D in the source).
+  Revenue only — no margin *target* exists for R&D in the source yet.
+  Actual margin is still computed and shown (net profit ÷ revenue), and
+  the margin gate is treated as an automatic pass when there's no target
+  to grade it against (same rule the R&D and Brand Manager gates both use
+  for any missing target, not a special case).
 
 **Mapping note:** the source sheets use a 3-tier Good/Better/Best scale;
 the dashboard's bonus logic (and Config's rates) only has two tiers. The
@@ -91,9 +94,10 @@ even if you're not touching targets.
 
   **The company sells other brands too** (the TOC lists ~17), and those
   show up in the Sellerboard export like anything else. Any brand *not*
-  in the 9 above is excluded from every Brand Manager total — its revenue
-  is shown separately in an "Other brands" panel so it's never silently
-  folded into a bonus number it isn't part of.
+  in the 9 above is excluded from every Brand Manager total — it's simply
+  not counted toward any bonus figure (a separate on-page panel showing
+  those brands was tried and removed; the exclusion logic itself is
+  unchanged).
 - **Launch Manager** — Germany and Pan-EU targets are both shown, but
   **actuals are combined-only** (the Sellerboard export has no marketplace
   column), so only an approximate combined tier and bonus can be computed.
@@ -101,9 +105,18 @@ even if you're not touching targets.
   gold) plus PAN EU rate (30% weight: 0.0015 green / 0.003 gold) — these
   two sum back to the base rate (0.005/0.01) by construction, so summing
   them is the mathematically correct blended rate for a combined-actual
-  approximation. A warning banner says so on the page itself.
+  approximation. The margin gate is included too: DE/PanEU margin
+  *targets* are blended the same way, using the actual 70/30 weight split
+  (not the rate sum, since margin is a ratio, not additive) — a bonus is
+  only paid when both the revenue AND margin conditions clear. A warning
+  banner says so on the page itself.
 - **Marketplace** — still fully manual (actual and target), per the
   original spec.
+- **Every track's table shows Actual Margin % and Target Margin %
+  explicitly**, not just as an invisible pass/fail baked into the tier —
+  these numbers drive the quality gate (per the Variable Bonus Framework:
+  no bonus is paid if margin is below target, regardless of revenue), so
+  they're shown, not just used silently.
 - ASINs not in the TOC mapping are excluded from every track (never
   silently misassigned) and listed by ASIN in the Data Quality panel.
 

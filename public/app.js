@@ -127,11 +127,15 @@ function cleanNumber(x) {
 }
 function fmtEUR(n) {
   if (n === null || n === undefined) return '—';
-  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  return '€' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function fmtInt(n) {
   if (n === null || n === undefined) return '—';
-  return Math.round(n).toLocaleString('de-DE');
+  return Math.round(n).toLocaleString('en-US');
+}
+function fmtPct(n) {
+  if (n === null || n === undefined) return '—';
+  return (n * 100).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
 }
 
 // ---------- Load mapping + targets + month list on boot ----------
@@ -304,7 +308,7 @@ function handleFile(file) {
         document.getElementById('monthPicker').value = monthVal; // reflect what's actually being used
         const computed = await computeFromRows(results.data, monthVal);
         const howDetected = detected ? `auto-detected from the filename` : `from the month picker (couldn't detect it from the filename)`;
-        statusEl.innerHTML = `<div class="banner info">Parsed ${results.data.length.toLocaleString()} rows for <b>${monthVal}</b> (${howDetected}). Check the Dashboard tab to review, then come back here and click "Save to history" if it looks right.</div>`;
+        statusEl.innerHTML = `<div class="banner info">Parsed ${results.data.length.toLocaleString('en-US')} rows for <b>${monthVal}</b> (${howDetected}). Check the Dashboard tab to review, then come back here and click "Save to history" if it looks right.</div>`;
         CURRENT = computed;
         renderCurrentView();
       } catch (err) {
@@ -473,9 +477,19 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
       gold = t ? (isQuarterly ? t.quarter_gold_rev : t.monthly_gold_rev) : null;
       label = t ? t.label : (m ? m.label : code); source = 'estimated';
     }
-    const tier = tierOf(actual.sales, green, gold, null, null, null, t ? t.gate : null);
+    // No margin target exists for R&D yet (neither in the Excel nor the
+    // monthly extract) -- per instruction, the margin gate is assumed to
+    // PASS when there's no target to compare against (tierOf already
+    // treats a null margin target this way). Actual margin is still
+    // computed and shown, so the number isn't hidden just because there's
+    // nothing to grade it against yet.
+    const actualMargin = actual.sales ? actual.net_profit / actual.sales : null;
+    const tier = tierOf(actual.sales, green, gold, actualMargin, null, null, t ? t.gate : null);
     const bonus = bonusOf(tier, actual.sales, green, gold, rates.rd_team.green, rates.rd_team.gold);
-    rdRows[code] = { label, actual, green_target: green, gold_target: gold, tier, bonus_eur: bonus, target_source: source };
+    rdRows[code] = {
+      label, actual, green_target: green, gold_target: gold, tier, bonus_eur: bonus, target_source: source,
+      actual_margin_pct: actualMargin, green_margin_pct: null, gold_margin_pct: null,
+    };
   });
   data.rd_team.rows = rdRows;
   data.rd_team.total_bonus = Object.values(rdRows).reduce((s, r) => s + r.bonus_eur, 0);
@@ -504,7 +518,20 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
   const euT = launchTarget(lt.pan_eu, mLm ? mLm.pan_eu : null);
   const cGreen = deT.green + euT.green;
   const cGold = deT.gold + euT.gold;
-  const approxTier = tierOf(data.launch_manager.actual_combined.sales, cGreen, cGold, null, null, null, null);
+  // Margin gate: blend DE/PanEU margin *targets* using the same 70/30
+  // weight baked into the Config rates (derived from the rates themselves
+  // so it stays correct if Config changes), since margin is a ratio, not
+  // additive like revenue. If either side's margin target is missing,
+  // the blended target is left null -- tierOf treats a null margin
+  // target as an automatic pass, same as R&D's "no target yet" case.
+  const wGermany = rates.launch_mgr_germany.green / (rates.launch_mgr_germany.green + rates.launch_mgr_pan_eu.green);
+  const wPanEu = 1 - wGermany;
+  const blend = (a, b) => (a != null && b != null) ? (a * wGermany + b * wPanEu) : null;
+  const combinedGreenMargin = blend(deT.green_margin, euT.green_margin);
+  const combinedGoldMargin = blend(deT.gold_margin, euT.gold_margin);
+  const actualCombinedMargin = data.launch_manager.actual_combined.sales
+    ? data.launch_manager.actual_combined.net_profit / data.launch_manager.actual_combined.sales : null;
+  const approxTier = tierOf(data.launch_manager.actual_combined.sales, cGreen, cGold, actualCombinedMargin, combinedGreenMargin, combinedGoldMargin, null);
   // Bonus rate: Config sets Germany (70% weight) and PAN EU (30% weight)
   // rates SEPARATELY (0.0035/0.007 and 0.0015/0.003) -- these already have
   // the weight baked in, and by construction sum back to the base
@@ -516,9 +543,10 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
   const blendedGreenRate = rates.launch_mgr_germany.green + rates.launch_mgr_pan_eu.green;
   const blendedGoldRate = rates.launch_mgr_germany.gold + rates.launch_mgr_pan_eu.gold;
   const approxBonus = bonusOf(approxTier, data.launch_manager.actual_combined.sales, cGreen, cGold, blendedGreenRate, blendedGoldRate);
-  data.launch_manager.germany_target = { green: deT.green, gold: deT.gold, source: deT.source };
-  data.launch_manager.pan_eu_target = { green: euT.green, gold: euT.gold, source: euT.source };
-  data.launch_manager.approx_combined_target = { green: cGreen, gold: cGold };
+  data.launch_manager.germany_target = { green: deT.green, gold: deT.gold, green_margin: deT.green_margin, gold_margin: deT.gold_margin, source: deT.source };
+  data.launch_manager.pan_eu_target = { green: euT.green, gold: euT.gold, green_margin: euT.green_margin, gold_margin: euT.gold_margin, source: euT.source };
+  data.launch_manager.approx_combined_target = { green: cGreen, gold: cGold, green_margin: combinedGreenMargin, gold_margin: combinedGoldMargin };
+  data.launch_manager.approx_actual_margin_pct = actualCombinedMargin;
   data.launch_manager.approx_tier = approxTier;
   data.launch_manager.approx_bonus_eur = approxBonus;
 
@@ -552,7 +580,10 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
       const effGold = weight ? weight.eff_gold : rates.brand_manager.gold;
       const bonus = bonusOf(tier, actual.sales, green, gold, effGreen, effGold);
       brandBonus += bonus;
-      stageDetail[stageLabel] = { actual, green_target: green, gold_target: gold, tier, bonus_eur: bonus, target_source: source };
+      stageDetail[stageLabel] = {
+        actual, green_target: green, gold_target: gold, tier, bonus_eur: bonus, target_source: source,
+        actual_margin_pct: actualMargin, green_margin_pct: greenMargin, gold_margin_pct: goldMargin,
+      };
     }
     v.stage_detail = stageDetail;
     v.total_bonus = brandBonus;
@@ -624,7 +655,7 @@ function renderInner(data, viewLabel) {
 
   // Data quality
   document.getElementById('dqSummary').textContent =
-    `Data quality — ${data.meta.mapped_rows.toLocaleString()} SKUs mapped, ${data.meta.unmapped_rows} unmapped`;
+    `Data quality — ${data.meta.mapped_rows.toLocaleString('en-US')} SKUs mapped, ${data.meta.unmapped_rows} unmapped`;
   document.getElementById('dqBody').innerHTML = data.meta.unmapped_rows
     ? `<p>${data.meta.unmapped_rows} ASIN(s) in this export aren't in the TOC mapping yet, so their revenue is <b>excluded</b> from every track below rather than silently misassigned. Add them to the TOC "ASIN Report" tab and re-upload to include them.</p>
        <div>${data.meta.unmapped_asins.map(a => `<span class="asin-chip">${a}</span>`).join('')}</div>`
@@ -644,6 +675,8 @@ function renderInner(data, viewLabel) {
         <td class="num">${fmtEUR(r.actual.sales)}</td>
         <td class="num">${fmtEUR(r.green_target)}${sourceTag(r.target_source)}</td>
         <td class="num">${fmtEUR(r.gold_target)}</td>
+        <td class="num">${fmtPct(r.actual_margin_pct)}</td>
+        <td class="num">${r.gold_margin_pct != null ? fmtPct(r.gold_margin_pct) : '<span style="color:var(--line-400); font-size:11.5px;">no target yet — gate assumed pass</span>'}</td>
         <td>${tierTag(r.tier)}</td>
         <td class="num">${fmtEUR(r.bonus_eur)}</td>
       </tr>
@@ -651,20 +684,20 @@ function renderInner(data, viewLabel) {
     document.getElementById('rdTotalBonus').textContent = fmtEUR(data.rd_team.total_bonus);
     document.getElementById('rdTeamSize').textContent = TARGETS.rates.rd_team.team_size;
     document.getElementById('rdPerPerson').textContent = fmtEUR(data.rd_team.total_bonus / TARGETS.rates.rd_team.team_size);
-  } catch (err) { console.error('R&D section error:', err); document.getElementById('rdBody').innerHTML = `<tr><td colspan="6" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
+  } catch (err) { console.error('R&D section error:', err); document.getElementById('rdBody').innerHTML = `<tr><td colspan="8" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Launch Manager ----
   let lm;
   try {
     lm = data.launch_manager;
     document.getElementById('launchBody').innerHTML = `
-      <tr><td class="name">Germany</td><td class="num">—</td><td class="num">${fmtEUR(lm.germany_target.green)}</td><td class="num">${fmtEUR(lm.germany_target.gold)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
-      <tr><td class="name">PAN EU</td><td class="num">—</td><td class="num">${fmtEUR(lm.pan_eu_target.green)}</td><td class="num">${fmtEUR(lm.pan_eu_target.gold)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
-      <tr style="background:var(--ember-subtle);"><td class="name">Combined (approx.)</td><td class="num">${fmtEUR(lm.actual_combined.sales)}</td><td class="num">${fmtEUR(lm.approx_combined_target.green)}</td><td class="num">${fmtEUR(lm.approx_combined_target.gold)}</td><td>${tierTag(lm.approx_tier)}</td><td class="num">${fmtEUR(lm.approx_bonus_eur)}</td></tr>
+      <tr><td class="name">Germany</td><td class="num">—</td><td class="num">${fmtEUR(lm.germany_target.green)}</td><td class="num">${fmtEUR(lm.germany_target.gold)}</td><td class="num">—</td><td class="num">${fmtPct(lm.germany_target.gold_margin)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
+      <tr><td class="name">PAN EU</td><td class="num">—</td><td class="num">${fmtEUR(lm.pan_eu_target.green)}</td><td class="num">${fmtEUR(lm.pan_eu_target.gold)}</td><td class="num">—</td><td class="num">${fmtPct(lm.pan_eu_target.gold_margin)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
+      <tr style="background:var(--ember-subtle);"><td class="name">Combined (approx.)</td><td class="num">${fmtEUR(lm.actual_combined.sales)}</td><td class="num">${fmtEUR(lm.approx_combined_target.green)}</td><td class="num">${fmtEUR(lm.approx_combined_target.gold)}</td><td class="num">${fmtPct(lm.approx_actual_margin_pct)}</td><td class="num">${fmtPct(lm.approx_combined_target.gold_margin)}</td><td>${tierTag(lm.approx_tier)}</td><td class="num">${fmtEUR(lm.approx_bonus_eur)}</td></tr>
     `;
     document.getElementById('launchNoteBonus').textContent =
       `Bonus uses the blended rate (Germany + PAN EU Config rates, which already sum to the base rate) applied to the combined overflow — an approximation until actuals can be split by country.`;
-  } catch (err) { console.error('Launch section error:', err); document.getElementById('launchBody').innerHTML = `<tr><td colspan="6" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
+  } catch (err) { console.error('Launch section error:', err); document.getElementById('launchBody').innerHTML = `<tr><td colspan="8" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Brand Manager (grouped by BM1-4 supervisor, per calculator structure) ----
   let bmRows = [];
@@ -673,13 +706,13 @@ function renderInner(data, viewLabel) {
     bmTotalBonus = data.bm_grand_total_bonus || 0;
     let bmHtml = '';
     for (const [group, groupData] of Object.entries(data.bm_groups || {})) {
-      bmHtml += `<tr class="bm-group-row"><td class="name">${group}</td><td class="num">${fmtEUR(groupData.total_sales)}</td><td colspan="3"></td><td class="num">${fmtEUR(groupData.total_bonus)}</td></tr>`;
+      bmHtml += `<tr class="bm-group-row"><td class="name">${group}</td><td class="num">${fmtEUR(groupData.total_sales)}</td><td colspan="5"></td><td class="num">${fmtEUR(groupData.total_bonus)}</td></tr>`;
       for (const brandName of groupData.brands) {
         const key = Object.keys(data.brand_manager).find(k => normBrand(k) === normBrand(brandName));
         const v = key ? data.brand_manager[key] : null;
         if (!v) continue;
         bmRows.push([key, v]);
-        bmHtml += `<tr class="brand-row"><td class="name sub-brand">${key}</td><td class="num">${fmtEUR(v.combined_actual.sales)}</td><td colspan="3"></td><td class="num">${fmtEUR(v.total_bonus)}</td></tr>`;
+        bmHtml += `<tr class="brand-row"><td class="name sub-brand">${key}</td><td class="num">${fmtEUR(v.combined_actual.sales)}</td><td colspan="5"></td><td class="num">${fmtEUR(v.total_bonus)}</td></tr>`;
         for (const [stageLabel, sd] of Object.entries(v.stage_detail)) {
           bmHtml += `
             <tr class="stage-row">
@@ -687,6 +720,8 @@ function renderInner(data, viewLabel) {
               <td class="num">${fmtEUR(sd.actual.sales)}</td>
               <td class="num">${fmtEUR(sd.green_target)}${sourceTag(sd.target_source)}</td>
               <td class="num">${fmtEUR(sd.gold_target)}</td>
+              <td class="num">${fmtPct(sd.actual_margin_pct)}</td>
+              <td class="num">${fmtPct(sd.gold_margin_pct)}</td>
               <td>${tierTag(sd.tier)}</td>
               <td class="num">${fmtEUR(sd.bonus_eur)}</td>
             </tr>`;
@@ -695,22 +730,7 @@ function renderInner(data, viewLabel) {
     }
     document.getElementById('bmBody').innerHTML = bmHtml;
     document.getElementById('bmTotalBonus').textContent = fmtEUR(bmTotalBonus);
-
-    // Brands with real revenue that are NOT part of the Brand Manager
-    // bonus program (e.g. Van De Boos, MESSEREI, Arganoel Zauber) --
-    // shown for transparency, never silently dropped from the totals.
-    const other = data.other_brands_unassigned || {};
-    const otherEntries = Object.entries(other).filter(([, d]) => d.sales > 0).sort((a, b) => b[1].sales - a[1].sales);
-    const otherSection = document.getElementById('otherBrandsSection');
-    if (otherEntries.length) {
-      document.getElementById('otherBrandsBody').innerHTML = otherEntries.map(([b, d]) => `
-        <tr><td class="name">${b}</td><td class="num">${fmtEUR(d.sales)}</td><td class="num">${fmtInt(d.units)}</td></tr>
-      `).join('');
-      otherSection.style.display = 'block';
-    } else {
-      otherSection.style.display = 'none';
-    }
-  } catch (err) { console.error('Brand Manager section error:', err); document.getElementById('bmBody').innerHTML = `<tr><td colspan="6" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
+  } catch (err) { console.error('Brand Manager section error:', err); document.getElementById('bmBody').innerHTML = `<tr><td colspan="8" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Stats strip ----
   try {
