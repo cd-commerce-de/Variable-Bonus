@@ -409,6 +409,16 @@ function tierTag(tier) {
 }
 
 function render(data, viewLabel) {
+  try {
+    renderInner(data, viewLabel);
+  } catch (err) {
+    console.error('Render error:', err);
+    const statusEl = document.getElementById('uploadStatus');
+    statusEl.innerHTML = `<div class="banner error"><b>The dashboard hit an error while rendering this data.</b> ${err.message}. The data itself parsed fine — this is a display bug. Please share this message so it can be fixed.</div>` + statusEl.innerHTML;
+  }
+}
+
+function renderInner(data, viewLabel) {
   const periodLabel = viewLabel === 'quarterly'
     ? `${quarterOf(data.month)} (quarterly)`
     : `${data.month} (monthly)`;
@@ -439,71 +449,86 @@ function render(data, viewLabel) {
     : `<p>Every SKU in this export matched the TOC mapping.</p>`;
   document.getElementById('dataQualitySection').style.display = 'block';
 
+  // Reveal every section up front — each block below fills in its own
+  // content independently, so one section's bug can't blank out the rest.
+  ['statsSection', 'rdSection', 'launchSection', 'bmSection', 'mpSection', 'chartSection'].forEach(id => document.getElementById(id).style.display = 'block');
+
   // ---- R&D ----
-  const rdRows = Object.entries(data.rd_team.rows).sort((a, b) => (b[1].actual.sales) - (a[1].actual.sales));
-  document.getElementById('rdBody').innerHTML = rdRows.map(([code, r]) => `
-    <tr>
-      <td class="name">${r.label}</td>
-      <td class="num">${fmtEUR(r.actual.sales)}</td>
-      <td class="num">${fmtEUR(r.green_target)}</td>
-      <td class="num">${fmtEUR(r.gold_target)}</td>
-      <td>${tierTag(r.tier)}</td>
-      <td class="num">${fmtEUR(r.bonus_eur)}</td>
-    </tr>
-  `).join('');
-  document.getElementById('rdTotalBonus').textContent = fmtEUR(data.rd_team.total_bonus);
-  document.getElementById('rdTeamSize').textContent = TARGETS.rates.rd_team.team_size;
-  document.getElementById('rdPerPerson').textContent = fmtEUR(data.rd_team.total_bonus / TARGETS.rates.rd_team.team_size);
+  try {
+    const rdRows = Object.entries(data.rd_team.rows).sort((a, b) => (b[1].actual.sales) - (a[1].actual.sales));
+    document.getElementById('rdBody').innerHTML = rdRows.map(([code, r]) => `
+      <tr>
+        <td class="name">${r.label}</td>
+        <td class="num">${fmtEUR(r.actual.sales)}</td>
+        <td class="num">${fmtEUR(r.green_target)}</td>
+        <td class="num">${fmtEUR(r.gold_target)}</td>
+        <td>${tierTag(r.tier)}</td>
+        <td class="num">${fmtEUR(r.bonus_eur)}</td>
+      </tr>
+    `).join('');
+    document.getElementById('rdTotalBonus').textContent = fmtEUR(data.rd_team.total_bonus);
+    document.getElementById('rdTeamSize').textContent = TARGETS.rates.rd_team.team_size;
+    document.getElementById('rdPerPerson').textContent = fmtEUR(data.rd_team.total_bonus / TARGETS.rates.rd_team.team_size);
+  } catch (err) { console.error('R&D section error:', err); document.getElementById('rdBody').innerHTML = `<tr><td colspan="6" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Launch Manager ----
-  const lm = data.launch_manager;
-  document.getElementById('launchBody').innerHTML = `
-    <tr><td class="name">Germany</td><td class="num">—</td><td class="num">${fmtEUR(lm.germany_target.green)}</td><td class="num">${fmtEUR(lm.germany_target.gold)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
-    <tr><td class="name">PAN EU</td><td class="num">—</td><td class="num">${fmtEUR(lm.pan_eu_target.green)}</td><td class="num">${fmtEUR(lm.pan_eu_target.gold)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
-    <tr style="background:var(--ember-subtle);"><td class="name">Combined (approx.)</td><td class="num">${fmtEUR(lm.actual_combined.sales)}</td><td class="num">${fmtEUR(lm.approx_combined_target.green)}</td><td class="num">${fmtEUR(lm.approx_combined_target.gold)}</td><td>${tierTag(lm.approx_tier)}</td><td class="num">approx. only</td></tr>
-  `;
+  let lm;
+  try {
+    lm = data.launch_manager;
+    document.getElementById('launchBody').innerHTML = `
+      <tr><td class="name">Germany</td><td class="num">—</td><td class="num">${fmtEUR(lm.germany_target.green)}</td><td class="num">${fmtEUR(lm.germany_target.gold)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
+      <tr><td class="name">PAN EU</td><td class="num">—</td><td class="num">${fmtEUR(lm.pan_eu_target.green)}</td><td class="num">${fmtEUR(lm.pan_eu_target.gold)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
+      <tr style="background:var(--ember-subtle);"><td class="name">Combined (approx.)</td><td class="num">${fmtEUR(lm.actual_combined.sales)}</td><td class="num">${fmtEUR(lm.approx_combined_target.green)}</td><td class="num">${fmtEUR(lm.approx_combined_target.gold)}</td><td>${tierTag(lm.approx_tier)}</td><td class="num">approx. only</td></tr>
+    `;
+  } catch (err) { console.error('Launch section error:', err); document.getElementById('launchBody').innerHTML = `<tr><td colspan="6" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Brand Manager ----
-  const bmRows = Object.entries(data.brand_manager).sort((a, b) => b[1].combined_actual.sales - a[1].combined_actual.sales);
-  let bmHtml = '';
+  let bmRows = [];
   let bmTotalBonus = 0;
-  bmRows.forEach(([brand, v]) => {
-    bmTotalBonus += v.total_bonus || 0;
-    bmHtml += `<tr class="brand-row"><td class="name">${brand}</td><td class="num">${fmtEUR(v.combined_actual.sales)}</td><td colspan="3"></td><td class="num">${fmtEUR(v.total_bonus)}</td></tr>`;
-    for (const [stageLabel, sd] of Object.entries(v.stage_detail)) {
-      bmHtml += `
-        <tr class="stage-row">
-          <td class="name sub">${stageLabel}</td>
-          <td class="num">${fmtEUR(sd.actual.sales)}</td>
-          <td class="num">${fmtEUR(sd.green_target)}</td>
-          <td class="num">${fmtEUR(sd.gold_target)}</td>
-          <td>${tierTag(sd.tier)}</td>
-          <td class="num">${fmtEUR(sd.bonus_eur)}</td>
-        </tr>`;
-    }
-  });
-  document.getElementById('bmBody').innerHTML = bmHtml;
-  document.getElementById('bmTotalBonus').textContent = fmtEUR(bmTotalBonus);
+  try {
+    bmRows = Object.entries(data.brand_manager).sort((a, b) => b[1].combined_actual.sales - a[1].combined_actual.sales);
+    let bmHtml = '';
+    bmRows.forEach(([brand, v]) => {
+      bmTotalBonus += v.total_bonus || 0;
+      bmHtml += `<tr class="brand-row"><td class="name">${brand}</td><td class="num">${fmtEUR(v.combined_actual.sales)}</td><td colspan="3"></td><td class="num">${fmtEUR(v.total_bonus)}</td></tr>`;
+      for (const [stageLabel, sd] of Object.entries(v.stage_detail)) {
+        bmHtml += `
+          <tr class="stage-row">
+            <td class="name sub">${stageLabel}</td>
+            <td class="num">${fmtEUR(sd.actual.sales)}</td>
+            <td class="num">${fmtEUR(sd.green_target)}</td>
+            <td class="num">${fmtEUR(sd.gold_target)}</td>
+            <td>${tierTag(sd.tier)}</td>
+            <td class="num">${fmtEUR(sd.bonus_eur)}</td>
+          </tr>`;
+      }
+    });
+    document.getElementById('bmBody').innerHTML = bmHtml;
+    document.getElementById('bmTotalBonus').textContent = fmtEUR(bmTotalBonus);
+  } catch (err) { console.error('Brand Manager section error:', err); document.getElementById('bmBody').innerHTML = `<tr><td colspan="6" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Stats strip ----
-  document.getElementById('statStrip').innerHTML = `
-    <div class="stat"><div class="label">R&D bonus pool</div><div class="value num">${fmtEUR(data.rd_team.total_bonus)}</div><div class="sub">÷ ${TARGETS.rates.rd_team.team_size} team members</div></div>
-    <div class="stat"><div class="label">Launch Mgr (F3M) actual</div><div class="value num">${fmtEUR(lm.actual_combined.sales)}</div><div class="sub"><span class="pill pending">country split pending</span></div></div>
-    <div class="stat"><div class="label">Brand Manager total bonus</div><div class="value num">${fmtEUR(bmTotalBonus)}</div><div class="sub">${bmRows.length} brands</div></div>
-    <div class="stat"><div class="label">Quality Issue (unassigned)</div><div class="value num">${fmtEUR(data.quality_issue_unassigned.sales)}</div><div class="sub">${data.quality_issue_unassigned.sku_count} SKUs — no track owns this stage</div></div>
-  `;
+  try {
+    document.getElementById('statStrip').innerHTML = `
+      <div class="stat"><div class="label">R&D bonus pool</div><div class="value num">${fmtEUR(data.rd_team.total_bonus)}</div><div class="sub">÷ ${TARGETS.rates.rd_team.team_size} team members</div></div>
+      <div class="stat"><div class="label">Launch Mgr (F3M) actual</div><div class="value num">${fmtEUR(lm ? lm.actual_combined.sales : null)}</div><div class="sub"><span class="pill pending">country split pending</span></div></div>
+      <div class="stat"><div class="label">Brand Manager total bonus</div><div class="value num">${fmtEUR(bmTotalBonus)}</div><div class="sub">${bmRows.length} brands</div></div>
+      <div class="stat"><div class="label">Quality Issue (unassigned)</div><div class="value num">${fmtEUR(data.quality_issue_unassigned.sales)}</div><div class="sub">${data.quality_issue_unassigned.sku_count} SKUs — no track owns this stage</div></div>
+    `;
+  } catch (err) { console.error('Stats strip error:', err); }
 
-  // ---- Chart ----
-  const ctx = document.getElementById('brandChart');
-  if (window._brandChart) window._brandChart.destroy();
-  window._brandChart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: bmRows.map(([b]) => b), datasets: [{ label: 'Actual revenue (€)', data: bmRows.map(([, v]) => v.combined_actual.sales), backgroundColor: '#D97757', borderRadius: 6 }] },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-  });
+  // ---- Chart (never let a charting failure affect anything else) ----
+  try {
+    const ctx = document.getElementById('brandChart');
+    if (window._brandChart) window._brandChart.destroy();
+    window._brandChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: bmRows.map(([b]) => b), datasets: [{ label: 'Actual revenue (€)', data: bmRows.map(([, v]) => v.combined_actual.sales), backgroundColor: '#D97757', borderRadius: 6 }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  } catch (err) { console.error('Chart error:', err); document.getElementById('chartSection').innerHTML = `<div class="banner error">Chart couldn't render: ${err.message}</div>`; }
 
   document.getElementById('monthPicker').value = (data.month || '').length === 7 ? data.month : '';
-  ['statsSection', 'rdSection', 'launchSection', 'bmSection', 'mpSection', 'chartSection'].forEach(id => document.getElementById(id).style.display = 'block');
 }
 
 // ---------- Save month (server if deployed, else localStorage) ----------
