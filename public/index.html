@@ -244,17 +244,18 @@
   <section id="launchSection" style="display:none;">
     <div class="section-head">
       <h2>Launch Manager — F3M</h2>
-      <span class="section-note">Germany vs. Pan-EU split pending a marketplace column in the source export</span>
+      <span class="section-note">Germany vs. Pan-EU, split by ASIN's marketplace</span>
     </div>
     <div class="banner warn" style="margin-bottom:12px;">
       <span>⚠</span>
-      <span><b>Marketplace split unavailable.</b> This export blends all marketplaces, so DE and Pan-EU F3M actuals can't be separated yet — targets are shown per country, but only a combined (approximate) tier can be calculated. Export per marketplace from Sellerboard to unlock the real split.</span>
+      <span><b>Data source caveat, not a bug.</b> The Germany/Pan-EU split below is real (joined by ASIN against Sellerboard's Products export), but that export's Marketplace field mostly just records where an ASIN's cost settings live — Germany, almost always — not a true log of which marketplace each sale happened on. Pan-EU numbers may understate real Pan-EU performance until a proper per-marketplace sales export is available.</span>
     </div>
     <table>
       <thead><tr><th>Market</th><th>Actual Rev.</th><th class="th-green">Green target</th><th class="th-gold">Gold target</th><th>Actual Margin %</th><th class="th-green">Green Margin Target</th><th class="th-gold">Gold Margin Target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody id="launchBody"></tbody>
     </table>
     <p class="section-note" id="launchNoteBonus" style="margin-top:8px;"></p>
+    <div class="banner warn" id="launchMarketplaceDq" style="display:none; margin-top:10px;"></div>
   </section>
 
   <section id="bmSection" style="display:none;">

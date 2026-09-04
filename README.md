@@ -8,6 +8,34 @@ with a **Monthly** and **Quarterly** view, mirroring the calculator's own
 (private) GitHub repo, and a small Vercel deployment provides login +
 serves that data.
 
+## Launch Manager: Germany vs. Pan-EU split
+
+Real, not approximated: each F3M-stage ASIN is joined against an
+ASIN → marketplace lookup built from Sellerboard's **Products** export
+(the one with a `Marketplace` column — the "Group by Parent" sales export
+doesn't have one):
+```bash
+python3 scripts/build_marketplace_mapping.py path/to/products_export.csv
+cp mapping/marketplace_mapping.json public/marketplace_mapping.json
+```
+
+**Known data-quality caveat, not a bug:** that field mostly records where
+each ASIN's *cost settings* live (Germany, almost always — this is a
+Products/cost-catalog export, not a per-order sales log), not which
+marketplace each individual sale happened on. In practice this currently
+resolves ~100% of ASINs to Germany, so Pan-EU actuals may read close to
+€0 even in months with real Pan-EU sales. The dashboard says this
+explicitly in the Launch Manager section rather than presenting the
+split as more reliable than it is. If Sellerboard offers a true
+per-marketplace sales export, re-point `build_marketplace_mapping.py` at
+that instead — the rest of the pipeline doesn't need to change.
+
+A handful of ASINs (~10 out of ~3,100) appear under more than one
+marketplace in the source file (cross-listed catalog entries); Germany
+wins when present. F3M ASINs with no marketplace entry at all are excluded
+from the DE/Pan-EU split (but still counted in "Combined") and listed in
+a data-quality banner on the page.
+
 ## Targets — how they get in
 
 Targets are **not entered manually in the dashboard.** There are two layers:
@@ -136,18 +164,12 @@ even if you're not touching targets.
   not counted toward any bonus figure (a separate on-page panel showing
   those brands was tried and removed; the exclusion logic itself is
   unchanged).
-- **Launch Manager** — Germany and Pan-EU targets are both shown, but
-  **actuals are combined-only** (the Sellerboard export has no marketplace
-  column), so only an approximate combined tier and bonus can be computed.
-  The bonus uses Config's Germany rate (70% weight: 0.0035 green / 0.007
-  gold) plus PAN EU rate (30% weight: 0.0015 green / 0.003 gold) — these
-  two sum back to the base rate (0.005/0.01) by construction, so summing
-  them is the mathematically correct blended rate for a combined-actual
-  approximation. The margin gate is included too: DE/PanEU margin
-  *targets* are blended the same way, using the actual 70/30 weight split
-  (not the rate sum, since margin is a ratio, not additive) — a bonus is
-  only paid when both the revenue AND margin conditions clear. A warning
-  banner says so on the page itself.
+- **Launch Manager** — Germany and Pan-EU are computed **separately, each
+  with its own real actual, tier, and bonus** (each country's own Config
+  rate — 0.0035/0.007 for Germany, 0.0015/0.003 for Pan-EU — applied to
+  its own overflow, no blending needed anymore). See "Launch Manager:
+  Germany vs. Pan-EU split" above for how the split works and its caveat.
+  A "Combined" row sums both for reference.
 - **Marketplace** — still fully manual (actual and target), per the
   original spec.
 - **Every track's table shows Actual Margin % and Target Margin %
@@ -273,12 +295,14 @@ public/index.html, app.js     the dashboard itself (static, client-side compute 
 public/favicon.ico, assets/*  CD Commerce icon mark (icon only, no wordmark) -- favicon + header/login branding
 public/toc_mapping.json       ASIN → brand/stage/product code (regenerate via build_mapping.py)
 public/targets.json           Q3 targets + rates/weights (regenerate via extract_targets.py)
+public/marketplace_mapping.json  ASIN -> DE/Pan-EU (regenerate via build_marketplace_mapping.py)
 public/targets_monthly/*.json real per-month Good/Better/Best targets (regenerate via extract_monthly_targets.py)
 public/data/2026-08.json      seeded August data (real Aug 2026 numbers, computed against Q3÷3 targets)
 api/login.js, session.js,     real server-side passcode check + persistent session
   logout.js, _auth.js           (survives a page refresh; "Lock" actually clears it)
 api/data.js, save-month.js    read/write month JSON in the private GitHub repo
 scripts/build_mapping.py      TOC .xlsx -> mapping/toc_mapping.json
+scripts/build_marketplace_mapping.py  Products .csv -> mapping/marketplace_mapping.json (ASIN -> DE/Pan-EU, for Launch Manager)
 scripts/extract_targets.py    calculator .xlsx -> mapping/targets.json (quarterly rates/weights + ÷3 fallback)
 scripts/extract_monthly_targets.py  calculator .xlsx -> mapping/targets_monthly/<month>.json (real Good/Better/Best)
 scripts/process_month.py      early CLI reference for the actuals-only aggregation (no targets/tiering yet — app.js is the source of truth)

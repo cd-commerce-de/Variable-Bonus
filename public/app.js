@@ -46,6 +46,7 @@ function officialBrandGroup(brandName) {
 let MAPPING = null;     // ASIN -> {brand, stage, product_code, ...}
 let TARGETS = null;     // quarterly targets + rates/weights, from the calculator workbook (fallback: quarterly ÷ 3)
 let MONTHLY_TARGETS = {}; // month ("2026-08") -> real Good/Better/Best targets, when extracted for that month
+let MARKETPLACE_MAP = null; // ASIN -> "DE" | "Pan-EU", from Sellerboard's Products export (see scripts/build_marketplace_mapping.py)
 let CURRENT = null;   // currently rendered computed result
 let VIEW = 'monthly'; // 'monthly' | 'quarterly'
 const LOCAL_HISTORY_KEY = 'cdc_bonus_history_v2';
@@ -142,9 +143,10 @@ function fmtPct(n) {
 
 // ---------- Load mapping + targets + month list on boot ----------
 async function boot() {
-  [MAPPING, TARGETS] = await Promise.all([
+  [MAPPING, TARGETS, MARKETPLACE_MAP] = await Promise.all([
     fetch('toc_mapping.json').then(r => r.json()),
     fetch('targets.json').then(r => r.json()),
+    fetch('marketplace_mapping.json').then(r => r.ok ? r.json() : { mapping: {} }).then(d => d.mapping),
   ]);
   await refreshMonthList();
 }
@@ -256,6 +258,11 @@ async function mergeMonths(list) {
     const d = list[i];
     out.rd_team.by_product = mergeProductMaps(out.rd_team.by_product, d.rd_team.by_product);
     out.launch_manager.actual_combined = addBucket(out.launch_manager.actual_combined, d.launch_manager.actual_combined);
+    out.launch_manager.actual_germany = addBucket(out.launch_manager.actual_germany, d.launch_manager.actual_germany);
+    out.launch_manager.actual_pan_eu = addBucket(out.launch_manager.actual_pan_eu, d.launch_manager.actual_pan_eu);
+    out.launch_manager.unmapped_marketplace_asins = Array.from(new Set([
+      ...(out.launch_manager.unmapped_marketplace_asins || []), ...(d.launch_manager.unmapped_marketplace_asins || []),
+    ]));
     out.quality_issue_unassigned = addBucket(out.quality_issue_unassigned, d.quality_issue_unassigned);
     for (const brand of Object.keys(d.brand_manager)) {
       if (!out.brand_manager[brand]) out.brand_manager[brand] = JSON.parse(JSON.stringify(d.brand_manager[brand]));
@@ -370,11 +377,18 @@ async function computeFromRows(rows, month) {
   const stageTotals = {};
   const brandStage = {};
   const byProduct = {}; // R&D: keyed by matched target product code
+  const launchByCountry = { DE: empty(), 'Pan-EU': empty() };
+  const launchUnmappedMarketplace = []; // F3M-stage ASINs with no marketplace mapping -- kept visible, not silently dropped
   byAsin.forEach(rec => {
     bump(stageTotals, rec.stage, rec);
     bump(brandStage, `${rec.brand}||${rec.stage}`, rec);
     const rdCode = matchRdCode(rec.product_code);
     if (rdCode) bump(byProduct, rdCode, rec);
+    if (rec.stage === 'F3M') {
+      const country = MARKETPLACE_MAP ? MARKETPLACE_MAP[rec.asin] : null;
+      if (country === 'DE' || country === 'Pan-EU') bump(launchByCountry, country, rec);
+      else launchUnmappedMarketplace.push(rec.asin);
+    }
   });
 
   const launchPool = stageTotals['F3M'] || empty();
@@ -420,7 +434,13 @@ async function computeFromRows(rows, month) {
   const result = {
     month,
     rd_team: { label: 'R&D Team — Y1 products (per product)', by_product: byProduct },
-    launch_manager: { label: 'Launch Manager — F3M', actual_combined: launchPool },
+    launch_manager: {
+      label: 'Launch Manager — F3M',
+      actual_combined: launchPool,
+      actual_germany: launchByCountry.DE,
+      actual_pan_eu: launchByCountry['Pan-EU'],
+      unmapped_marketplace_asins: Array.from(new Set(launchUnmappedMarketplace)).sort(),
+    },
     brand_manager: brandManager,
     other_brands_unassigned: otherBrandsSeen, // brands with real revenue that AREN'T part of the Brand Manager bonus program (e.g. Van De Boos, MESSEREI, Arganoel Zauber) -- kept visible, not silently dropped
     marketplace: { label: 'Marketplace — manually entered' },
@@ -498,8 +518,9 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
   data.rd_team.rows = rdRows;
   data.rd_team.total_bonus = Object.values(rdRows).reduce((s, r) => s + r.bonus_eur, 0);
 
-  // Launch Manager (actual is combined-only; show DE/PanEU targets, and an
-  // approximate combined tier against the summed DE+PanEU target)
+  // Launch Manager -- now computed PER COUNTRY using real actuals (joined
+  // by ASIN against Sellerboard's Products export, see
+  // scripts/build_marketplace_mapping.py), not an approximation.
   const lt = TARGETS.launch_manager;
   const mLm = mt ? mt.launch_manager : null;
   function launchTarget(quarterlyObj, monthlyObj) {
@@ -520,39 +541,21 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
   }
   const deT = launchTarget(lt.germany, mLm ? mLm.germany : null);
   const euT = launchTarget(lt.pan_eu, mLm ? mLm.pan_eu : null);
-  const cGreen = deT.green + euT.green;
-  const cGold = deT.gold + euT.gold;
-  // Margin gate: blend DE/PanEU margin *targets* using the same 70/30
-  // weight baked into the Config rates (derived from the rates themselves
-  // so it stays correct if Config changes), since margin is a ratio, not
-  // additive like revenue. If either side's margin target is missing,
-  // the blended target is left null -- tierOf treats a null margin
-  // target as an automatic pass, same as R&D's "no target yet" case.
-  const wGermany = rates.launch_mgr_germany.green / (rates.launch_mgr_germany.green + rates.launch_mgr_pan_eu.green);
-  const wPanEu = 1 - wGermany;
-  const blend = (a, b) => (a != null && b != null) ? (a * wGermany + b * wPanEu) : null;
-  const combinedGreenMargin = blend(deT.green_margin, euT.green_margin);
-  const combinedGoldMargin = blend(deT.gold_margin, euT.gold_margin);
-  const actualCombinedMargin = data.launch_manager.actual_combined.sales
-    ? data.launch_manager.actual_combined.net_profit / data.launch_manager.actual_combined.sales : null;
-  const approxTier = tierOf(data.launch_manager.actual_combined.sales, cGreen, cGold, actualCombinedMargin, combinedGreenMargin, combinedGoldMargin, null);
-  // Bonus rate: Config sets Germany (70% weight) and PAN EU (30% weight)
-  // rates SEPARATELY (0.0035/0.007 and 0.0015/0.003) -- these already have
-  // the weight baked in, and by construction sum back to the base
-  // R&D/Marketplace rate (0.005/0.01). Since actuals can't be split by
-  // country yet, the mathematically correct blended rate for an
-  // approximate COMBINED bonus is the sum of the two weighted rates --
-  // exactly equivalent to applying each country's own rate to its own
-  // actual, in the case where actual splits the same 70/30 as target.
-  const blendedGreenRate = rates.launch_mgr_germany.green + rates.launch_mgr_pan_eu.green;
-  const blendedGoldRate = rates.launch_mgr_germany.gold + rates.launch_mgr_pan_eu.gold;
-  const approxBonus = bonusOf(approxTier, data.launch_manager.actual_combined.sales, cGreen, cGold, blendedGreenRate, blendedGoldRate);
+
+  function countryResult(actualBucket, t, rateGreen, rateGold) {
+    const actualMargin = actualBucket.sales ? actualBucket.net_profit / actualBucket.sales : null;
+    const tier = tierOf(actualBucket.sales, t.green, t.gold, actualMargin, t.green_margin, t.gold_margin, null);
+    const bonus = bonusOf(tier, actualBucket.sales, t.green, t.gold, rateGreen, rateGold);
+    return { actual: actualBucket, target: t, actual_margin_pct: actualMargin, tier, bonus_eur: bonus };
+  }
+  const germanyResult = countryResult(data.launch_manager.actual_germany, deT, rates.launch_mgr_germany.green, rates.launch_mgr_germany.gold);
+  const panEuResult = countryResult(data.launch_manager.actual_pan_eu, euT, rates.launch_mgr_pan_eu.green, rates.launch_mgr_pan_eu.gold);
+
+  data.launch_manager.germany = germanyResult;
+  data.launch_manager.pan_eu = panEuResult;
   data.launch_manager.germany_target = { green: deT.green, gold: deT.gold, green_margin: deT.green_margin, gold_margin: deT.gold_margin, source: deT.source };
   data.launch_manager.pan_eu_target = { green: euT.green, gold: euT.gold, green_margin: euT.green_margin, gold_margin: euT.gold_margin, source: euT.source };
-  data.launch_manager.approx_combined_target = { green: cGreen, gold: cGold, green_margin: combinedGreenMargin, gold_margin: combinedGoldMargin };
-  data.launch_manager.approx_actual_margin_pct = actualCombinedMargin;
-  data.launch_manager.approx_tier = approxTier;
-  data.launch_manager.approx_bonus_eur = approxBonus;
+  data.launch_manager.combined_bonus_eur = germanyResult.bonus_eur + panEuResult.bonus_eur;
 
   // Brand Manager (per stage, weighted rates)
   for (const [brand, v] of Object.entries(data.brand_manager)) {
@@ -701,12 +704,47 @@ function renderInner(data, viewLabel) {
   try {
     lm = data.launch_manager;
     document.getElementById('launchBody').innerHTML = `
-      <tr><td class="name">Germany</td><td class="num">—</td><td class="num tint-green">${fmtEUR(lm.germany_target.green)}</td><td class="num tint-gold">${fmtEUR(lm.germany_target.gold)}</td><td class="num">—</td><td class="num tint-green">${fmtPct(lm.germany_target.green_margin)}</td><td class="num tint-gold">${fmtPct(lm.germany_target.gold_margin)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
-      <tr><td class="name">PAN EU</td><td class="num">—</td><td class="num tint-green">${fmtEUR(lm.pan_eu_target.green)}</td><td class="num tint-gold">${fmtEUR(lm.pan_eu_target.gold)}</td><td class="num">—</td><td class="num tint-green">${fmtPct(lm.pan_eu_target.green_margin)}</td><td class="num tint-gold">${fmtPct(lm.pan_eu_target.gold_margin)}</td><td><span class="tier-tag pending">split pending</span></td><td class="num">—</td></tr>
-      <tr class="total-row-solid"><td class="name">Combined (approx.)</td><td class="num">${fmtEUR(lm.actual_combined.sales)}</td><td class="num">${fmtEUR(lm.approx_combined_target.green)}</td><td class="num">${fmtEUR(lm.approx_combined_target.gold)}</td><td class="num">${fmtPct(lm.approx_actual_margin_pct)}</td><td class="num">${fmtPct(lm.approx_combined_target.green_margin)}</td><td class="num">${fmtPct(lm.approx_combined_target.gold_margin)}</td><td>${tierTag(lm.approx_tier)}</td><td class="num">${fmtEUR(lm.approx_bonus_eur)}</td></tr>
+      <tr>
+        <td class="name">Germany</td>
+        <td class="num">${fmtEUR(lm.germany.actual.sales)}</td>
+        <td class="num tint-green">${fmtEUR(lm.germany_target.green)}${sourceTag(lm.germany_target.source)}</td>
+        <td class="num tint-gold">${fmtEUR(lm.germany_target.gold)}</td>
+        <td class="num">${fmtPct(lm.germany.actual_margin_pct)}</td>
+        <td class="num tint-green">${fmtPct(lm.germany_target.green_margin)}</td>
+        <td class="num tint-gold">${fmtPct(lm.germany_target.gold_margin)}</td>
+        <td>${tierTag(lm.germany.tier)}</td>
+        <td class="num ${tierCellClass(lm.germany.tier)}">${fmtEUR(lm.germany.bonus_eur)}</td>
+      </tr>
+      <tr>
+        <td class="name">PAN EU</td>
+        <td class="num">${fmtEUR(lm.pan_eu.actual.sales)}</td>
+        <td class="num tint-green">${fmtEUR(lm.pan_eu_target.green)}${sourceTag(lm.pan_eu_target.source)}</td>
+        <td class="num tint-gold">${fmtEUR(lm.pan_eu_target.gold)}</td>
+        <td class="num">${fmtPct(lm.pan_eu.actual_margin_pct)}</td>
+        <td class="num tint-green">${fmtPct(lm.pan_eu_target.green_margin)}</td>
+        <td class="num tint-gold">${fmtPct(lm.pan_eu_target.gold_margin)}</td>
+        <td>${tierTag(lm.pan_eu.tier)}</td>
+        <td class="num ${tierCellClass(lm.pan_eu.tier)}">${fmtEUR(lm.pan_eu.bonus_eur)}</td>
+      </tr>
+      <tr class="total-row-solid">
+        <td class="name">Combined</td>
+        <td class="num">${fmtEUR(lm.actual_combined.sales)}</td>
+        <td class="num">${fmtEUR(lm.germany_target.green + lm.pan_eu_target.green)}</td>
+        <td class="num">${fmtEUR(lm.germany_target.gold + lm.pan_eu_target.gold)}</td>
+        <td class="num">—</td><td class="num">—</td><td class="num">—</td>
+        <td>—</td>
+        <td class="num">${fmtEUR(lm.combined_bonus_eur)}</td>
+      </tr>
     `;
     document.getElementById('launchNoteBonus').textContent =
-      `Bonus uses the blended rate (Germany + PAN EU Config rates, which already sum to the base rate) applied to the combined overflow — an approximation until actuals can be split by country.`;
+      `Germany/Pan-EU split by ASIN, joined against Sellerboard's Products export marketplace field. Caveat: that field records where each ASIN's cost settings live (almost always Germany) — it isn't a true per-order sales channel log, so Pan-EU actuals may read close to €0 even in months with real Pan-EU sales, until a proper per-marketplace sales export is available.`;
+    const dq = document.getElementById('launchMarketplaceDq');
+    if (lm.unmapped_marketplace_asins && lm.unmapped_marketplace_asins.length) {
+      dq.style.display = 'block';
+      dq.innerHTML = `<span>⚠</span><span>${lm.unmapped_marketplace_asins.length} F3M ASIN(s) have no marketplace mapping and are excluded from the Germany/Pan-EU split above (still counted in "Combined"): ${lm.unmapped_marketplace_asins.map(a => `<span class="asin-chip">${a}</span>`).join('')}</span>`;
+    } else {
+      dq.style.display = 'none';
+    }
   } catch (err) { console.error('Launch section error:', err); document.getElementById('launchBody').innerHTML = `<tr><td colspan="9" class="name">Couldn't render this section: ${err.message}</td></tr>`; }
 
   // ---- Brand Manager (grouped by BM1-4 supervisor, per calculator structure) ----
@@ -747,7 +785,7 @@ function renderInner(data, viewLabel) {
   try {
     document.getElementById('statStrip').innerHTML = `
       <div class="stat"><div class="label">R&D bonus pool</div><div class="value num">${fmtEUR(data.rd_team.total_bonus)}</div><div class="sub">÷ ${TARGETS.rates.rd_team.team_size} team members</div></div>
-      <div class="stat"><div class="label">Launch Mgr bonus (approx.)</div><div class="value num">${fmtEUR(lm ? lm.approx_bonus_eur : null)}</div><div class="sub"><span class="pill pending">country split pending</span></div></div>
+      <div class="stat"><div class="label">Launch Mgr bonus</div><div class="value num">${fmtEUR(lm ? lm.combined_bonus_eur : null)}</div><div class="sub">DE + Pan-EU</div></div>
       <div class="stat"><div class="label">Brand Manager total bonus</div><div class="value num">${fmtEUR(bmTotalBonus)}</div><div class="sub">${bmRows.length} brands</div></div>
       <div class="stat"><div class="label">Quality Issue (unassigned)</div><div class="value num">${fmtEUR(data.quality_issue_unassigned.sales)}</div><div class="sub">${data.quality_issue_unassigned.sku_count} SKUs — no track owns this stage</div></div>
     `;
@@ -804,7 +842,8 @@ function renderImpactAnalysis(data) {
 
   // Launch Manager (combined approx.)
   const lm = data.launch_manager;
-  rows.push({ section: 'Launch Manager', row: impactRow('Launch Manager (combined, approx.)', lm.actual_combined.sales, lm.approx_combined_target.gold, lm.approx_bonus_eur) });
+  rows.push({ section: 'Launch Manager', row: impactRow('Germany', lm.germany.actual.sales, lm.germany_target.gold, lm.germany.bonus_eur) });
+  rows.push({ section: 'Launch Manager', row: impactRow('Pan-EU', lm.pan_eu.actual.sales, lm.pan_eu_target.gold, lm.pan_eu.bonus_eur) });
 
   // Every official Brand Manager brand, grouped
   for (const [group, groupData] of Object.entries(data.bm_groups || {})) {

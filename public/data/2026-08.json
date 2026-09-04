@@ -320,6 +320,55 @@
    "net_profit": 9966.41,
    "sku_count": 8
   },
+  "actual_germany": {
+   "sales": 132562.58000000002,
+   "units": 1287,
+   "net_profit": 9966.41,
+   "sku_count": 8
+  },
+  "actual_pan_eu": {
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
+  },
+  "unmapped_marketplace_asins": [],
+  "germany": {
+   "actual": {
+    "sales": 132562.58000000002,
+    "units": 1287,
+    "net_profit": 9966.41,
+    "sku_count": 8
+   },
+   "target": {
+    "green": 181289.45,
+    "gold": 190831,
+    "green_margin": 0.133,
+    "gold_margin": 0.143,
+    "source": "real"
+   },
+   "actual_margin_pct": 0.07518267975774158,
+   "tier": "❌ MISS",
+   "bonus_eur": 0
+  },
+  "pan_eu": {
+   "actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "target": {
+    "green": 6441,
+    "gold": 6780,
+    "green_margin": 0.133,
+    "gold_margin": 0.143,
+    "source": "real"
+   },
+   "actual_margin_pct": null,
+   "tier": "-",
+   "bonus_eur": 0
+  },
   "germany_target": {
    "green": 181289.45,
    "gold": 190831,
@@ -334,15 +383,7 @@
    "gold_margin": 0.143,
    "source": "real"
   },
-  "approx_combined_target": {
-   "green": 187730.45,
-   "gold": 197611,
-   "green_margin": 0.133,
-   "gold_margin": 0.143
-  },
-  "approx_actual_margin_pct": 0.07518267975774158,
-  "approx_tier": "❌ MISS",
-  "approx_bonus_eur": 0
+  "combined_bonus_eur": 0
  },
  "brand_manager": {
   "PD": {
