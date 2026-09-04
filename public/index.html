@@ -98,6 +98,8 @@
   tr.brand-row td.name.sub-brand{padding-left:16px;}
   tr.brand-row td{background:var(--line-50); font-weight:700; border-top:1.5px solid var(--line-200);}
   tr.stage-row td.name.sub{padding-left:26px; font-weight:400; color:var(--line-500); font-size:11px;}
+  .q-table{table-layout:fixed;}
+  .q-table th:first-child, .q-table td:first-child{width:210px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
   /* Excel-style target/bonus tier coloring */
   td.tint-green{background:#E7F8F0;}
@@ -160,6 +162,7 @@
     </div>
     <div class="top-controls">
       <select id="monthSelect" onchange="onMonthChange()"></select>
+      <select id="quarterSelect" onchange="onQuarterChange()" style="display:none;"></select>
       <span class="period-badge" id="periodBadge"></span>
       <button class="btn ghost" onclick="logout()">Lock</button>
     </div>
@@ -311,10 +314,13 @@
       <span class="section-note">Bonus already earned each month, added up — not a fresh target-vs-actual comparison at the quarter level</span>
     </div>
     <div class="table-scroll">
-    <table>
+    <table class="q-table">
       <thead><tr><th>Product</th><th id="qRdM1Header">Month 1</th><th id="qRdM2Header">Month 2</th><th id="qRdM3Header">Month 3</th><th>Total</th></tr></thead>
       <tbody id="qRdBody"></tbody>
-      <tfoot><tr class="total-row-solid" id="qRdTotalRow"></tr></tfoot>
+      <tfoot>
+        <tr class="total-row-solid" id="qRdTotalRow"></tr>
+        <tr id="qRdPerPersonRow" style="font-weight:400;"></tr>
+      </tfoot>
     </table>
     </div>
   </section>
@@ -324,7 +330,7 @@
       <h2>Launch Manager — quarterly bonus</h2>
     </div>
     <div class="table-scroll">
-    <table>
+    <table class="q-table">
       <thead><tr><th>Market</th><th id="qLmM1Header">Month 1</th><th id="qLmM2Header">Month 2</th><th id="qLmM3Header">Month 3</th><th>Total</th></tr></thead>
       <tbody id="qLaunchBody"></tbody>
       <tfoot><tr class="total-row-solid" id="qLaunchTotalRow"></tr></tfoot>
@@ -337,7 +343,7 @@
       <h2>Brand Manager — quarterly bonus</h2>
     </div>
     <div class="table-scroll">
-    <table>
+    <table class="q-table">
       <thead><tr><th>Group / Brand / Stage</th><th id="qBmM1Header">Month 1</th><th id="qBmM2Header">Month 2</th><th id="qBmM3Header">Month 3</th><th>Total</th></tr></thead>
       <tbody id="qBmBody"></tbody>
       <tfoot><tr class="total-row-solid" id="qBmTotalRow"></tr></tfoot>

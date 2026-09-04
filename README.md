@@ -90,20 +90,24 @@ even if you're not touching targets.
 
 ## Tabs
 
-- **Monthly** — full target-vs-actual detail for the selected month: stats,
-  R&D, Launch Manager, Brand Manager, Marketplace, revenue chart, targets,
-  tiers, margins. This is "the dashboard" as it existed before Quarterly
-  got split out.
-- **Quarterly** — deliberately NOT a target-vs-actual comparison at the
-  quarter level. It just adds up each month's *already-computed* bonus €,
-  per product/market/brand/stage, across the 3 months of whichever quarter
-  the selected month falls in (e.g. picking any month in Jul/Aug/Sep shows
-  Jul, Aug, Sep as three columns). Same row structure as Monthly (same
-  R&D products, same BM1-4 grouping), but the columns are just: Month 1 |
-  Month 2 | Month 3 | Total. A month with no saved data shows "—" for that
-  column (not €0 — the two mean different things), and a banner says
-  explicitly how many of the 3 months actually have data if the quarter
-  isn't complete yet.
+- **Monthly** — full target-vs-actual detail for the selected month (picked
+  from a dropdown showing "August 2026", not "2026-08"): stats, R&D,
+  Launch Manager, Brand Manager, Marketplace, revenue chart, targets,
+  tiers, margins.
+- **Quarterly** — has its own dropdown ("Q3 2026", etc., built from every
+  quarter any known month falls into) instead of the month picker, since
+  it operates on a whole quarter at once. Deliberately NOT a
+  target-vs-actual comparison at the quarter level — it just adds up each
+  month's *already-computed* bonus €, per product/market/brand/stage,
+  across the quarter's 3 months. Same row structure as Monthly (same R&D
+  products, same BM1-4 grouping), columns are just Month 1 | Month 2 |
+  Month 3 | Total, and each month's bonus cell is tinted by *that row's
+  own tier that month* (a subtotal/group/total row is never tinted this
+  way, since it isn't tied to one tier). R&D also shows the ÷ team-size
+  per-person row here, same as Monthly. A month with no saved data shows
+  "—" for that column (not €0 — the two mean different things), and a
+  banner says explicitly how many of the 3 months actually have data if
+  the quarter isn't complete yet.
 - **Upload data** — the CSV drop zone, data-quality panel, and Save button.
 - **Impact Analysis** — one row per role (R&D Team, Launch Manager) and per
   official Brand Manager brand, showing two figures side by side: **Growth

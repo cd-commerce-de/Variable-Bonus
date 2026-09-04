@@ -60,6 +60,23 @@ function monthsInQuarter(month) {
   const startMonth = { Q1: 1, Q2: 4, Q3: 7, Q4: 10 }[q];
   return [0, 1, 2].map(i => `${year}-${String(startMonth + i).padStart(2, '0')}`);
 }
+const MONTH_NAMES_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function formatMonthLabel(month) { // "2026-08" -> "August 2026"
+  const [y, m] = month.split('-');
+  return `${MONTH_NAMES_FULL[parseInt(m, 10) - 1]} ${y}`;
+}
+function quarterKeyOf(month) { // "2026-08" -> "2026-Q3"
+  return `${month.slice(0, 4)}-${quarterOf(month)}`;
+}
+function quarterLabel(quarterKey) { // "2026-Q3" -> "Q3 2026"
+  const [year, q] = quarterKey.split('-');
+  return `${q} ${year}`;
+}
+function monthsInQuarterKey(quarterKey) { // "2026-Q3" -> ["2026-07","2026-08","2026-09"]
+  const [year, q] = quarterKey.split('-');
+  const startMonth = { Q1: 1, Q2: 4, Q3: 7, Q4: 10 }[q];
+  return [0, 1, 2].map(i => `${year}-${String(startMonth + i).padStart(2, '0')}`);
+}
 
 // ---------- Auth (local convenience gate only — see note above) ----------
 async function sha256(text) {
@@ -173,12 +190,28 @@ async function refreshMonthList() {
     const list = await fetch('/api/data?list=1').then(r => r.ok ? r.json() : null);
     if (list && list.months) list.months.forEach(m => months.add(m));
   } catch (e) {}
-  Array.from(months).sort().reverse().forEach(m => {
+  const sortedMonths = Array.from(months).sort().reverse();
+  sortedMonths.forEach(m => {
     const opt = document.createElement('option');
-    opt.value = m; opt.textContent = m;
+    opt.value = m; opt.textContent = formatMonthLabel(m);
     sel.appendChild(opt);
   });
+
+  // Quarter dropdown: every quarter any known month falls into
+  const qSel = document.getElementById('quarterSelect');
+  qSel.innerHTML = '';
+  const quarters = Array.from(new Set(sortedMonths.map(quarterKeyOf))).sort().reverse();
+  quarters.forEach(qk => {
+    const opt = document.createElement('option');
+    opt.value = qk; opt.textContent = quarterLabel(qk);
+    qSel.appendChild(opt);
+  });
+
   if (sel.options.length) { sel.value = sel.options[0].value; await onMonthChange(); }
+}
+
+async function onQuarterChange() {
+  await renderQuarterlyTab();
 }
 
 async function loadMonth(month) {
@@ -214,7 +247,6 @@ async function onMonthChange() {
     // extract later automatically upgrades a previously-saved month too.
     CURRENT = applyTargetsAndTiers(data, false, await loadMonthlyTargets(month));
     render(CURRENT, 'monthly');
-    if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab();
   }
 }
 
@@ -227,6 +259,9 @@ function setTab(t) {
   document.getElementById('tabMonthlyBtn').classList.toggle('active', t === 'monthly');
   document.getElementById('tabQuarterlyBtn').classList.toggle('active', t === 'quarterly');
   document.getElementById('tabImpactBtn').classList.toggle('active', t === 'impact');
+  document.getElementById('monthSelect').style.display = t === 'quarterly' ? 'none' : '';
+  document.getElementById('quarterSelect').style.display = t === 'quarterly' ? '' : 'none';
+  document.getElementById('periodBadge').style.display = t === 'quarterly' ? 'none' : '';
   if (t === 'quarterly') renderQuarterlyTab();
 }
 
@@ -234,8 +269,10 @@ function setTab(t) {
 // Deliberately NOT a target-vs-actual comparison at the quarter level --
 // just adds up whatever bonus each month already earned, per row.
 async function renderQuarterlyTab() {
-  if (!CURRENT) return;
-  const months = monthsInQuarter(CURRENT.month);
+  const qSel = document.getElementById('quarterSelect');
+  if (!qSel.value) return;
+  const quarterKey = qSel.value;
+  const months = monthsInQuarterKey(quarterKey);
   const monthData = await Promise.all(months.map(async m => {
     const d = await loadMonth(m);
     if (!d) return null;
@@ -247,7 +284,7 @@ async function renderQuarterlyTab() {
   if (present.length < months.length) {
     note.style.display = 'flex';
     note.querySelector('span:last-child').innerHTML =
-      `<b>Partial quarter.</b> ${present.length} of 3 months have data (${present.join(', ') || 'none'}). Totals below only include months that have been uploaded and saved.`;
+      `<b>Partial quarter.</b> ${present.length} of 3 months have data (${present.map(formatMonthLabel).join(', ') || 'none'}). Totals below only include months that have been uploaded and saved.`;
   } else {
     note.style.display = 'none';
   }
@@ -263,6 +300,10 @@ async function renderQuarterlyTab() {
     if (!known.length) return null;
     return known.reduce((s, v) => s + v, 0);
   };
+  // A cell showing a specific row's bonus for one month is tinted by that
+  // row's tier THAT month (not the quarter total) -- subtotal/group/total
+  // rows aren't tied to a single tier, so they're never tinted this way.
+  const bonusCell = (v, tier) => `<td class="num ${v != null ? tierCellClass(tier) : ''}">${v != null ? fmtEUR(v) : '—'}</td>`;
 
   // ---- R&D ----
   const rdCodes = new Set();
@@ -273,28 +314,32 @@ async function renderQuarterlyTab() {
   Array.from(rdCodes).sort().forEach(code => {
     const label = (monthData.find(d => d && d.rd_team.rows[code]) || {}).rd_team?.rows[code]?.label || code;
     const perMonth = monthData.map(d => d && d.rd_team.rows[code] ? d.rd_team.rows[code].bonus_eur : null);
+    const tiers = monthData.map(d => d && d.rd_team.rows[code] ? d.rd_team.rows[code].tier : null);
     const total = sum3(perMonth);
     perMonth.forEach((v, i) => { if (v != null) rdTotals[i] += v; });
     if (total != null) rdGrandTotal += total;
-    rdHtml += `<tr><td class="name">${label}</td>${perMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(total)}</td></tr>`;
+    rdHtml += `<tr><td class="name" title="${label}">${label}</td>${perMonth.map((v, i) => bonusCell(v, tiers[i])).join('')}<td class="num">${fmtEUR(total)}</td></tr>`;
   });
   document.getElementById('qRdBody').innerHTML = rdHtml;
-  document.getElementById('qRdTotalRow').innerHTML = `<td>Total</td>${rdTotals.map(v => `<td class="num">${fmtEUR(v)}</td>`).join('')}<td class="num">${fmtEUR(rdGrandTotal)}</td>`;
+  document.getElementById('qRdTotalRow').innerHTML = `<td>Pool bonus total</td>${rdTotals.map(v => `<td class="num">${fmtEUR(v)}</td>`).join('')}<td class="num">${fmtEUR(rdGrandTotal)}</td>`;
+  const teamSize = TARGETS.rates.rd_team.team_size || 1;
+  document.getElementById('qRdPerPersonRow').innerHTML = `<td>÷ ${teamSize} team members</td>${rdTotals.map(v => `<td class="num">${fmtEUR(v / teamSize)}</td>`).join('')}<td class="num">${fmtEUR(rdGrandTotal / teamSize)}</td>`;
 
   // ---- Launch Manager ----
   const launchRows = [
-    { label: 'Germany', get: d => d.launch_manager.germany.bonus_eur },
-    { label: 'Pan-EU', get: d => d.launch_manager.pan_eu.bonus_eur },
+    { label: 'Germany', get: d => d.launch_manager.germany.bonus_eur, tier: d => d.launch_manager.germany.tier },
+    { label: 'Pan-EU', get: d => d.launch_manager.pan_eu.bonus_eur, tier: d => d.launch_manager.pan_eu.tier },
   ];
   let lmHtml = '';
   let lmTotals = [0, 0, 0];
   let lmGrandTotal = 0;
-  launchRows.forEach(({ label, get }) => {
+  launchRows.forEach(({ label, get, tier }) => {
     const perMonth = monthData.map(d => d ? get(d) : null);
+    const tiers = monthData.map(d => d ? tier(d) : null);
     const total = sum3(perMonth);
     perMonth.forEach((v, i) => { if (v != null) lmTotals[i] += v; });
     if (total != null) lmGrandTotal += total;
-    lmHtml += `<tr><td class="name">${label}</td>${perMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(total)}</td></tr>`;
+    lmHtml += `<tr><td class="name">${label}</td>${perMonth.map((v, i) => bonusCell(v, tiers[i])).join('')}<td class="num">${fmtEUR(total)}</td></tr>`;
   });
   document.getElementById('qLaunchBody').innerHTML = lmHtml;
   document.getElementById('qLaunchTotalRow').innerHTML = `<td>Total</td>${lmTotals.map(v => `<td class="num">${fmtEUR(v)}</td>`).join('')}<td class="num">${fmtEUR(lmGrandTotal)}</td>`;
@@ -325,7 +370,7 @@ async function renderQuarterlyTab() {
         return key ? d.brand_manager[key].total_bonus : null;
       });
       const brandTotal = sum3(brandPerMonth);
-      bmHtml += `<tr class="brand-row"><td class="name sub-brand">${brandName}</td>${brandPerMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(brandTotal)}</td></tr>`;
+      bmHtml += `<tr class="brand-row"><td class="name sub-brand" title="${brandName}">${brandName}</td>${brandPerMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(brandTotal)}</td></tr>`;
 
       const stageLabels = ['PY1', 'Y1 (F4-12)', 'Discontinued'];
       stageLabels.forEach(stageLabel => {
@@ -335,8 +380,14 @@ async function renderQuarterlyTab() {
           const sd = key ? d.brand_manager[key].stage_detail[stageLabel] : null;
           return sd ? sd.bonus_eur : null;
         });
+        const stageTiers = monthData.map(d => {
+          if (!d) return null;
+          const key = Object.keys(d.brand_manager).find(k => normBrand(k) === normBrand(brandName));
+          const sd = key ? d.brand_manager[key].stage_detail[stageLabel] : null;
+          return sd ? sd.tier : null;
+        });
         const stageTotal = sum3(stagePerMonth);
-        bmHtml += `<tr class="stage-row"><td class="name sub">${stageLabel}</td>${stagePerMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(stageTotal)}</td></tr>`;
+        bmHtml += `<tr class="stage-row"><td class="name sub">${stageLabel}</td>${stagePerMonth.map((v, i) => bonusCell(v, stageTiers[i])).join('')}<td class="num">${fmtEUR(stageTotal)}</td></tr>`;
       });
     }
   }
@@ -695,7 +746,7 @@ function render(data, viewLabel) {
 }
 
 function renderInner(data, viewLabel) {
-  document.getElementById('periodBadge').textContent = `${data.month} (monthly)`;
+  document.getElementById('periodBadge').textContent = formatMonthLabel(data.month);
   updateTargetsNote(data.month, !!(data._targets_meta && data._targets_meta.used_real_monthly));
 
   // Data quality
@@ -820,7 +871,6 @@ function renderInner(data, viewLabel) {
       <div class="stat"><div class="label">R&D bonus pool</div><div class="value num">${fmtEUR(data.rd_team.total_bonus)}</div><div class="sub">÷ ${TARGETS.rates.rd_team.team_size} team members</div></div>
       <div class="stat"><div class="label">Launch Mgr bonus</div><div class="value num">${fmtEUR(lm ? lm.combined_bonus_eur : null)}</div><div class="sub">DE + Pan-EU</div></div>
       <div class="stat"><div class="label">Brand Manager total bonus</div><div class="value num">${fmtEUR(bmTotalBonus)}</div><div class="sub">${bmRows.length} brands</div></div>
-      <div class="stat"><div class="label">Quality Issue (unassigned)</div><div class="value num">${fmtEUR(data.quality_issue_unassigned.sales)}</div><div class="sub">${data.quality_issue_unassigned.sku_count} SKUs — no track owns this stage</div></div>
     `;
   } catch (err) { console.error('Stats strip error:', err); }
 
