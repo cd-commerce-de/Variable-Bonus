@@ -77,7 +77,10 @@
     "gold_target": 756.9333333333334,
     "tier": "🥇 GOLD",
     "bonus_eur": 48.56916666666667,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.12159569635811428,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "DSD": {
     "label": "Dartstand - DSD",
@@ -91,7 +94,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.2051437280884363,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "TSE": {
     "label": "Toilet seat - TSE",
@@ -105,7 +111,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.13630545336850075,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "TSF": {
     "label": "Toilet seat kids - TSF",
@@ -119,7 +128,10 @@
     "gold_target": 6318,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "KMS": {
     "label": "Fireplace guard - KMS",
@@ -133,7 +145,10 @@
     "gold_target": 6924.5,
     "tier": "🥇 GOLD",
     "bonus_eur": 51.6893,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.15626087884082515,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "FES": {
     "label": "Fire Bowl - FES",
@@ -147,7 +162,10 @@
     "gold_target": 16815.166666666668,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.2201449304214529,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "FRM02": {
     "label": "Bicycle mounting stand - FRM02",
@@ -161,7 +179,10 @@
     "gold_target": 40690,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.06434081215001612,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "WHS": {
     "label": "Waders - WHS",
@@ -175,7 +196,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.31959356149928986,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "SLP": {
     "label": "Solar cover - SLP",
@@ -189,7 +213,10 @@
     "gold_target": 30471.33,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.21359580052493432,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "VZW": {
     "label": "Awning caravan - VZW",
@@ -203,7 +230,10 @@
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": 0.3711379824727893,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "AKS": {
     "label": "Cordless screwdriver - AKS",
@@ -217,7 +247,10 @@
     "gold_target": 7460,
     "tier": "❌ MISS",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": -0.4349544676953915,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "WGH25": {
     "label": "WGH25 - Car Jack 2.5ton",
@@ -231,7 +264,10 @@
     "gold_target": 20213.066666666666,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    },
    "KMK": {
     "label": "Clamping Awning - KMK",
@@ -245,7 +281,10 @@
     "gold_target": 49868.53333333333,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated"
+    "target_source": "estimated",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    }
   },
   "total_bonus": 100.25846666666666
@@ -258,22 +297,70 @@
    "net_profit": 0,
    "sku_count": 0
   },
+  "actual_germany": {
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
+  },
+  "actual_pan_eu": {
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
+  },
+  "unmapped_marketplace_asins": [],
+  "germany": {
+   "actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "target": {
+    "green": 145304.71666666667,
+    "gold": 152952.33333333334,
+    "green_margin": 0.133,
+    "gold_margin": 0.143,
+    "source": "estimated"
+   },
+   "actual_margin_pct": null,
+   "tier": "-",
+   "bonus_eur": 0
+  },
+  "pan_eu": {
+   "actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "target": {
+    "green": 8263.733333333334,
+    "gold": 8698.666666666666,
+    "green_margin": 0.13,
+    "gold_margin": 0.143,
+    "source": "estimated"
+   },
+   "actual_margin_pct": null,
+   "tier": "-",
+   "bonus_eur": 0
+  },
   "germany_target": {
    "green": 145304.71666666667,
    "gold": 152952.33333333334,
+   "green_margin": 0.133,
+   "gold_margin": 0.143,
    "source": "estimated"
   },
   "pan_eu_target": {
    "green": 8263.733333333334,
    "gold": 8698.666666666666,
+   "green_margin": 0.13,
+   "gold_margin": 0.143,
    "source": "estimated"
   },
-  "approx_combined_target": {
-   "green": 153568.45,
-   "gold": 161651
-  },
-  "approx_tier": "-",
-  "approx_bonus_eur": 0
+  "combined_bonus_eur": 0
  },
  "brand_manager": {
   "PD": {
@@ -303,7 +390,7 @@
     "net_profit": 65720.27,
     "sku_count": 2130
    },
-   "bm_group": "BM3 (Camille)",
+   "bm_group": "BM3",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -316,7 +403,10 @@
      "gold_target": 216830.6,
      "tier": "🥇 GOLD",
      "bonus_eur": 998.0749799999992,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.24692355321583317,
+     "green_margin_pct": 0.224,
+     "gold_margin_pct": 0.244
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -329,7 +419,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     },
     "Discontinued": {
      "actual": {
@@ -342,7 +435,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": -0.2677789585547292,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 998.0749799999992
@@ -374,7 +470,7 @@
     "net_profit": 110517.12000000007,
     "sku_count": 262
    },
-   "bm_group": "BM2 (Jico)",
+   "bm_group": "BM2",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -387,7 +483,10 @@
      "gold_target": 488957,
      "tier": "🟢 GREEN",
      "bonus_eur": 124.30374000000319,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.21571730127203598,
+     "green_margin_pct": 0.1937816667,
+     "gold_margin_pct": 0.2081966667
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -400,7 +499,10 @@
      "gold_target": 552404.6666666666,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.18715554980483498,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -413,7 +515,10 @@
      "gold_target": 42337,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": -0.169176581670813,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 124.30374000000319
@@ -445,7 +550,7 @@
     "net_profit": 97539.41000000002,
     "sku_count": 615
    },
-   "bm_group": "BM1 (Ilwyn)",
+   "bm_group": "BM1",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -458,7 +563,10 @@
      "gold_target": 410835.38999999996,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.25014532007757584,
+     "green_margin_pct": 0.23541,
+     "gold_margin_pct": 0.24662
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -471,7 +579,10 @@
      "gold_target": 40394.36,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.06434081215001612,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -484,7 +595,10 @@
      "gold_target": 14667,
      "tier": "🥇 GOLD",
      "bonus_eur": 2.831310000000007,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.16303295737494045,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 2.831310000000007
@@ -516,7 +630,7 @@
     "net_profit": 1528.8200000000002,
     "sku_count": 6
    },
-   "bm_group": "BM2 (Jico)",
+   "bm_group": "BM2",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -529,7 +643,10 @@
      "gold_target": 16046.253333333334,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": -0.01631611669618872,
+     "green_margin_pct": 0.118,
+     "gold_margin_pct": 0.225
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -542,7 +659,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.29242340565417496,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     },
     "Discontinued": {
      "actual": {
@@ -555,7 +675,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 0
@@ -587,7 +710,7 @@
     "net_profit": 2421.2200000000003,
     "sku_count": 26
    },
-   "bm_group": "BM4 (Michael)",
+   "bm_group": "BM4",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -600,7 +723,10 @@
      "gold_target": 213661.35,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.2000813512877053,
+     "green_margin_pct": 0.1684333333,
+     "gold_margin_pct": 0.1876666667
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -613,7 +739,10 @@
      "gold_target": 30098.666666666668,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -626,7 +755,10 @@
      "gold_target": 10201.333333333334,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.1825914084276111,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 0
@@ -658,7 +790,7 @@
     "net_profit": 1832.68,
     "sku_count": 4
    },
-   "bm_group": "BM1 (Ilwyn)",
+   "bm_group": "BM1",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -671,7 +803,10 @@
      "gold_target": 6350.3615,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.26538340124706405,
+     "green_margin_pct": 0.2822166667,
+     "gold_margin_pct": 0.2891
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -684,7 +819,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     },
     "Discontinued": {
      "actual": {
@@ -697,7 +835,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 0
@@ -729,7 +870,7 @@
     "net_profit": 4123.500000000001,
     "sku_count": 115
    },
-   "bm_group": "BM1 (Ilwyn)",
+   "bm_group": "BM1",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -742,7 +883,10 @@
      "gold_target": 270385.3333333333,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.274691330737712,
+     "green_margin_pct": 0.19546,
+     "gold_margin_pct": 0.2117533333
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -755,7 +899,10 @@
      "gold_target": 50654,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.15867286735614627,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -768,7 +915,10 @@
      "gold_target": null,
      "tier": "AWAITING TARGET",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": -0.14221229687351516,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 0
@@ -800,7 +950,7 @@
     "net_profit": 1462.4599999999998,
     "sku_count": 4
    },
-   "bm_group": "BM4 (Michael)",
+   "bm_group": "BM4",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -813,7 +963,10 @@
      "gold_target": 14457.1,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.20020452221338483,
+     "green_margin_pct": 0.1363333333,
+     "gold_margin_pct": 0.1563333333
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -826,7 +979,10 @@
      "gold_target": 0,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     },
     "Discontinued": {
      "actual": {
@@ -839,7 +995,10 @@
      "gold_target": 0,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 0
@@ -871,7 +1030,7 @@
     "net_profit": 2363.26,
     "sku_count": 9
    },
-   "bm_group": "BM4 (Michael)",
+   "bm_group": "BM4",
    "stage_detail": {
     "PY1": {
      "actual": {
@@ -884,7 +1043,10 @@
      "gold_target": 72296,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.34299955040850816,
+     "green_margin_pct": 0.198395,
+     "gold_margin_pct": 0.2186233333
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -897,7 +1059,10 @@
      "gold_target": 1122.6666666666667,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
@@ -910,7 +1075,10 @@
      "gold_target": 12870.666666666666,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated"
+     "target_source": "estimated",
+     "actual_margin_pct": 0.32439377785067935,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 0
@@ -968,7 +1136,7 @@
   ]
  },
  "bm_groups": {
-  "BM1 (Ilwyn)": {
+  "BM1": {
    "brands": [
     "Tarpofix",
     "Darwin",
@@ -977,7 +1145,7 @@
    "total_bonus": 2.831310000000007,
    "total_sales": 426826.0900000002
   },
-  "BM2 (Jico)": {
+  "BM2": {
    "brands": [
     "Heimfleiss",
     "Mattenheld"
@@ -985,14 +1153,14 @@
    "total_bonus": 124.30374000000319,
    "total_sales": 549510.2600000002
   },
-  "BM3 (Camille)": {
+  "BM3": {
    "brands": [
     "PD"
    ],
    "total_bonus": 998.0749799999992,
    "total_sales": 277925.20999999996
   },
-  "BM4 (Michael)": {
+  "BM4": {
    "brands": [
     "Nasswerk",
     "PoolLöwe",
