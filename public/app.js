@@ -48,7 +48,6 @@ let TARGETS = null;     // quarterly targets + rates/weights, from the calculato
 let MONTHLY_TARGETS = {}; // month ("2026-08") -> real Good/Better/Best targets, when extracted for that month
 let MARKETPLACE_MAP = null; // ASIN -> "DE" | "Pan-EU", from Sellerboard's Products export (see scripts/build_marketplace_mapping.py)
 let CURRENT = null;   // currently rendered computed result
-let VIEW = 'monthly'; // 'monthly' | 'quarterly'
 const LOCAL_HISTORY_KEY = 'cdc_bonus_history_v2';
 
 function quarterOf(month) { // "2026-08" -> "Q3"
@@ -214,83 +213,135 @@ async function onMonthChange() {
     // in when this month was saved) -- so adding a real monthly-target
     // extract later automatically upgrades a previously-saved month too.
     CURRENT = applyTargetsAndTiers(data, false, await loadMonthlyTargets(month));
-    await renderCurrentView();
+    render(CURRENT, 'monthly');
+    if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab();
   }
 }
 
-function setView(v) {
-  VIEW = v;
-  document.getElementById('viewMonthlyBtn').classList.toggle('active', v === 'monthly');
-  document.getElementById('viewQuarterlyBtn').classList.toggle('active', v === 'quarterly');
-  renderCurrentView();
-}
 function setTab(t) {
   document.getElementById('tabUpload').style.display = t === 'upload' ? 'block' : 'none';
-  document.getElementById('tabDashboard').style.display = t === 'dashboard' ? 'block' : 'none';
+  document.getElementById('tabMonthly').style.display = t === 'monthly' ? 'block' : 'none';
+  document.getElementById('tabQuarterly').style.display = t === 'quarterly' ? 'block' : 'none';
   document.getElementById('tabImpact').style.display = t === 'impact' ? 'block' : 'none';
   document.getElementById('tabUploadBtn').classList.toggle('active', t === 'upload');
-  document.getElementById('tabDashboardBtn').classList.toggle('active', t === 'dashboard');
+  document.getElementById('tabMonthlyBtn').classList.toggle('active', t === 'monthly');
+  document.getElementById('tabQuarterlyBtn').classList.toggle('active', t === 'quarterly');
   document.getElementById('tabImpactBtn').classList.toggle('active', t === 'impact');
+  if (t === 'quarterly') renderQuarterlyTab();
 }
 
-async function renderCurrentView() {
+// ---------- Quarterly tab: sum of each month's ALREADY-COMPUTED bonus ----------
+// Deliberately NOT a target-vs-actual comparison at the quarter level --
+// just adds up whatever bonus each month already earned, per row.
+async function renderQuarterlyTab() {
   if (!CURRENT) return;
-  if (VIEW === 'monthly') {
-    render(CURRENT, 'monthly');
-  } else {
-    // Quarterly: sum every saved month within the same quarter as CURRENT.month
-    const qMonths = monthsInQuarter(CURRENT.month);
-    const parts = await Promise.all(qMonths.map(loadMonth));
-    const present = qMonths.filter((m, i) => parts[i]);
-    const merged = await mergeMonths(parts.filter(Boolean));
-    merged.month = CURRENT.month;
-    merged._quarterMonthsPresent = present;
-    merged._quarterMonthsExpected = qMonths;
-    render(merged, 'quarterly');
-  }
-}
+  const months = monthsInQuarter(CURRENT.month);
+  const monthData = await Promise.all(months.map(async m => {
+    const d = await loadMonth(m);
+    if (!d) return null;
+    return applyTargetsAndTiers(d, false, await loadMonthlyTargets(m));
+  }));
+  const present = months.filter((m, i) => monthData[i]);
 
-async function mergeMonths(list) {
-  const addBucket = (a, b) => ({ sales: (a?.sales || 0) + (b?.sales || 0), units: (a?.units || 0) + (b?.units || 0), net_profit: (a?.net_profit || 0) + (b?.net_profit || 0), sku_count: Math.max(a?.sku_count || 0, b?.sku_count || 0) });
-  if (!list.length) return await computeFromRows([], null);
-  let out = JSON.parse(JSON.stringify(list[0]));
-  for (let i = 1; i < list.length; i++) {
-    const d = list[i];
-    out.rd_team.by_product = mergeProductMaps(out.rd_team.by_product, d.rd_team.by_product);
-    out.launch_manager.actual_combined = addBucket(out.launch_manager.actual_combined, d.launch_manager.actual_combined);
-    out.launch_manager.actual_germany = addBucket(out.launch_manager.actual_germany, d.launch_manager.actual_germany);
-    out.launch_manager.actual_pan_eu = addBucket(out.launch_manager.actual_pan_eu, d.launch_manager.actual_pan_eu);
-    out.launch_manager.unmapped_marketplace_asins = Array.from(new Set([
-      ...(out.launch_manager.unmapped_marketplace_asins || []), ...(d.launch_manager.unmapped_marketplace_asins || []),
-    ]));
-    out.quality_issue_unassigned = addBucket(out.quality_issue_unassigned, d.quality_issue_unassigned);
-    for (const brand of Object.keys(d.brand_manager)) {
-      if (!out.brand_manager[brand]) out.brand_manager[brand] = JSON.parse(JSON.stringify(d.brand_manager[brand]));
-      else {
-        for (const stage of Object.keys(d.brand_manager[brand].stages)) {
-          out.brand_manager[brand].stages[stage] = addBucket(out.brand_manager[brand].stages[stage], d.brand_manager[brand].stages[stage]);
-        }
-        out.brand_manager[brand].combined_actual = addBucket(out.brand_manager[brand].combined_actual, d.brand_manager[brand].combined_actual);
+  const note = document.getElementById('quarterlyNote');
+  if (present.length < months.length) {
+    note.style.display = 'flex';
+    note.querySelector('span:last-child').innerHTML =
+      `<b>Partial quarter.</b> ${present.length} of 3 months have data (${present.join(', ') || 'none'}). Totals below only include months that have been uploaded and saved.`;
+  } else {
+    note.style.display = 'none';
+  }
+
+  const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthLabels = months.map(m => MONTH_NAMES[parseInt(m.slice(5, 7), 10) - 1]);
+  ['qRdM1Header', 'qRdM2Header', 'qRdM3Header', 'qLmM1Header', 'qLmM2Header', 'qLmM3Header', 'qBmM1Header', 'qBmM2Header', 'qBmM3Header'].forEach((id, i) => {
+    document.getElementById(id).textContent = monthLabels[i % 3];
+  });
+
+  const sum3 = (vals) => {
+    const known = vals.filter(v => v != null);
+    if (!known.length) return null;
+    return known.reduce((s, v) => s + v, 0);
+  };
+
+  // ---- R&D ----
+  const rdCodes = new Set();
+  monthData.forEach(d => { if (d) Object.keys(d.rd_team.rows).forEach(c => rdCodes.add(c)); });
+  let rdHtml = '';
+  let rdTotals = [0, 0, 0];
+  let rdGrandTotal = 0;
+  Array.from(rdCodes).sort().forEach(code => {
+    const label = (monthData.find(d => d && d.rd_team.rows[code]) || {}).rd_team?.rows[code]?.label || code;
+    const perMonth = monthData.map(d => d && d.rd_team.rows[code] ? d.rd_team.rows[code].bonus_eur : null);
+    const total = sum3(perMonth);
+    perMonth.forEach((v, i) => { if (v != null) rdTotals[i] += v; });
+    if (total != null) rdGrandTotal += total;
+    rdHtml += `<tr><td class="name">${label}</td>${perMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(total)}</td></tr>`;
+  });
+  document.getElementById('qRdBody').innerHTML = rdHtml;
+  document.getElementById('qRdTotalRow').innerHTML = `<td>Total</td>${rdTotals.map(v => `<td class="num">${fmtEUR(v)}</td>`).join('')}<td class="num">${fmtEUR(rdGrandTotal)}</td>`;
+
+  // ---- Launch Manager ----
+  const launchRows = [
+    { label: 'Germany', get: d => d.launch_manager.germany.bonus_eur },
+    { label: 'Pan-EU', get: d => d.launch_manager.pan_eu.bonus_eur },
+  ];
+  let lmHtml = '';
+  let lmTotals = [0, 0, 0];
+  let lmGrandTotal = 0;
+  launchRows.forEach(({ label, get }) => {
+    const perMonth = monthData.map(d => d ? get(d) : null);
+    const total = sum3(perMonth);
+    perMonth.forEach((v, i) => { if (v != null) lmTotals[i] += v; });
+    if (total != null) lmGrandTotal += total;
+    lmHtml += `<tr><td class="name">${label}</td>${perMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(total)}</td></tr>`;
+  });
+  document.getElementById('qLaunchBody').innerHTML = lmHtml;
+  document.getElementById('qLaunchTotalRow').innerHTML = `<td>Total</td>${lmTotals.map(v => `<td class="num">${fmtEUR(v)}</td>`).join('')}<td class="num">${fmtEUR(lmGrandTotal)}</td>`;
+
+  // ---- Brand Manager (same BM1-4 grouping as Monthly) ----
+  let bmHtml = '';
+  let bmGrandTotals = [0, 0, 0];
+  let bmGrandTotal = 0;
+  for (const [group, brands] of Object.entries(BM_GROUPS)) {
+    const groupPerMonth = monthData.map(d => {
+      if (!d) return null;
+      let s = 0, any = false;
+      for (const b of brands) {
+        const key = Object.keys(d.brand_manager).find(k => normBrand(k) === normBrand(b));
+        if (key) { s += d.brand_manager[key].total_bonus || 0; any = true; }
       }
+      return any ? s : null;
+    });
+    const groupTotal = sum3(groupPerMonth);
+    groupPerMonth.forEach((v, i) => { if (v != null) bmGrandTotals[i] += v; });
+    if (groupTotal != null) bmGrandTotal += groupTotal;
+    bmHtml += `<tr class="bm-group-row"><td>${group}</td>${groupPerMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(groupTotal)}</td></tr>`;
+
+    for (const brandName of brands) {
+      const brandPerMonth = monthData.map(d => {
+        if (!d) return null;
+        const key = Object.keys(d.brand_manager).find(k => normBrand(k) === normBrand(brandName));
+        return key ? d.brand_manager[key].total_bonus : null;
+      });
+      const brandTotal = sum3(brandPerMonth);
+      bmHtml += `<tr class="brand-row"><td class="name sub-brand">${brandName}</td>${brandPerMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(brandTotal)}</td></tr>`;
+
+      const stageLabels = ['PY1', 'Y1 (F4-12)', 'Discontinued'];
+      stageLabels.forEach(stageLabel => {
+        const stagePerMonth = monthData.map(d => {
+          if (!d) return null;
+          const key = Object.keys(d.brand_manager).find(k => normBrand(k) === normBrand(brandName));
+          const sd = key ? d.brand_manager[key].stage_detail[stageLabel] : null;
+          return sd ? sd.bonus_eur : null;
+        });
+        const stageTotal = sum3(stagePerMonth);
+        bmHtml += `<tr class="stage-row"><td class="name sub">${stageLabel}</td>${stagePerMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(stageTotal)}</td></tr>`;
+      });
     }
-    out.other_brands_unassigned = out.other_brands_unassigned || {};
-    for (const brand of Object.keys(d.other_brands_unassigned || {})) {
-      out.other_brands_unassigned[brand] = addBucket(out.other_brands_unassigned[brand], d.other_brands_unassigned[brand]);
-    }
-    out.meta.total_rows_processed += d.meta.total_rows_processed;
-    out.meta.mapped_rows += d.meta.mapped_rows;
-    out.meta.unmapped_rows += d.meta.unmapped_rows;
-    out.meta.unmapped_asins = Array.from(new Set([...out.meta.unmapped_asins, ...d.meta.unmapped_asins]));
   }
-  return applyTargetsAndTiers(out, true);
-}
-function mergeProductMaps(a, b) {
-  const out = JSON.parse(JSON.stringify(a || {}));
-  for (const [code, v] of Object.entries(b || {})) {
-    if (!out[code]) out[code] = JSON.parse(JSON.stringify(v));
-    else { out[code].sales += v.sales; out[code].units += v.units; out[code].net_profit += v.net_profit; }
-  }
-  return out;
+  document.getElementById('qBmBody').innerHTML = bmHtml;
+  document.getElementById('qBmTotalRow').innerHTML = `<td>Total, all brands</td>${bmGrandTotals.map(v => `<td class="num">${fmtEUR(v)}</td>`).join('')}<td class="num">${fmtEUR(bmGrandTotal)}</td>`;
 }
 
 // ---------- CSV upload + client-side computation ----------
@@ -319,9 +370,10 @@ function handleFile(file) {
         document.getElementById('monthPicker').value = monthVal; // reflect what's actually being used
         const computed = await computeFromRows(results.data, monthVal);
         const howDetected = detected ? `auto-detected from the filename` : `from the month picker (couldn't detect it from the filename)`;
-        statusEl.innerHTML = `<div class="banner info">Parsed ${results.data.length.toLocaleString('en-US')} rows for <b>${monthVal}</b> (${howDetected}). Check the Dashboard tab to review, then come back here and click "Save to history" if it looks right.</div>`;
+        statusEl.innerHTML = `<div class="banner info">Parsed ${results.data.length.toLocaleString('en-US')} rows for <b>${monthVal}</b> (${howDetected}). Check the Monthly tab to review, then come back here and click "Save to history" if it looks right.</div>`;
         CURRENT = computed;
-        renderCurrentView();
+        render(CURRENT, 'monthly');
+        if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab();
       } catch (err) {
         statusEl.innerHTML = `<div class="banner error"><b>Couldn't process this file.</b> ${err.message}</div>`;
         console.error(err);
@@ -616,7 +668,7 @@ function applyTargetsAndTiers(data, isQuarterly, monthlyTargets) {
 
 // ---------- Rendering ----------
 function sourceTag(source) {
-  return source === 'estimated' ? ' <span title="No real monthly target extracted yet — using quarterly target ÷ 3" style="color:var(--line-400); font-weight:400; font-size:11px;">(est.)</span>' : '';
+  return source === 'estimated' ? ' <span title="No real monthly target extracted yet — using quarterly target ÷ 3" style="color:var(--line-400); font-weight:400; font-size:9px;">(est.)</span>' : '';
 }
 function tierCellClass(tier) {
   if (tier === '🥇 GOLD') return 'tint-gold';
@@ -643,27 +695,8 @@ function render(data, viewLabel) {
 }
 
 function renderInner(data, viewLabel) {
-  const periodLabel = viewLabel === 'quarterly'
-    ? `${quarterOf(data.month)} (quarterly)`
-    : `${data.month} (monthly)`;
-  document.getElementById('periodBadge').textContent = periodLabel;
+  document.getElementById('periodBadge').textContent = `${data.month} (monthly)`;
   updateTargetsNote(data.month, !!(data._targets_meta && data._targets_meta.used_real_monthly));
-
-  if (viewLabel === 'quarterly') {
-    const present = data._quarterMonthsPresent || [];
-    const expected = data._quarterMonthsExpected || [];
-    const note = document.getElementById('quarterlyNote');
-    if (present.length < expected.length) {
-      note.style.display = 'flex';
-      note.querySelector('span:last-child').innerHTML =
-        `<b>Partial quarter.</b> ${present.length} of 3 months uploaded (${present.join(', ') || 'none'}). ` +
-        `Actuals below are the sum of what's uploaded so far; targets are the full quarter target.`;
-    } else {
-      note.style.display = 'none';
-    }
-  } else {
-    document.getElementById('quarterlyNote').style.display = 'none';
-  }
 
   // Data quality
   document.getElementById('dqSummary').textContent =

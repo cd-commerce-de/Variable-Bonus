@@ -88,21 +88,22 @@ weights** (`⚙️ Config`) used for every bonus € calculation regardless of
 which target source is in play — re-run it whenever Finance changes those,
 even if you're not touching targets.
 
-## Views
-
-- **Monthly** — the selected month's actuals vs. that month's real target
-  where one has been extracted, else quarterly ÷ 3 (marked "(est.)").
-- **Quarterly** — sums actuals from every month *already saved* within the
-  same quarter as the selected month, against the **full** quarterly
-  target (real monthly targets aren't summed into a quarter view yet — a
-  future improvement, not implemented). If not all 3 months of the
-  quarter have been uploaded, a banner says so explicitly rather than
-  pretending the quarter is complete.
-
 ## Tabs
 
-- **Dashboard** — the numbers: stats, R&D, Launch Manager, Brand Manager,
-  Marketplace, revenue chart.
+- **Monthly** — full target-vs-actual detail for the selected month: stats,
+  R&D, Launch Manager, Brand Manager, Marketplace, revenue chart, targets,
+  tiers, margins. This is "the dashboard" as it existed before Quarterly
+  got split out.
+- **Quarterly** — deliberately NOT a target-vs-actual comparison at the
+  quarter level. It just adds up each month's *already-computed* bonus €,
+  per product/market/brand/stage, across the 3 months of whichever quarter
+  the selected month falls in (e.g. picking any month in Jul/Aug/Sep shows
+  Jul, Aug, Sep as three columns). Same row structure as Monthly (same
+  R&D products, same BM1-4 grouping), but the columns are just: Month 1 |
+  Month 2 | Month 3 | Total. A month with no saved data shows "—" for that
+  column (not €0 — the two mean different things), and a banner says
+  explicitly how many of the 3 months actually have data if the quarter
+  isn't complete yet.
 - **Upload data** — the CSV drop zone, data-quality panel, and Save button.
 - **Impact Analysis** — one row per role (R&D Team, Launch Manager) and per
   official Brand Manager brand, showing two figures side by side: **Growth
@@ -111,11 +112,10 @@ even if you're not touching targets.
   targets are set against) and **Bonus % of Revenue** (bonus paid ÷ actual
   revenue). The point is to make it easy to spot whether payouts are
   proportionate to overperformance — a big bonus % next to a small growth
-  % (or vice versa) is worth a second look. Follows whichever
-  Monthly/Quarterly view is active on the Dashboard tab. Marketplace isn't
-  included: its actual/target are manual inputs that aren't currently
-  saved with the rest of the month's data, so there's nothing to compute
-  from yet.
+  % (or vice versa) is worth a second look. Reflects the Monthly tab's
+  currently selected month. Marketplace isn't included: its actual/target
+  are manual inputs that aren't currently saved with the rest of the
+  month's data, so there's nothing to compute from yet.
 
 ## Table styling
 
@@ -129,12 +129,15 @@ even if you're not touching targets.
   `border-collapse:collapse` silently breaks `position:sticky` on
   `<th>`/`<td>` in Safari and inconsistently elsewhere — switched to
   `border-collapse:separate; border-spacing:0`.
-- **No more 2-line wrapping** — every table cell is `white-space:nowrap`
-  (badges like Tier, currency, and percentages never wrap), and each
-  table sits in a horizontally-scrollable `.table-scroll` wrapper so a
-  narrow window scrolls sideways instead of squeezing cells onto two
-  lines. Only the leftmost name/label column wraps normally, since brand
-  and product names can legitimately be long.
+- **No wrapping anywhere, including the first column** — every table cell
+  is `white-space:nowrap`, product/brand names included, so nothing ever
+  breaks onto a second line. To make that fit without a table blowing out
+  the page width, header/body/badge font sizes and cell padding were all
+  tightened, and the page's max width was widened (1180px → 1440px) to
+  give the now-9-column tables more room. `.table-scroll` (horizontal
+  scroll per table) still exists as a fallback for genuinely narrow
+  windows, but on a normal desktop width the tables should fit without
+  needing it.
 - **Target/bonus coloring, matching the Excel** — Green target cells (both
   revenue and margin) get a subtle green tint, Gold target cells get a
   subtle amber tint. The Bonus (€) cell itself is tinted the same way

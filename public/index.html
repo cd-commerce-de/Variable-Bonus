@@ -35,9 +35,6 @@
   .top-row{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;}
   .subtitle{color:var(--line-300); font-size:14px; margin-top:2px;}
   .top-controls{display:flex; gap:10px; align-items:center;}
-  .view-toggle{display:flex; background:rgba(255,255,255,.08); border-radius:10px; padding:3px; gap:2px;}
-  .toggle-btn{background:none; border:none; color:var(--line-300); font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:7px 14px; border-radius:8px; cursor:pointer;}
-  .toggle-btn.active{background:#fff; color:var(--ink);}
   .period-badge{font-size:12px; font-weight:600; color:var(--line-300); border:1px solid rgba(255,255,255,.25); padding:5px 10px; border-radius:100px;}
   .tab-nav{display:flex; gap:4px; margin-top:18px;}
   .tab-btn{background:none; border:none; color:var(--line-300); font-family:'Poppins',sans-serif; font-size:14px; font-weight:600; padding:10px 4px; margin-right:24px; cursor:pointer; border-bottom:2.5px solid transparent;}
@@ -52,7 +49,7 @@
   .btn.ghost{background:transparent; border-color:rgba(255,255,255,.35); color:#fff;}
   .btn.ghost:hover{border-color:#fff;}
 
-  main{max-width:1180px; margin:0 auto; padding:28px 40px 80px;}
+  main{max-width:1440px; margin:0 auto; padding:28px 32px 80px;}
   section{margin-bottom:36px;}
   .section-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; gap:16px; flex-wrap:wrap;}
   .section-head h2{font-size:19px; font-weight:600; margin:0;}
@@ -85,24 +82,22 @@
   table{width:100%; border-collapse:separate; border-spacing:0; background:#fff;}
   .table-scroll table{border:none;}
   thead th{
-    text-align:right; font-size:11.5px; font-weight:600; color:var(--line-500);
-    padding:10px 16px; border-bottom:1px solid var(--line-200); background:var(--line-50);
+    text-align:right; font-size:10px; font-weight:600; color:var(--line-500);
+    padding:6px 8px; border-bottom:1px solid var(--line-200); background:var(--line-50);
     position:sticky; top:0; z-index:3; box-shadow:0 1px 0 var(--line-200);
-    white-space:nowrap;
+    white-space:nowrap; letter-spacing:-0.01em;
   }
   thead th:first-child, tbody td:first-child{text-align:left;}
-  tbody td{padding:11px 16px; font-size:13.5px; text-align:right; border-bottom:1px solid var(--line-100); white-space:nowrap;}
-  tbody td.name{white-space:normal;} /* labels/brand names may legitimately need to wrap */
+  tbody td{padding:5px 8px; font-size:11.5px; text-align:right; border-bottom:1px solid var(--line-100); white-space:nowrap;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:var(--line-50);}
-  tbody td.name{font-weight:600;}
-  tfoot td{padding:12px 16px; font-weight:700; border-top:2px solid var(--line-200); text-align:right; white-space:nowrap;}
-  tfoot td:first-child{text-align:left; white-space:normal;}
-  tr.bm-group-row td{background:var(--ink); color:#fff; font-weight:700; font-family:'Poppins',sans-serif; font-size:13px;}
-  tr.brand-row td.name.sub-brand{padding-left:18px;}
+  tbody td.name{font-weight:600; white-space:nowrap;}
+  tfoot td{padding:7px 8px; font-weight:700; font-size:11.5px; border-top:2px solid var(--line-200); text-align:right; white-space:nowrap;}
+  tfoot td:first-child{text-align:left;}
+  tr.bm-group-row td{background:var(--ink); color:#fff; font-weight:700; font-family:'Poppins',sans-serif; font-size:11px;}
+  tr.brand-row td.name.sub-brand{padding-left:16px;}
   tr.brand-row td{background:var(--line-50); font-weight:700; border-top:1.5px solid var(--line-200);}
-  tr.stage-row td.name.sub{padding-left:30px; font-weight:400; color:var(--line-500); font-size:12.5px;}
-  .tier-tag{white-space:nowrap;}
+  tr.stage-row td.name.sub{padding-left:26px; font-weight:400; color:var(--line-500); font-size:11px;}
 
   /* Excel-style target/bonus tier coloring */
   td.tint-green{background:#E7F8F0;}
@@ -118,7 +113,7 @@
   tr.impact-role-row td{background:var(--line-50); font-weight:700;}
 
   .target-input{width:100px; padding:5px 8px; border:1px solid var(--line-300); border-radius:7px; font-size:12.5px; text-align:right; font-family:'Inter',sans-serif;}
-  .tier-tag{font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:6px;}
+  .tier-tag{font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; white-space:nowrap;}
   .tier-tag.gold{background:#FEF3C7; color:#92400E;}
   .tier-tag.green{background:#D1FAE5; color:#065F46;}
   .tier-tag.miss{background:var(--line-100); color:var(--line-500);}
@@ -165,16 +160,13 @@
     </div>
     <div class="top-controls">
       <select id="monthSelect" onchange="onMonthChange()"></select>
-      <div class="view-toggle">
-        <button id="viewMonthlyBtn" class="toggle-btn active" onclick="setView('monthly')">Monthly</button>
-        <button id="viewQuarterlyBtn" class="toggle-btn" onclick="setView('quarterly')">Quarterly</button>
-      </div>
       <span class="period-badge" id="periodBadge"></span>
       <button class="btn ghost" onclick="logout()">Lock</button>
     </div>
   </div>
   <nav class="tab-nav">
-    <button id="tabDashboardBtn" class="tab-btn active" onclick="setTab('dashboard')">Dashboard</button>
+    <button id="tabMonthlyBtn" class="tab-btn active" onclick="setTab('monthly')">Monthly</button>
+    <button id="tabQuarterlyBtn" class="tab-btn" onclick="setTab('quarterly')">Quarterly</button>
     <button id="tabUploadBtn" class="tab-btn" onclick="setTab('upload')">Upload data</button>
     <button id="tabImpactBtn" class="tab-btn" onclick="setTab('impact')">Impact Analysis</button>
   </nav>
@@ -215,16 +207,12 @@
     <div class="section-head"><h2>Save this month</h2></div>
     <button class="btn primary" onclick="saveMonth()">Save to history</button>
     <span id="saveStatus" class="section-note" style="margin-left:10px;"></span>
-    <p class="section-note" style="margin-top:10px;">Once saved, switch to the Dashboard tab to see it reflected there.</p>
+    <p class="section-note" style="margin-top:10px;">Once saved, switch to the Monthly tab to see it reflected there.</p>
   </section>
 
 </div>
 
-<div id="tabDashboard">
-
-  <div class="banner warn" id="quarterlyNote" style="display:none; margin-bottom:20px;">
-    <span>⚠</span><span></span>
-  </div>
+<div id="tabMonthly">
 
   <section id="statsSection" style="display:none;">
     <div class="section-head"><h2>At a glance</h2></div>
@@ -307,6 +295,54 @@
   <section id="chartSection" style="display:none;">
     <div class="section-head"><h2>Revenue by brand</h2></div>
     <div class="chart-card"><canvas id="brandChart" height="90"></canvas></div>
+  </section>
+
+</div>
+
+<div id="tabQuarterly" style="display:none;">
+
+  <div class="banner warn" id="quarterlyNote" style="display:none; margin-bottom:20px;">
+    <span>⚠</span><span></span>
+  </div>
+
+  <section>
+    <div class="section-head">
+      <h2>R&amp;D Team — quarterly bonus</h2>
+      <span class="section-note">Bonus already earned each month, added up — not a fresh target-vs-actual comparison at the quarter level</span>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Product</th><th id="qRdM1Header">Month 1</th><th id="qRdM2Header">Month 2</th><th id="qRdM3Header">Month 3</th><th>Total</th></tr></thead>
+      <tbody id="qRdBody"></tbody>
+      <tfoot><tr class="total-row-solid" id="qRdTotalRow"></tr></tfoot>
+    </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Launch Manager — quarterly bonus</h2>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Market</th><th id="qLmM1Header">Month 1</th><th id="qLmM2Header">Month 2</th><th id="qLmM3Header">Month 3</th><th>Total</th></tr></thead>
+      <tbody id="qLaunchBody"></tbody>
+      <tfoot><tr class="total-row-solid" id="qLaunchTotalRow"></tr></tfoot>
+    </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Brand Manager — quarterly bonus</h2>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Group / Brand / Stage</th><th id="qBmM1Header">Month 1</th><th id="qBmM2Header">Month 2</th><th id="qBmM3Header">Month 3</th><th>Total</th></tr></thead>
+      <tbody id="qBmBody"></tbody>
+      <tfoot><tr class="total-row-solid" id="qBmTotalRow"></tr></tfoot>
+    </table>
+    </div>
   </section>
 
 </div>
