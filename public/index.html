@@ -36,6 +36,9 @@
   .toggle-btn{background:none; border:none; color:var(--line-300); font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:7px 14px; border-radius:8px; cursor:pointer;}
   .toggle-btn.active{background:#fff; color:var(--ink);}
   .period-badge{font-size:12px; font-weight:600; color:var(--line-300); border:1px solid rgba(255,255,255,.25); padding:5px 10px; border-radius:100px;}
+  .tab-nav{display:flex; gap:4px; margin-top:18px;}
+  .tab-btn{background:none; border:none; color:var(--line-300); font-family:'Poppins',sans-serif; font-size:14px; font-weight:600; padding:10px 4px; margin-right:24px; cursor:pointer; border-bottom:2.5px solid transparent;}
+  .tab-btn.active{color:#fff; border-bottom-color:var(--ember);}
   select, .btn, input[type=file]::file-selector-button{
     font-family:'Inter',sans-serif; font-size:13px; font-weight:600;
     border-radius:10px; border:1px solid var(--line-300); padding:9px 14px;
@@ -146,9 +149,15 @@
       <button class="btn ghost" onclick="logout()">Lock</button>
     </div>
   </div>
+  <nav class="tab-nav">
+    <button id="tabDashboardBtn" class="tab-btn active" onclick="setTab('dashboard')">Dashboard</button>
+    <button id="tabUploadBtn" class="tab-btn" onclick="setTab('upload')">Upload data</button>
+  </nav>
 </header>
 
 <main>
+
+<div id="tabUpload" style="display:none;">
 
   <section>
     <div class="section-head">
@@ -169,16 +178,27 @@
     <p class="section-note" id="targetsNote" style="margin-top:8px;"></p>
   </section>
 
-  <div class="banner warn" id="quarterlyNote" style="display:none; margin-bottom:20px;">
-    <span>⚠</span><span></span>
-  </div>
-
   <section id="dataQualitySection" style="display:none;">
     <details class="data-quality" open>
       <summary id="dqSummary">Data quality</summary>
       <div id="dqBody" style="margin-top:10px; font-size:13px; color:var(--line-700);"></div>
     </details>
   </section>
+
+  <section>
+    <div class="section-head"><h2>Save this month</h2></div>
+    <button class="btn primary" onclick="saveMonth()">Save to history</button>
+    <span id="saveStatus" class="section-note" style="margin-left:10px;"></span>
+    <p class="section-note" style="margin-top:10px;">Once saved, switch to the Dashboard tab to see it reflected there.</p>
+  </section>
+
+</div>
+
+<div id="tabDashboard">
+
+  <div class="banner warn" id="quarterlyNote" style="display:none; margin-bottom:20px;">
+    <span>⚠</span><span></span>
+  </div>
 
   <section id="statsSection" style="display:none;">
     <div class="section-head"><h2>At a glance</h2></div>
@@ -213,6 +233,7 @@
       <thead><tr><th>Market</th><th>Actual</th><th>Green target</th><th>Gold target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody id="launchBody"></tbody>
     </table>
+    <p class="section-note" id="launchNoteBonus" style="margin-top:8px;"></p>
   </section>
 
   <section id="bmSection" style="display:none;">
@@ -253,11 +274,7 @@
     <div class="chart-card"><canvas id="brandChart" height="90"></canvas></div>
   </section>
 
-  <section>
-    <div class="section-head"><h2>Save this month</h2></div>
-    <button class="btn primary" onclick="saveMonth()">Save to history</button>
-    <span id="saveStatus" class="section-note" style="margin-left:10px;"></span>
-  </section>
+</div>
 
 </main>
 

@@ -10,34 +10,63 @@ serves that data.
 
 ## Targets — how they get in
 
-Targets are **not entered manually in the dashboard**. They're extracted
-once from the calculator workbook's `📋 All Tracks` tab (Q3 quarter-total
-columns) and `⚙️ Config` tab (rates/weights), via:
+Targets are **not entered manually in the dashboard.** There are two layers:
 
+**1. Real per-month targets (preferred, used automatically when present).**
+Sourced directly from the workbook's actual monthly Good/Better/Best
+columns — no dividing, no estimating:
+- `BM Scorecard 3` → Launch Manager (`LM (F3M)` = Germany, `Expansion (F3M)`
+  = Pan-EU) and Brand Manager (each brand's `PY1` / `Y1` / `Discontinued`
+  sections), both Revenue and Profit Margin.
+- `Leadership Scorecard 3`, row 13 onward → R&D, one row per named product.
+  Revenue only — margin is intentionally left blank, per instruction (no
+  margin target exists for R&D in the source).
+
+**Mapping note:** the source sheets use a 3-tier Good/Better/Best scale;
+the dashboard's bonus logic (and Config's rates) only has two tiers. The
+dashboard maps **Better → Green target, Best → Gold target** (Good is
+extracted but not currently used for tiering). This was an inference, not
+an explicit instruction — if that's wrong, it's a one-line change in
+`applyTargetsAndTiers()` in `app.js`.
+
+Extract a month with:
+```bash
+python3 scripts/extract_monthly_targets.py path/to/calculator.xlsx --month 2026-08 \
+  --out mapping/targets_monthly/2026-08.json
+cp mapping/targets_monthly/2026-08.json public/targets_monthly/2026-08.json
+```
+Commit and push. The dashboard picks up `targets_monthly/<month>.json`
+automatically for any month that has one — including **previously saved**
+months, since targets are re-applied fresh on every load rather than
+trusted from what was baked in when the month was saved.
+
+**2. Quarterly ÷ 3 fallback**, unchanged from before, used only for
+whatever a real monthly extract doesn't cover (a brand/stage/product with
+no real monthly figure, or a month with no `targets_monthly/` file at
+all). Any target using this fallback shows a small **(est.)** marker next
+to it in the dashboard, so it's never ambiguous which numbers are real.
+Sourced from the workbook's `📋 All Tracks` tab (Q3 quarter-total columns)
+and `⚙️ Config` tab (rates/weights):
 ```bash
 python3 scripts/extract_targets.py path/to/calculator.xlsx --quarter Q3
 cp mapping/targets.json public/targets.json
 ```
 
-**Interim approach, exactly as requested:** monthly target = quarterly
-target ÷ 3, evenly. This is a simplification — the calculator's own
-Actuals are sourced weekly and aren't evenly distributed across a quarter,
-so a real month's target is probably not exactly 1/3 of the quarter. When
-real monthly targets exist (e.g. via the calculator's own monthly-broken-out
-`All Tracks` columns), re-point `extract_targets.py` at those columns
-instead of dividing — the rest of the dashboard doesn't need to change.
-
-Re-run `extract_targets.py` (and re-copy to `public/`) each time Finance
-updates targets or rates in the workbook.
+The quarterly-target extraction also supplies the **rates and stage
+weights** (`⚙️ Config`) used for every bonus € calculation regardless of
+which target source is in play — re-run it whenever Finance changes those,
+even if you're not touching targets.
 
 ## Views
 
-- **Monthly** — the selected month's actuals vs. that month's target
-  (quarterly ÷ 3).
+- **Monthly** — the selected month's actuals vs. that month's real target
+  where one has been extracted, else quarterly ÷ 3 (marked "(est.)").
 - **Quarterly** — sums actuals from every month *already saved* within the
   same quarter as the selected month, against the **full** quarterly
-  target. If not all 3 months of the quarter have been uploaded yet, a
-  banner says so explicitly rather than pretending the quarter is complete.
+  target (real monthly targets aren't summed into a quarter view yet — a
+  future improvement, not implemented). If not all 3 months of the
+  quarter have been uploaded, a banner says so explicitly rather than
+  pretending the quarter is complete.
 
 ## What's computed automatically, and how
 
@@ -52,8 +81,12 @@ updates targets or rates in the workbook.
   summed to a per-brand and grand total.
 - **Launch Manager** — Germany and Pan-EU targets are both shown, but
   **actuals are combined-only** (the Sellerboard export has no marketplace
-  column), so only an approximate combined tier can be computed. A warning
-  banner says so on the page itself.
+  column), so only an approximate combined tier and bonus can be computed.
+  The bonus uses Config's Germany rate (70% weight: 0.0035 green / 0.007
+  gold) plus PAN EU rate (30% weight: 0.0015 green / 0.003 gold) — these
+  two sum back to the base rate (0.005/0.01) by construction, so summing
+  them is the mathematically correct blended rate for a combined-actual
+  approximation. A warning banner says so on the page itself.
 - **Marketplace** — still fully manual (actual and target), per the
   original spec.
 - ASINs not in the TOC mapping are excluded from every track (never
@@ -107,6 +140,24 @@ these 5 GitHub usernames"), swap `api/login.js` for GitHub OAuth restricted
 to your org's membership — more setup, but gives per-person audit logs.
 Ask me if you want this built out.
 
+## Multi-user sharing — what's actually shared, and what isn't
+
+- **"Save to history" with the API deployed correctly** → shared. It commits
+  to the repo's `data/` folder, and everyone's dashboard reads from that
+  same place (`api/data.js`) the next time they load or select that month.
+  Not real-time — someone with the page already open needs to reload or
+  re-select the month to see a save someone else just made.
+- **Uploading and just looking, without clicking "Save"** → private to that
+  browser tab. Nothing is sent anywhere.
+- **If the API isn't deployed/working when "Save" is clicked** → the save
+  falls back to that one browser's local storage only. No one else sees
+  it, and the status message says so explicitly rather than implying
+  success. Once the API is fixed, re-open the month and click Save again
+  to actually share it.
+- The dashboard always checks the shared server first, so once the API is
+  working, everyone sees the same numbers by default — a browser's local
+  fallback copy is only ever used when the server can't be reached.
+
 ## Deploying
 
 1. Push this folder to a **private** GitHub repository.
@@ -149,11 +200,14 @@ Commit and push — the dashboard picks up the new files on next load.
 public/index.html, app.js     the dashboard itself (static, client-side compute + tiering)
 public/toc_mapping.json       ASIN → brand/stage/product code (regenerate via build_mapping.py)
 public/targets.json           Q3 targets + rates/weights (regenerate via extract_targets.py)
+public/targets_monthly/*.json real per-month Good/Better/Best targets (regenerate via extract_monthly_targets.py)
 public/data/2026-08.json      seeded August data (real Aug 2026 numbers, computed against Q3÷3 targets)
-api/login.js, _auth.js        real server-side passcode check + session verification
+api/login.js, session.js,     real server-side passcode check + persistent session
+  logout.js, _auth.js           (survives a page refresh; "Lock" actually clears it)
 api/data.js, save-month.js    read/write month JSON in the private GitHub repo
 scripts/build_mapping.py      TOC .xlsx -> mapping/toc_mapping.json
-scripts/extract_targets.py    calculator .xlsx -> mapping/targets.json (Q3 targets, rates, weights)
+scripts/extract_targets.py    calculator .xlsx -> mapping/targets.json (quarterly rates/weights + ÷3 fallback)
+scripts/extract_monthly_targets.py  calculator .xlsx -> mapping/targets_monthly/<month>.json (real Good/Better/Best)
 scripts/process_month.py      early CLI reference for the actuals-only aggregation (no targets/tiering yet — app.js is the source of truth)
 scripts/hash_passcode.py      generates the LOCAL-TESTING-ONLY passcode hash for app.js
 ```
