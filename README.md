@@ -121,10 +121,20 @@ even if you're not touching targets.
 
 - **Sticky column headers** — each table's header row stays pinned to the
   top of the viewport while you scroll through it, so you're never
-  guessing which column is which partway down a long list (this required
-  removing `overflow:hidden` from the table wrapper, which very slightly
-  softens the rounded-corner clipping on tables with a scrolled header —
-  a deliberate trade-off for the sticky behavior to work at all).
+  guessing which column is which partway down a long list. This needed
+  two fixes, not just `position:sticky`: (1) `overflow:hidden` on the
+  table wrapper had to go, since sticky can't work inside a clipped
+  ancestor — corners are now rounded via a `.table-scroll` wrapper div
+  instead, so the rounding trade-off from earlier is gone too; (2)
+  `border-collapse:collapse` silently breaks `position:sticky` on
+  `<th>`/`<td>` in Safari and inconsistently elsewhere — switched to
+  `border-collapse:separate; border-spacing:0`.
+- **No more 2-line wrapping** — every table cell is `white-space:nowrap`
+  (badges like Tier, currency, and percentages never wrap), and each
+  table sits in a horizontally-scrollable `.table-scroll` wrapper so a
+  narrow window scrolls sideways instead of squeezing cells onto two
+  lines. Only the leftmost name/label column wraps normally, since brand
+  and product names can legitimately be long.
 - **Target/bonus coloring, matching the Excel** — Green target cells (both
   revenue and margin) get a subtle green tint, Gold target cells get a
   subtle amber tint. The Bonus (€) cell itself is tinted the same way
