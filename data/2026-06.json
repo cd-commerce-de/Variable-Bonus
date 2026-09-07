@@ -370,7 +370,35 @@
   "pan_eu_override_applied": true,
   "pan_eu_reconciliation_issues": [],
   "germany_source": "dedicated_upload",
-  "pan_eu_source": "dedicated_upload"
+  "pan_eu_source": "dedicated_upload",
+  "germany_asins": [
+   "B0H2BS1CB8",
+   "B0H2BP8P7Z",
+   "B0H2BG2TT3",
+   "B0H2BM3SJD",
+   "B0H2BNX5K4",
+   "B0H2BKVS97",
+   "B0H2BMJ8G6",
+   "B0H2BNG3XM",
+   "B0GZ5KG2XW",
+   "B0GZ5GZBRK",
+   "B0GZ5K24L4",
+   "B0GTRB8R4B",
+   "B0GTRK543K",
+   "B0GTRJD57Z",
+   "B0GTRD8C8L",
+   "B0GTRB5GJB",
+   "B0GXL3V73V",
+   "B0GXLDVGC1",
+   "B0GXLHSLMM",
+   "B0GXL7VM47",
+   "B0GXLCZT2Y",
+   "B0GXL3V73W",
+   "B0GXLHHPRF",
+   "B0GXLKWSZQ",
+   "B0H5VMXPJY",
+   "B0H5VM13XG"
+  ]
  },
  "brand_manager": {
   "Nasswerk": {
