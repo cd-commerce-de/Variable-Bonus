@@ -133,6 +133,23 @@ applied to the Masterlist's search for consistency. Verified directly
 against a real unmapped ASIN from an actual export — got the explanatory
 message, not a bare zero.
 
+**Reverse-lookup mode adds a "Country" column when Stage = F3M** —
+Germany or Pan-EU only means anything for F3M-stage products (that's the
+only track with a per-country split), so the column only appears then,
+not for PY1/M4-12/Discontinued/Quality Issue. It shows which of the two
+dedicated per-country uploads (see "Launch Manager: two independent
+uploads" above) an ASIN's revenue actually came from that month — "not in
+either upload" if it's genuinely F3M but wasn't in either file yet (a real
+signal, not an error), or "no upload yet" for the whole column if neither
+file has been uploaded for that month at all. This required capturing the
+matched-ASIN list from each country upload (previously only the aggregate
+total was kept) — `germany_asins` / `pan_eu_asins` on the saved month's
+data. Verified directly: uploaded a synthetic Germany file (2 ASINs) and
+Pan-EU file (1 ASIN) against a real June month, filtered Stage History to
+F3M, and got exactly "Germany," "Germany," and "Pan-EU" for those three
+ASINs — with a fourth real F3M ASIN not in either file correctly showing
+"not in either upload" rather than a wrong or blank value.
+
 The date range is a fixed window, not derived from upload history — it
 covers Launch Dates already in the TOC comfortably (latest launch on file
 is August 2026, needing visibility through August 2027 to see its full

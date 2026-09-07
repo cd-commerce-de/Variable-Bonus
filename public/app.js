@@ -376,6 +376,9 @@ function ensureMonthFilterOptions() {
 }
 
 function renderStageHistory() {
+  renderStageHistoryInner().catch(err => console.error('Stage History render error:', err));
+}
+async function renderStageHistoryInner() {
   ensureMonthFilterOptions();
   const months = stageHistoryMonths();
   const filterEl = document.getElementById('stageHistoryFilter');
@@ -391,8 +394,26 @@ function renderStageHistory() {
 
   // ---- Reverse-lookup mode: a specific stage AND month picked -> list every matching ASIN ----
   if (stageFilter && monthFilter) {
+    const showCountry = stageFilter === 'F3M'; // Germany/Pan-EU only means anything for F3M-stage products
     tableEl.className = 'stage-history-table list-mode';
-    headerRow.innerHTML = '<th>ASIN</th><th>Product</th><th>Brand</th><th>Launch Date</th><th>Stage</th>';
+    headerRow.innerHTML = '<th>ASIN</th><th>Product</th><th>Brand</th><th>Launch Date</th><th>Stage</th>' + (showCountry ? '<th>Country</th>' : '');
+
+    let germanyAsins = new Set(), panEuAsins = new Set(), countryDataAvailable = false;
+    if (showCountry) {
+      const monthData = await loadMonth(monthFilter);
+      if (monthData && monthData.launch_manager) {
+        if (monthData.launch_manager.germany_source === 'dedicated_upload') { germanyAsins = new Set(monthData.launch_manager.germany_asins || []); countryDataAvailable = true; }
+        if (monthData.launch_manager.pan_eu_source === 'dedicated_upload') { panEuAsins = new Set(monthData.launch_manager.pan_eu_asins || []); countryDataAvailable = true; }
+      }
+    }
+    function countryCell(asin) {
+      if (!countryDataAvailable) return '<span class="tier-tag pending">no upload yet</span>';
+      const inDe = germanyAsins.has(asin), inEu = panEuAsins.has(asin);
+      if (inDe && inEu) return '<span class="tier-tag pending" title="Present in both uploaded files -- worth checking for a duplicate">⚠ both</span>';
+      if (inDe) return '<span class="stage-badge f3m">Germany</span>';
+      if (inEu) return '<span class="stage-badge py1">Pan-EU</span>';
+      return '<span class="tier-tag pending">not in either upload</span>';
+    }
 
     const CAP = 300;
     const matches = [];
@@ -411,11 +432,14 @@ function renderStageHistory() {
         <td class="name">${info.brand || '—'}</td>
         <td class="num">${info.launch_date || '—'}</td>
         <td>${stageBadge(stage)}</td>
+        ${showCountry ? `<td>${countryCell(asin)}</td>` : ''}
       </tr>`).join('');
     const stageLabel = STAGE_LABELS[stageFilter] || stageFilter;
-    footerEl.textContent = matches.length > CAP
+    let footerMsg = matches.length > CAP
       ? `Showing first ${CAP} of ${matches.length}+ ASINs that were ${stageLabel} in ${formatMonthLabel(monthFilter)}${filter ? ' (matching your search too)' : ''}.`
       : `${matches.length} ASIN${matches.length === 1 ? '' : 's'} ${matches.length === 1 ? 'was' : 'were'} ${stageLabel} in ${formatMonthLabel(monthFilter)}${filter ? ' (matching your search too)' : ''}.`;
+    if (showCountry && !countryDataAvailable) footerMsg += ` No Germany/Pan-EU file has been uploaded for ${formatMonthLabel(monthFilter)} yet, so the Country column can't be filled in.`;
+    footerEl.textContent = footerMsg;
     return;
   }
 
@@ -663,6 +687,7 @@ function parseCountryF3MFile(file, month) {
       complete: (results) => {
         const children = results.data.filter(r => (r.SKU || '').trim() !== '');
         let sales = 0, units = 0, net_profit = 0, matched = 0, skippedNonF3M = 0, skippedUnmapped = 0;
+        const matchedAsins = [];
         children.forEach(r => {
           const asin = (r.ASIN || '').trim();
           const info = MAPPING[asin];
@@ -671,8 +696,9 @@ function parseCountryF3MFile(file, month) {
           if (stage !== 'F3M') { skippedNonF3M++; return; }
           sales += cleanNumber(r.Sales); units += cleanNumber(r.Units); net_profit += cleanNumber(r['Net profit']);
           matched++;
+          matchedAsins.push(asin);
         });
-        resolve({ sales, units, net_profit, sku_count: matched, matched, skippedNonF3M, skippedUnmapped });
+        resolve({ sales, units, net_profit, sku_count: matched, matched, skippedNonF3M, skippedUnmapped, matchedAsins });
       },
       error: (err) => reject(err),
     });
@@ -694,6 +720,7 @@ async function applyCountryUpload(file, country) {
   data = JSON.parse(JSON.stringify(data));
   data.launch_manager[`actual_${country === 'germany' ? 'germany' : 'pan_eu'}`] = { sales: totals.sales, units: totals.units, net_profit: totals.net_profit, sku_count: totals.sku_count };
   data.launch_manager[`${country === 'germany' ? 'germany' : 'pan_eu'}_source`] = 'dedicated_upload';
+  data.launch_manager[`${country === 'germany' ? 'germany' : 'pan_eu'}_asins`] = totals.matchedAsins; // which specific F3M ASINs this country's actual came from -- lets Stage History show "which country" per ASIN
   data = applyTargetsAndTiers(data, false, await loadMonthlyTargets(month));
 
   const saveResult = await saveMonthData(data);
