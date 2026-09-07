@@ -36,6 +36,66 @@ wins when present. F3M ASINs with no marketplace entry at all are excluded
 from the DE/Pan-EU split (but still counted in "Combined") and listed in
 a data-quality banner on the page.
 
+### Optional Pan-EU export override (Upload tab)
+
+If you have a separate Sellerboard export already filtered to Pan-EU
+marketplaces (same columns as the main export, same ASINs — just their
+Pan-EU-specific slice of Sales/Units/Net profit), drop it into the
+second upload zone on the Upload tab **after** uploading the main file
+for that month. This replaces the default mapping's guess with real
+numbers, for whichever F3M ASINs appear in that file:
+- **Pan-EU** = exactly what that file reports for the ASIN.
+- **Germany** = the residual (main file's total for that ASIN − the
+  Pan-EU file's amount) — since the main export already covers all
+  marketplaces combined, the Pan-EU slice subtracted out leaves Germany.
+- Any F3M ASIN *not* in the Pan-EU file still falls back to the default
+  marketplace mapping (unchanged).
+- If the Pan-EU file claims *more* revenue for an ASIN than the main
+  file has (which shouldn't happen if both cover the same period),
+  Germany is floored at €0 for that ASIN rather than going negative, and
+  it's flagged in a red banner with both numbers shown — never silently
+  absorbed.
+- **This never touches R&D or Brand Manager** — it only ever affects
+  `launch_manager`'s Germany/Pan-EU numbers.
+- "Clear Pan-EU override" reverts to the default mapping without
+  needing to re-upload the main file.
+
+Verified directly (not just reasoned about): uploaded a synthetic
+Pan-EU file covering 3 real ASINs against a real August export —
+Combined stayed byte-for-byte identical before/after (confirming the
+override never changes total F3M revenue, only its split), Germany's
+decrease and Pan-EU's increase matched hand-calculated residual math
+exactly, and an intentionally-over-claiming test ASIN was correctly
+caught and flagged rather than silently producing a negative number.
+
+### Bulk-applying Pan-EU to months already uploaded & saved
+
+For months whose main export was already uploaded and saved earlier,
+there's no need to re-upload the main file just to add Pan-EU detail.
+The same section (Upload tab, under "Bulk-apply...") accepts **multiple
+Pan-EU files at once** — each filename needs the same date-range pattern
+as the main export (e.g. `01_07_2026-31_07_2026…`) so its month can be
+detected, same as the main upload flow.
+
+This is coarser than the single-file flow above by necessity: without
+the original main file's per-ASIN breakdown (which isn't persisted —
+only the aggregated result is saved), the split can only happen at the
+**month-total level** — Germany = the already-saved Combined total minus
+this file's F3M total — rather than per-ASIN. That also means the
+reconciliation check is month-level (Pan-EU total vs. saved Combined
+total), not per-ASIN. **Each month is saved immediately** after
+processing, overwriting its previous Launch Manager split — there's no
+review step in between, since the whole point is bulk efficiency.
+
+Verified directly: ran this against the real August seed with a
+synthetic 2-ASIN Pan-EU file — Germany, Pan-EU, and Combined all came
+out exactly as hand-calculated, and the `pan_eu_override_applied` flag
+correctly persisted through the save/reload cycle so the Monthly tab
+knows to show the "override active" note instead of the generic
+data-source caveat. Also tested the over-claim edge case (Pan-EU
+total exceeding the saved Combined total) — correctly floors Germany at
+€0 and flags it, both in the bulk-run log and in the saved data.
+
 ## Stage is computed live, not read from a fixed TOC column
 
 This is the core fix: a SKU's stage (F3M / Y1 "M4-12" / PY1) is a **function

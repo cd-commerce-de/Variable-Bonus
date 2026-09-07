@@ -71,6 +71,9 @@ let TARGETS = null;     // quarterly targets + rates/weights, from the calculato
 let MONTHLY_TARGETS = {}; // month ("2026-08") -> real Good/Better/Best targets, when extracted for that month
 let MARKETPLACE_MAP = null; // ASIN -> "DE" | "Pan-EU", from Sellerboard's Products export (see scripts/build_marketplace_mapping.py)
 let CURRENT = null;   // currently rendered computed result
+let LAST_UPLOADED_ROWS = null; // raw parsed rows from the last main-file upload, kept so a Pan-EU file can be added afterward without re-uploading the main file
+let LAST_UPLOADED_MONTH = null;
+let PAN_EU_OVERRIDE = null; // ASIN -> {sales, units, net_profit}, from a separately-uploaded Pan-EU export
 const LOCAL_HISTORY_KEY = 'cdc_bonus_history_v2';
 
 function quarterOf(month) { // "2026-08" -> "Q3"
@@ -470,6 +473,12 @@ const dropZone = document.getElementById('dropZone');
 dropZone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
 document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
 
+const panEuDropZone = document.getElementById('panEuDropZone');
+['dragenter', 'dragover'].forEach(evt => panEuDropZone.addEventListener(evt, e => { e.preventDefault(); panEuDropZone.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(evt => panEuDropZone.addEventListener(evt, e => { e.preventDefault(); panEuDropZone.classList.remove('drag'); }));
+panEuDropZone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handlePanEuFile(e.dataTransfer.files[0]); });
+document.getElementById('panEuFileInput').addEventListener('change', e => { if (e.target.files.length) handlePanEuFile(e.target.files[0]); });
+
 function handleFile(file) {
   const statusEl = document.getElementById('uploadStatus');
   statusEl.innerHTML = `<div class="banner info">Parsing ${file.name}…</div>`;
@@ -490,6 +499,10 @@ function handleFile(file) {
         const computed = await computeFromRows(results.data, monthVal);
         const howDetected = detected ? `auto-detected from the filename` : `from the month picker (couldn't detect it from the filename)`;
         statusEl.innerHTML = `<div class="banner info">Parsed ${results.data.length.toLocaleString('en-US')} rows for <b>${monthVal}</b> (${howDetected}). Check the Monthly tab to review, then come back here and click "Save to history" if it looks right.</div>`;
+        LAST_UPLOADED_ROWS = results.data;
+        LAST_UPLOADED_MONTH = monthVal;
+        PAN_EU_OVERRIDE = null; // a new main-file upload starts fresh -- any Pan-EU override belonged to whatever month was previously loaded
+        document.getElementById('panEuStatus').innerHTML = '';
         CURRENT = computed;
         render(CURRENT, 'monthly');
         if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab();
@@ -507,6 +520,134 @@ function guessMonthFromFilename(name) {
   return null;
 }
 
+// ---------- Optional Pan-EU export: overrides ONLY the Launch Manager
+// country split, using its own real numbers instead of the default
+// ASIN->marketplace mapping. R&D and Brand Manager are completely
+// unaffected -- this never touches anything but launch_manager. ----------
+// Parses a Pan-EU CSV into an ASIN->{sales,units,net_profit} map, restricted
+// to F3M-stage products for the given month. Shared by the single-file and
+// bulk-apply flows.
+function parsePanEuFile(file, month) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: true, delimiter: ';', encoding: 'utf-8', skipEmptyLines: true,
+      complete: (results) => {
+        const children = results.data.filter(r => (r.SKU || '').trim() !== '');
+        const overrideMap = {};
+        let f3mMatched = 0, skippedNonF3M = 0, skippedUnmapped = 0;
+        children.forEach(r => {
+          const asin = (r.ASIN || '').trim();
+          const info = MAPPING[asin];
+          if (!info) { skippedUnmapped++; return; }
+          const stage = computeStageForMonth(info, month);
+          if (stage !== 'F3M') { skippedNonF3M++; return; }
+          overrideMap[asin] = { sales: cleanNumber(r.Sales), units: cleanNumber(r.Units), net_profit: cleanNumber(r['Net profit']) };
+          f3mMatched++;
+        });
+        resolve({ overrideMap, f3mMatched, skippedNonF3M, skippedUnmapped });
+      },
+      error: (err) => reject(err),
+    });
+  });
+}
+
+function handlePanEuFile(file) {
+  const statusEl = document.getElementById('panEuStatus');
+  if (!LAST_UPLOADED_ROWS || !LAST_UPLOADED_MONTH) {
+    statusEl.innerHTML = `<div class="banner error">Upload the main export for this month first (above) — the Pan-EU file only adds detail on top of it, it can't stand on its own.</div>`;
+    return;
+  }
+  statusEl.innerHTML = `<div class="banner info">Parsing ${file.name}…</div>`;
+  parsePanEuFile(file, LAST_UPLOADED_MONTH).then(async ({ overrideMap, f3mMatched }) => {
+    try {
+      PAN_EU_OVERRIDE = overrideMap;
+      CURRENT = await computeFromRows(LAST_UPLOADED_ROWS, LAST_UPLOADED_MONTH, PAN_EU_OVERRIDE);
+      render(CURRENT, 'monthly');
+      if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab();
+
+      let msg = `<div class="banner info">Applied Pan-EU override for <b>${f3mMatched}</b> F3M product(s) for ${formatMonthLabel(LAST_UPLOADED_MONTH)}. Germany is now the residual (main total − Pan-EU) for those products; everything else still uses the default mapping.</div>`;
+      const issues = (CURRENT.launch_manager.pan_eu_reconciliation_issues || []);
+      if (issues.length) {
+        msg += `<div class="banner error" style="margin-top:8px;"><b>${issues.length} ASIN(s) don't reconcile</b> — the Pan-EU file claims more revenue than the main file has for that ASIN, which shouldn't be possible if both cover the same period. Germany was floored at €0 for these rather than going negative: ${issues.map(i => `<span class="asin-chip">${i.asin} (main €${i.main_sales.toFixed(2)} vs Pan-EU €${i.pan_eu_sales.toFixed(2)})</span>`).join('')}</div>`;
+      }
+      statusEl.innerHTML = msg;
+    } catch (err) {
+      statusEl.innerHTML = `<div class="banner error"><b>Couldn't process this file.</b> ${err.message}</div>`;
+      console.error(err);
+    }
+  }).catch(err => { statusEl.innerHTML = `<div class="banner error"><b>Couldn't read this file.</b> ${err.message}</div>`; });
+}
+
+// ---------- Bulk apply: Pan-EU files for months whose MAIN file was
+// already uploaded & saved earlier (no need to re-upload the main file).
+// Coarser than the single-file flow above: without the main file's
+// per-ASIN breakdown, the split can only happen at the MONTH-TOTAL level
+// (Germany = already-saved Combined total − this file's F3M total), not
+// per-ASIN -- so there's no per-ASIN reconciliation check here, only a
+// month-level one. Each month is saved immediately after processing.
+async function handleBulkPanEuFiles(fileList) {
+  const statusEl = document.getElementById('bulkPanEuStatus');
+  const files = Array.from(fileList);
+  if (!files.length) return;
+  statusEl.innerHTML = `<div class="banner info">Processing ${files.length} file(s)…</div>`;
+  const log = [];
+
+  for (const file of files) {
+    const month = guessMonthFromFilename(file.name);
+    if (!month) { log.push({ file: file.name, ok: false, msg: `Couldn't detect a month from this filename.` }); continue; }
+
+    const existing = await loadMonth(month);
+    if (!existing) { log.push({ file: file.name, ok: false, msg: `No saved data for ${formatMonthLabel(month)} yet — upload and save its main export first.` }); continue; }
+
+    let parsed;
+    try { parsed = await parsePanEuFile(file, month); }
+    catch (err) { log.push({ file: file.name, ok: false, msg: `Couldn't read this file: ${err.message}` }); continue; }
+
+    const peuTotal = Object.values(parsed.overrideMap).reduce(
+      (s, v) => ({ sales: s.sales + v.sales, units: s.units + v.units, net_profit: s.net_profit + v.net_profit }),
+      { sales: 0, units: 0, net_profit: 0 }
+    );
+    const combined = existing.launch_manager.actual_combined;
+    const monthLevelIssue = peuTotal.sales > combined.sales + 0.01;
+
+    let data = JSON.parse(JSON.stringify(existing));
+    data.launch_manager.actual_pan_eu = { ...peuTotal, sku_count: parsed.f3mMatched };
+    data.launch_manager.actual_germany = {
+      sales: Math.max(0, combined.sales - peuTotal.sales),
+      units: Math.max(0, combined.units - peuTotal.units),
+      net_profit: combined.net_profit - peuTotal.net_profit,
+      sku_count: combined.sku_count,
+    };
+    data.launch_manager.pan_eu_override_applied = true;
+    data = applyTargetsAndTiers(data, false, await loadMonthlyTargets(month));
+    data.launch_manager.pan_eu_override_applied = true; // applyTargetsAndTiers doesn't touch this field, but set again defensively in case that ever changes
+    data.launch_manager.pan_eu_reconciliation_issues = monthLevelIssue
+      ? [{ asin: '(month total)', main_sales: combined.sales, pan_eu_sales: peuTotal.sales }] : [];
+
+    const saveResult = await saveMonthData(data);
+    log.push({
+      file: file.name, ok: true,
+      msg: `${formatMonthLabel(month)}: ${parsed.f3mMatched} F3M product(s) applied at month-total level. Germany €${data.launch_manager.germany.actual.sales.toFixed(2)}, Pan-EU €${data.launch_manager.pan_eu.actual.sales.toFixed(2)}. Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.${monthLevelIssue ? ' ⚠ Pan-EU total exceeds the saved Combined total for this month — check the source export.' : ''}`,
+    });
+
+    if (CURRENT && CURRENT.month === month) { CURRENT = data; render(CURRENT, 'monthly'); }
+  }
+
+  await refreshMonthList();
+  statusEl.innerHTML = log.map(l => `<div class="banner ${l.ok ? 'info' : 'error'}" style="margin-top:6px;"><b>${l.file}:</b> ${l.msg}</div>`).join('');
+}
+
+async function clearPanEuOverride() {
+  PAN_EU_OVERRIDE = null;
+  document.getElementById('panEuFileInput').value = '';
+  document.getElementById('panEuStatus').innerHTML = `<div class="banner info">Pan-EU override cleared — back to the default marketplace mapping for Germany/Pan-EU.</div>`;
+  if (LAST_UPLOADED_ROWS && LAST_UPLOADED_MONTH) {
+    CURRENT = await computeFromRows(LAST_UPLOADED_ROWS, LAST_UPLOADED_MONTH, null);
+    render(CURRENT, 'monthly');
+    if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab();
+  }
+}
+
 // Product-code matching: TOC codes like SLP120/SLP400 should both roll up
 // under the calculator's "SLP" R&D target row. Try exact match first, then
 // "target code is a prefix of the TOC code".
@@ -519,7 +660,7 @@ function matchRdCode(tocCode) {
   return null;
 }
 
-async function computeFromRows(rows, month) {
+async function computeFromRows(rows, month, panEuOverride) {
   const children = rows.filter(r => (r.SKU || '').trim() !== '');
   const byAsin = [];
   const unmapped = [];
@@ -546,21 +687,40 @@ async function computeFromRows(rows, month) {
     obj[key].sales += rec.sales; obj[key].units += rec.units;
     obj[key].net_profit += rec.net_profit; obj[key].sku_count += 1;
   };
+  const bumpAmount = (obj, key, amt) => {
+    if (!obj[key]) obj[key] = empty();
+    obj[key].sales += amt.sales; obj[key].units += amt.units;
+    obj[key].net_profit += amt.net_profit; obj[key].sku_count += 1;
+  };
 
   const stageTotals = {};
   const brandStage = {};
   const byProduct = {}; // R&D: keyed by matched target product code
   const launchByCountry = { DE: empty(), 'Pan-EU': empty() };
-  const launchUnmappedMarketplace = []; // F3M-stage ASINs with no marketplace mapping -- kept visible, not silently dropped
+  const launchUnmappedMarketplace = []; // F3M-stage ASINs with no marketplace mapping AND no Pan-EU override -- kept visible, not silently dropped
+  const launchReconciliationIssues = []; // Pan-EU override claims more revenue than the main file has for that ASIN -- a real data mismatch, never silently clamped away without saying so
   byAsin.forEach(rec => {
     bump(stageTotals, rec.stage, rec);
     bump(brandStage, `${rec.brand}||${rec.stage}`, rec);
     const rdCode = matchRdCode(rec.product_code);
     if (rdCode) bump(byProduct, rdCode, rec);
     if (rec.stage === 'F3M') {
-      const country = MARKETPLACE_MAP ? MARKETPLACE_MAP[rec.asin] : null;
-      if (country === 'DE' || country === 'Pan-EU') bump(launchByCountry, country, rec);
-      else launchUnmappedMarketplace.push(rec.asin);
+      const override = panEuOverride ? panEuOverride[rec.asin] : null;
+      if (override) {
+        // Real per-country actuals: Pan-EU comes straight from its own
+        // export; Germany is the residual (main file's total, which
+        // covers all marketplaces, minus the Pan-EU portion).
+        bumpAmount(launchByCountry, 'Pan-EU', override);
+        const germanyPortion = { sales: rec.sales - override.sales, units: rec.units - override.units, net_profit: rec.net_profit - override.net_profit };
+        if (germanyPortion.sales < -0.01) {
+          launchReconciliationIssues.push({ asin: rec.asin, main_sales: rec.sales, pan_eu_sales: override.sales });
+        }
+        bumpAmount(launchByCountry, 'DE', { sales: Math.max(0, germanyPortion.sales), units: Math.max(0, germanyPortion.units), net_profit: germanyPortion.net_profit });
+      } else {
+        const country = MARKETPLACE_MAP ? MARKETPLACE_MAP[rec.asin] : null;
+        if (country === 'DE' || country === 'Pan-EU') bump(launchByCountry, country, rec);
+        else launchUnmappedMarketplace.push(rec.asin);
+      }
     }
   });
 
@@ -613,6 +773,8 @@ async function computeFromRows(rows, month) {
       actual_germany: launchByCountry.DE,
       actual_pan_eu: launchByCountry['Pan-EU'],
       unmapped_marketplace_asins: Array.from(new Set(launchUnmappedMarketplace)).sort(),
+      pan_eu_override_applied: !!panEuOverride,
+      pan_eu_reconciliation_issues: launchReconciliationIssues,
     },
     brand_manager: brandManager,
     other_brands_unassigned: otherBrandsSeen, // brands with real revenue that AREN'T part of the Brand Manager bonus program (e.g. Van De Boos, MESSEREI, Arganoel Zauber) -- kept visible, not silently dropped
@@ -900,8 +1062,14 @@ function renderInner(data, viewLabel) {
         <td class="num">${fmtEUR(lm.combined_bonus_eur)}</td>
       </tr>
     `;
-    document.getElementById('launchNoteBonus').textContent =
-      `Germany/Pan-EU split by ASIN, joined against Sellerboard's Products export marketplace field. Caveat: that field records where each ASIN's cost settings live (almost always Germany) — it isn't a true per-order sales channel log, so Pan-EU actuals may read close to €0 even in months with real Pan-EU sales, until a proper per-marketplace sales export is available.`;
+    if (lm.pan_eu_override_applied) {
+      document.getElementById('launchNoteBonus').innerHTML =
+        `<b>Pan-EU override active</b> — real per-ASIN Pan-EU numbers are in use for whichever F3M products were in the uploaded Pan-EU file; Germany is the residual (main total − Pan-EU) for those. Any F3M product NOT in that file still falls back to the default marketplace mapping (Germany-only, see the caveat above).`;
+      document.getElementById('launchCaveatBanner').style.display = 'none';
+    } else {
+      document.getElementById('launchNoteBonus').textContent = '';
+      document.getElementById('launchCaveatBanner').style.display = 'flex';
+    }
     const dq = document.getElementById('launchMarketplaceDq');
     if (lm.unmapped_marketplace_asins && lm.unmapped_marketplace_asins.length) {
       dq.style.display = 'block';
@@ -1040,30 +1208,33 @@ function renderImpactAnalysis(data) {
 }
 
 // ---------- Save month (server if deployed, else localStorage) ----------
-async function saveMonth() {
-  if (!CURRENT) return;
-  const statusEl = document.getElementById('saveStatus');
-  const toSave = CURRENT; // always save the raw monthly computation, not a merged quarterly view
+async function saveMonthData(data) {
   try {
     const res = await fetch('/api/save-month', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(toSave),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
     });
     if (res.ok) {
-      statusEl.textContent = `Saved "${toSave.month}" to the repo — visible to everyone.`;
-      // Clear any stale local-only copy now that the shared version is current.
       const local = JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY) || '{}');
-      if (local[toSave.month]) { delete local[toSave.month]; localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(local)); }
-      await refreshMonthList();
-      return;
+      if (local[data.month]) { delete local[data.month]; localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(local)); }
+      return { ok: true, shared: true };
     }
     throw new Error('API not available');
   } catch (e) {
     const local = JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY) || '{}');
-    local[toSave.month] = toSave;
+    local[data.month] = data;
     localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(local));
-    statusEl.textContent = `Saved "${toSave.month}" locally in THIS BROWSER ONLY — other people will not see this until the API is deployed (see README).`;
-    await refreshMonthList();
+    return { ok: true, shared: false };
   }
+}
+
+async function saveMonth() {
+  if (!CURRENT) return;
+  const statusEl = document.getElementById('saveStatus');
+  const result = await saveMonthData(CURRENT);
+  statusEl.textContent = result.shared
+    ? `Saved "${CURRENT.month}" to the repo — visible to everyone.`
+    : `Saved "${CURRENT.month}" locally in THIS BROWSER ONLY — other people will not see this until the API is deployed (see README).`;
+  await refreshMonthList();
 }
 
 boot();
