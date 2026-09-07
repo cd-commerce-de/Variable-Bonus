@@ -304,10 +304,10 @@
    "sku_count": 0
   },
   "actual_germany": {
-   "sales": 0,
-   "units": 0,
-   "net_profit": 0,
-   "sku_count": 0
+   "sales": 78122.62999999996,
+   "units": 1430,
+   "net_profit": 19097.149999999998,
+   "sku_count": 35
   },
   "actual_pan_eu": {
    "sales": 0,
@@ -318,10 +318,10 @@
   "unmapped_marketplace_asins": [],
   "germany": {
    "actual": {
-    "sales": 0,
-    "units": 0,
-    "net_profit": 0,
-    "sku_count": 0
+    "sales": 78122.62999999996,
+    "units": 1430,
+    "net_profit": 19097.149999999998,
+    "sku_count": 35
    },
    "target": {
     "green": 145304.71666666667,
@@ -330,8 +330,8 @@
     "gold_margin": 0.143,
     "source": "estimated"
    },
-   "actual_margin_pct": null,
-   "tier": "-",
+   "actual_margin_pct": 0.2444509356635844,
+   "tier": "❌ MISS",
    "bonus_eur": 0
   },
   "pan_eu": {
@@ -369,7 +369,8 @@
   "combined_bonus_eur": 0,
   "pan_eu_override_applied": true,
   "pan_eu_reconciliation_issues": [],
-  "pan_eu_source": "dedicated_upload"
+  "pan_eu_source": "dedicated_upload",
+  "germany_source": "dedicated_upload"
  },
  "brand_manager": {
   "PD": {
