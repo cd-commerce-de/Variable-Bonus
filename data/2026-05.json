@@ -363,7 +363,8 @@
   "combined_bonus_eur": 1149.8017766666665,
   "pan_eu_override_applied": true,
   "pan_eu_reconciliation_issues": [],
-  "germany_source": "dedicated_upload"
+  "germany_source": "dedicated_upload",
+  "pan_eu_source": "dedicated_upload"
  },
  "brand_manager": {
   "PD": {
