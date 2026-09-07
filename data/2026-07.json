@@ -327,16 +327,16 @@
    "sku_count": 22
   },
   "actual_germany": {
-   "sales": 253232.71999999997,
-   "units": 2216,
-   "net_profit": 39561.38,
-   "sku_count": 19
+   "sales": 234464.18999999997,
+   "units": 1983,
+   "net_profit": 40695.78,
+   "sku_count": 22
   },
   "actual_pan_eu": {
-   "sales": 0,
-   "units": 0,
-   "net_profit": 0,
-   "sku_count": 0
+   "sales": 18768.53,
+   "units": 233,
+   "net_profit": 1294.95,
+   "sku_count": 9
   },
   "unmapped_marketplace_asins": [
    "B0GLPL13W5",
@@ -345,10 +345,10 @@
   ],
   "germany": {
    "actual": {
-    "sales": 253232.71999999997,
-    "units": 2216,
-    "net_profit": 39561.38,
-    "sku_count": 19
+    "sales": 234464.18999999997,
+    "units": 1983,
+    "net_profit": 40695.78,
+    "sku_count": 22
    },
    "target": {
     "green": 254624.7,
@@ -357,16 +357,16 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": 0.1562253882515656,
+   "actual_margin_pct": 0.17356927725295707,
    "tier": "❌ MISS",
    "bonus_eur": 0
   },
   "pan_eu": {
    "actual": {
-    "sales": 0,
-    "units": 0,
-    "net_profit": 0,
-    "sku_count": 0
+    "sales": 18768.53,
+    "units": 233,
+    "net_profit": 1294.95,
+    "sku_count": 9
    },
    "target": {
     "green": 18350.2,
@@ -375,8 +375,8 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": null,
-   "tier": "-",
+   "actual_margin_pct": 0.06899581373714404,
+   "tier": "❌ MISS",
    "bonus_eur": 0
   },
   "germany_target": {
@@ -393,7 +393,9 @@
    "gold_margin": 0.143,
    "source": "real"
   },
-  "combined_bonus_eur": 0
+  "combined_bonus_eur": 0,
+  "pan_eu_override_applied": true,
+  "pan_eu_reconciliation_issues": []
  },
  "brand_manager": {
   "PD": {
