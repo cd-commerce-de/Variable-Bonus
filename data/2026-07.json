@@ -327,10 +327,10 @@
    "sku_count": 22
   },
   "actual_germany": {
-   "sales": 0,
-   "units": 0,
-   "net_profit": 0,
-   "sku_count": 0
+   "sales": 234464.18999999997,
+   "units": 1983,
+   "net_profit": 40695.78,
+   "sku_count": 13
   },
   "actual_pan_eu": {
    "sales": 18768.53,
@@ -338,14 +338,14 @@
    "net_profit": 1294.95,
    "sku_count": 9
   },
-  "germany_source": "pending",
+  "germany_source": "dedicated_upload",
   "pan_eu_source": "dedicated_upload",
   "germany": {
    "actual": {
-    "sales": 0,
-    "units": 0,
-    "net_profit": 0,
-    "sku_count": 0
+    "sales": 234464.18999999997,
+    "units": 1983,
+    "net_profit": 40695.78,
+    "sku_count": 13
    },
    "target": {
     "green": 254624.7,
@@ -354,8 +354,8 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": null,
-   "tier": "-",
+   "actual_margin_pct": 0.17356927725295707,
+   "tier": "❌ MISS",
    "bonus_eur": 0
   },
   "pan_eu": {
