@@ -327,13 +327,13 @@
    "sku_count": 9
   },
   "actual_pan_eu": {
-   "sales": 0,
-   "units": 0,
-   "net_profit": 0,
-   "sku_count": 0
+   "sales": 78918.78,
+   "units": 1044,
+   "net_profit": 988.9100000000003,
+   "sku_count": 6
   },
   "germany_source": "dedicated_upload",
-  "pan_eu_source": "pending",
+  "pan_eu_source": "dedicated_upload",
   "germany": {
    "actual": {
     "sales": 61111.75,
@@ -354,10 +354,10 @@
   },
   "pan_eu": {
    "actual": {
-    "sales": 0,
-    "units": 0,
-    "net_profit": 0,
-    "sku_count": 0
+    "sales": 78918.78,
+    "units": 1044,
+    "net_profit": 988.9100000000003,
+    "sku_count": 6
    },
    "target": {
     "green": 6441,
@@ -366,8 +366,8 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": null,
-   "tier": "-",
+   "actual_margin_pct": 0.012530730961629162,
+   "tier": "❌ MISS",
    "bonus_eur": 0
   },
   "germany_target": {
@@ -395,6 +395,14 @@
    "B0H2BKVS97",
    "B0H2BP8P7Z",
    "B0H2BNX5K4"
+  ],
+  "pan_eu_asins": [
+   "B0GLPPYPRH",
+   "B0GLPJG4YZ",
+   "B0GLPHB1GW",
+   "B0GLPFRRBM",
+   "B0GLP7ZLXV",
+   "B0GLPL3X9D"
   ]
  },
  "brand_manager": {
