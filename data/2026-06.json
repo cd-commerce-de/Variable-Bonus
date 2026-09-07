@@ -369,7 +369,8 @@
   "combined_bonus_eur": 587.6349966666668,
   "pan_eu_override_applied": true,
   "pan_eu_reconciliation_issues": [],
-  "germany_source": "dedicated_upload"
+  "germany_source": "dedicated_upload",
+  "pan_eu_source": "dedicated_upload"
  },
  "brand_manager": {
   "Nasswerk": {
