@@ -359,27 +359,74 @@ function stageBadge(stage) {
   const [cls, label] = map[stage] || ['disc', stage];
   return `<span class="stage-badge ${cls}">${label}</span>`;
 }
-function renderStageHistory() {
-  const months = stageHistoryMonths();
-  const headerRow = document.getElementById('stageHistoryHeaderRow');
-  if (headerRow.children.length === 3) { // build once
-    months.forEach(m => {
-      const th = document.createElement('th');
-      th.textContent = formatMonthCompact(m);
-      th.title = formatMonthLabel(m);
-      headerRow.appendChild(th);
-    });
-  }
+let _stageMonthDropdownBuilt = false;
+function ensureMonthFilterOptions() {
+  if (_stageMonthDropdownBuilt) return;
+  const sel = document.getElementById('monthFilterSelect');
+  stageHistoryMonths().forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = formatMonthCompact(m);
+    sel.appendChild(opt);
+  });
+  _stageMonthDropdownBuilt = true;
+}
 
+function renderStageHistory() {
+  ensureMonthFilterOptions();
+  const months = stageHistoryMonths();
   const filterEl = document.getElementById('stageHistoryFilter');
   const filter = (filterEl.value || '').trim().toLowerCase();
+  const stageFilter = document.getElementById('stageFilterSelect').value;
+  const monthFilter = document.getElementById('monthFilterSelect').value;
   const bodyEl = document.getElementById('stageHistoryBody');
   const footerEl = document.getElementById('stageHistoryFooter');
+  const headerRow = document.getElementById('stageHistoryHeaderRow');
+  const tableEl = document.getElementById('stageHistoryTable');
 
   if (!MAPPING) { bodyEl.innerHTML = ''; footerEl.textContent = ''; return; }
+
+  // ---- Reverse-lookup mode: a specific stage AND month picked -> list every matching ASIN ----
+  if (stageFilter && monthFilter) {
+    tableEl.className = 'stage-history-table list-mode';
+    headerRow.innerHTML = '<th>ASIN</th><th>Product</th><th>Brand</th><th>Launch Date</th><th>Stage</th>';
+
+    const CAP = 300;
+    const matches = [];
+    for (const [asin, info] of Object.entries(MAPPING)) {
+      if (filter) {
+        const hay = `${asin} ${info.product || ''} ${info.brand || ''}`.toLowerCase();
+        if (!hay.includes(filter)) continue;
+      }
+      const stage = computeStageForMonth(info, monthFilter);
+      if (stage === stageFilter) matches.push([asin, info, stage]);
+    }
+    bodyEl.innerHTML = matches.slice(0, CAP).map(([asin, info, stage]) => `
+      <tr>
+        <td class="name">${asin}</td>
+        <td class="name" title="${info.product || ''}">${info.product || '—'}</td>
+        <td class="name">${info.brand || '—'}</td>
+        <td class="num">${info.launch_date || '—'}</td>
+        <td>${stageBadge(stage)}</td>
+      </tr>`).join('');
+    const stageLabel = STAGE_LABELS[stageFilter] || stageFilter;
+    footerEl.textContent = matches.length > CAP
+      ? `Showing first ${CAP} of ${matches.length}+ ASINs that were ${stageLabel} in ${formatMonthLabel(monthFilter)}${filter ? ' (matching your search too)' : ''}.`
+      : `${matches.length} ASIN${matches.length === 1 ? '' : 's'} ${matches.length === 1 ? 'was' : 'were'} ${stageLabel} in ${formatMonthLabel(monthFilter)}${filter ? ' (matching your search too)' : ''}.`;
+    return;
+  }
+
+  // ---- Matrix mode: pick a product, see its stage across every month ----
+  tableEl.className = 'stage-history-table matrix-mode';
+  headerRow.innerHTML = '<th>Product</th><th>Brand</th><th>Launch Date</th>' + months.map(m => `<th title="${formatMonthLabel(m)}">${formatMonthCompact(m)}</th>`).join('');
+
+  if (stageFilter && !monthFilter) {
+    bodyEl.innerHTML = '';
+    footerEl.textContent = `Pick a month too — a stage alone isn't enough to look up matching ASINs (the same product can be a different stage in different months).`;
+    return;
+  }
   if (filter.length < 2) {
     bodyEl.innerHTML = '';
-    footerEl.textContent = `${Object.keys(MAPPING).length.toLocaleString('en-US')} ASINs on file. Type at least 2 characters above to search.`;
+    footerEl.textContent = `${Object.keys(MAPPING).length.toLocaleString('en-US')} ASINs on file. Type at least 2 characters above to search, or pick a stage + month to look up matching ASINs directly.`;
     return;
   }
 

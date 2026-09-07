@@ -94,16 +94,26 @@ stay fast; results cap at 200 matches with a note if there are more.
 
 ### Stage History tab
 
-A month-by-month audit view: for every matching product, one row shows
-its Launch Date and its **computed stage for every month from January
-2026 through December 2027** (24 columns), color-coded (F3M blue, Y1
-amber, PY1 green, Discontinued gray, Quality Issue red). This is what
-lets you visually confirm a product's stage actually changes as it ages
-— e.g. a product launched August 2025 correctly shows Y1 for Jan-Jul 2026
-and flips to PY1 exactly in August 2026, the 12-month mark, verified
-directly against real TOC data before shipping. Same search requirement
-(2+ characters) as the Masterlist, capped at 100 matches given the much
-wider table (24 month columns vs. Masterlist's single "stage this month").
+Two modes, both computed live (never read from the TOC's static Stage
+column):
+
+- **Matrix mode** (default) — search a product (2+ characters) and see
+  one row with its Launch Date and computed stage for **every month from
+  January 2026 through December 2027** (24 columns), color-coded (F3M
+  blue, Y1 amber, PY1 green, Discontinued gray, Quality Issue red). This
+  is what lets you visually confirm a product's stage actually changes as
+  it ages — verified directly: a product launched August 2025 correctly
+  shows Y1 for Jan-Jul 2026 and flips to PY1 exactly in August 2026, the
+  12-month mark. Capped at 100 matches given the wide table.
+- **Reverse-lookup mode** — pick a **Stage** and a **Month** from the two
+  dropdowns (both required together — a stage alone isn't a valid lookup,
+  since the same product can be a different stage in different months)
+  and the table switches to a plain list of every ASIN that was that
+  stage in that month, optionally narrowed further by the search box.
+  Capped at 300 matches. Verified directly: Stage=F3M + Month=Aug 2026
+  correctly returned 20 real ASINs, including a product launched June
+  2026 (2 months prior — correctly F3M).
+
 The date range is a fixed window, not derived from upload history — it
 covers Launch Dates already in the TOC comfortably (latest launch on file
 is August 2026, needing visibility through August 2027 to see its full
