@@ -98,8 +98,9 @@
   tr.brand-row td.name.sub-brand{padding-left:16px;}
   tr.brand-row td{background:var(--line-50); font-weight:700; border-top:1.5px solid var(--line-200);}
   tr.stage-row td.name.sub{padding-left:26px; font-weight:400; color:var(--line-500); font-size:11px;}
-  .q-table{table-layout:fixed;}
-  .q-table th:first-child, .q-table td:first-child{width:210px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .q-table{table-layout:fixed; width:auto;}
+  .q-table th:first-child, .q-table td:first-child{width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .q-table th:not(:first-child), .q-table td:not(:first-child){width:90px; text-align:center;}
 
   /* Excel-style target/bonus tier coloring */
   td.tint-green{background:#E7F8F0;}
