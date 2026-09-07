@@ -14,11 +14,17 @@ const TOKEN = process.env.GITHUB_TOKEN;
 
 async function ghFetch(path) {
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`;
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json' } });
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'Cache-Control': 'no-cache' } });
   return r;
 }
 
 module.exports = async (req, res) => {
+  // This endpoint must never be cached -- a stale copy here means the
+  // dashboard silently shows old data after a real save. No browser or
+  // CDN caching, ever, for any response this handler sends.
+  res.setHeader('Cache-Control', 'no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+
   if (!isValidSession(req)) return res.status(401).json({ error: 'Not authenticated' });
   if (!OWNER || !REPO || !TOKEN) return res.status(500).json({ error: 'Server not configured: set GITHUB_OWNER, GITHUB_REPO, GITHUB_TOKEN.' });
 

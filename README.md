@@ -8,6 +8,20 @@ with a **Monthly** and **Quarterly** view, mirroring the calculator's own
 (private) GitHub repo, and a small Vercel deployment provides login +
 serves that data.
 
+## ⚠️ Deploying a code update? `data/` is NOT included in this package
+
+**As of this version, update zips no longer contain `data/` or
+`public/data/` at all.** Those folders hold your *real, live* saved
+months — every month anyone has uploaded and saved through the dashboard.
+Earlier versions of this package included seed/example files there, and
+dragging a full package into the repo silently overwrote real saved
+months with those stale seed files (this actually happened — see the
+"Multi-user sharing" section below). Going forward: safe to drag in
+everything a code update package contains, because `data/` simply isn't
+there to overwrite anything. If you ever *do* see a `data/` folder in a
+package from here on, that means it was intentional and worth asking
+about before overwriting.
+
 ## Launch Manager: two independent uploads, no computed subtraction
 
 Germany and Pan-EU each come from their **own dedicated F3M export**,
@@ -240,6 +254,40 @@ even if you're not touching targets.
   are manual inputs that aren't currently saved with the rest of the
   month's data, so there's nothing to compute from yet.
 
+## Mobile
+
+Added a real breakpoint (`@media max-width: 720px`, with a second one at
+420px for very narrow phones) rather than relying on the viewport meta
+tag alone (which was already present but did nothing without actual
+responsive rules):
+- Header stacks vertically instead of forcing the month/quarter dropdown,
+  period badge, and Lock button into one cramped row.
+- The 5-tab nav becomes horizontally scrollable instead of wrapping or
+  overflowing the screen.
+- Upload zones stack their text and file input vertically instead of
+  side-by-side.
+- Stat cards drop from a wide grid to 2-then-1 columns as the screen
+  narrows.
+- Stage History / Masterlist filter rows (search box + dropdowns) go
+  full-width and stack, instead of squeezing into one line.
+- The login card's fixed 340px width is now capped relative to the
+  viewport so it doesn't overflow on the narrowest phones.
+- Tables were already wrapped in a horizontally-scrollable `.table-scroll`
+  container (from the earlier sticky-header work) — that already handles
+  the genuinely wide tables (9 columns for Monthly tracks, 24 months for
+  Stage History) reasonably on mobile; this pass didn't need to change
+  that part.
+
+**Honest limitation:** I could not get a real rendered screenshot at a
+mobile viewport width to visually confirm this — the headless browser
+tooling available to me needs to download a Chromium binary from a CDN
+that's blocked in this environment (confirmed: attempted install, got a
+403). What's here is verified structurally (selectors correctly match the
+real HTML elements, confirmed by reading the actual markup rather than
+assuming) and is standard, well-tested responsive CSS, but a real
+phone/browser check on your end is worth doing before considering this
+fully confirmed.
+
 ## Table styling
 
 - **Sticky column headers** — each table's header row stays pinned to the
@@ -381,6 +429,31 @@ Ask me if you want this built out.
 - The dashboard always checks the shared server first, so once the API is
   working, everyone sees the same numbers by default — a browser's local
   fallback copy is only ever used when the server can't be reached.
+- **`/api/data` and `/api/session` explicitly send `Cache-Control:
+  no-store`** — a data endpoint that could be cached (by the browser or
+  any CDN in front of Vercel) is exactly the kind of bug that looks like
+  "it saved fine but a refresh shows the old data," since the save itself
+  succeeds while the *read* silently serves a stale copy. Added
+  defensively after exactly that symptom was reported; a direct test of
+  the save/reload sequencing itself (upload Germany, then immediately
+  Pan-EU, then a fresh page load) showed no data-loss bug in the app
+  logic, which is what pointed at caching as the more likely explanation.
+  If this doesn't fully resolve it, the next diagnostic step is checking
+  `data/<month>.json` directly on GitHub after a save, to confirm whether
+  the write or the read is the actual problem.
+- **A more likely real cause, found and fixed**: every update zip through
+  v32 included `data/2026-07.json` and `data/2026-08.json` (regenerated
+  seed files). Dragging a full package into the repo — the exact
+  instruction given every time — meant those seed files silently
+  overwrote whatever real months had been saved since, including any
+  dedicated Germany/Pan-EU uploads. This is likely what actually happened
+  here, not a caching or save-logic bug. **Fixed by no longer shipping
+  `data/` or `public/data/` in update packages at all** — see the warning
+  at the top of this file. If real data was lost this way, it's
+  recoverable: the original CSVs still exist locally, so the affected
+  months just need their uploads (main file, and any Germany/Pan-EU
+  files) redone; GitHub's per-file commit history can also restore an
+  older version directly without re-uploading.
 
 ## Deploying
 

@@ -5,6 +5,7 @@
 const { isValidSession } = require('./_auth');
 
 module.exports = async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, must-revalidate');
   if (isValidSession(req)) return res.status(200).json({ authed: true });
   return res.status(401).json({ authed: false });
 };
