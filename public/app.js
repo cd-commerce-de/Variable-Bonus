@@ -87,6 +87,12 @@ function formatMonthLabel(month) { // "2026-08" -> "August 2026"
   const [y, m] = month.split('-');
   return `${MONTH_NAMES_FULL[parseInt(m, 10) - 1]} ${y}`;
 }
+const MONTH_NAMES_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function formatMonthCompact(month) { // "2026-01" -> "Jan '26"
+  const [y, m] = month.split('-');
+  return `${MONTH_NAMES_SHORT[parseInt(m, 10) - 1]} '${y.slice(2)}`;
+}
+
 function quarterKeyOf(month) { // "2026-08" -> "2026-Q3"
   return `${month.slice(0, 4)}-${quarterOf(month)}`;
 }
@@ -321,14 +327,83 @@ function setTab(t) {
   document.getElementById('tabMonthly').style.display = t === 'monthly' ? 'block' : 'none';
   document.getElementById('tabQuarterly').style.display = t === 'quarterly' ? 'block' : 'none';
   document.getElementById('tabImpact').style.display = t === 'impact' ? 'block' : 'none';
+  document.getElementById('tabStage').style.display = t === 'stage' ? 'block' : 'none';
   document.getElementById('tabUploadBtn').classList.toggle('active', t === 'upload');
   document.getElementById('tabMonthlyBtn').classList.toggle('active', t === 'monthly');
   document.getElementById('tabQuarterlyBtn').classList.toggle('active', t === 'quarterly');
   document.getElementById('tabImpactBtn').classList.toggle('active', t === 'impact');
+  document.getElementById('tabStageBtn').classList.toggle('active', t === 'stage');
   document.getElementById('monthSelect').style.display = t === 'quarterly' ? 'none' : '';
   document.getElementById('quarterSelect').style.display = t === 'quarterly' ? '' : 'none';
   document.getElementById('periodBadge').style.display = t === 'quarterly' ? 'none' : '';
   if (t === 'quarterly') renderQuarterlyTab();
+  if (t === 'stage') renderStageHistory();
+}
+
+// ---------- Stage History: audit view, month-by-month, computed live ----------
+const STAGE_HISTORY_START = '2026-01';
+const STAGE_HISTORY_END = '2027-12';
+function stageHistoryMonths() {
+  const months = [];
+  let [y, m] = STAGE_HISTORY_START.split('-').map(Number);
+  const [endY, endM] = STAGE_HISTORY_END.split('-').map(Number);
+  while (y < endY || (y === endY && m <= endM)) {
+    months.push(`${y}-${String(m).padStart(2, '0')}`);
+    m++; if (m > 12) { m = 1; y++; }
+  }
+  return months;
+}
+function stageBadge(stage) {
+  if (!stage) return '';
+  const map = { 'F3M': ['f3m', 'F3M'], 'M4-12': ['m412', 'Y1'], 'PY1': ['py1', 'PY1'], 'Discontinued': ['disc', 'DISC'], 'Quality Issue': ['qi', 'QI'] };
+  const [cls, label] = map[stage] || ['disc', stage];
+  return `<span class="stage-badge ${cls}">${label}</span>`;
+}
+function renderStageHistory() {
+  const months = stageHistoryMonths();
+  const headerRow = document.getElementById('stageHistoryHeaderRow');
+  if (headerRow.children.length === 3) { // build once
+    months.forEach(m => {
+      const th = document.createElement('th');
+      th.textContent = formatMonthCompact(m);
+      th.title = formatMonthLabel(m);
+      headerRow.appendChild(th);
+    });
+  }
+
+  const filterEl = document.getElementById('stageHistoryFilter');
+  const filter = (filterEl.value || '').trim().toLowerCase();
+  const bodyEl = document.getElementById('stageHistoryBody');
+  const footerEl = document.getElementById('stageHistoryFooter');
+
+  if (!MAPPING) { bodyEl.innerHTML = ''; footerEl.textContent = ''; return; }
+  if (filter.length < 2) {
+    bodyEl.innerHTML = '';
+    footerEl.textContent = `${Object.keys(MAPPING).length.toLocaleString('en-US')} ASINs on file. Type at least 2 characters above to search.`;
+    return;
+  }
+
+  const CAP = 100; // wide table (24 month columns) -- keep row count tighter than the plain masterlist
+  const matches = [];
+  for (const [asin, info] of Object.entries(MAPPING)) {
+    const hay = `${asin} ${info.product || ''} ${info.brand || ''}`.toLowerCase();
+    if (hay.includes(filter)) matches.push([asin, info]);
+    if (matches.length > CAP) break;
+  }
+
+  bodyEl.innerHTML = matches.slice(0, CAP).map(([asin, info]) => {
+    const cells = months.map(m => `<td>${stageBadge(computeStageForMonth(info, m))}</td>`).join('');
+    return `<tr>
+      <td class="name" title="${info.product || asin}">${info.product || asin}</td>
+      <td class="name">${info.brand || '—'}</td>
+      <td class="num">${info.launch_date || '—'}</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  footerEl.textContent = matches.length > CAP
+    ? `Showing first ${CAP} matches of ${matches.length}+ — refine your search to see more specific results.`
+    : `${matches.length} match${matches.length === 1 ? '' : 'es'}.`;
 }
 
 // ---------- Quarterly tab: sum of each month's ALREADY-COMPUTED bonus ----------

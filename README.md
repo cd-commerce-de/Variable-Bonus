@@ -92,6 +92,23 @@ computed stage **for whichever month is currently selected**. Doesn't
 render all ~2,400 rows by default (search box requires 2+ characters) to
 stay fast; results cap at 200 matches with a note if there are more.
 
+### Stage History tab
+
+A month-by-month audit view: for every matching product, one row shows
+its Launch Date and its **computed stage for every month from January
+2026 through December 2027** (24 columns), color-coded (F3M blue, Y1
+amber, PY1 green, Discontinued gray, Quality Issue red). This is what
+lets you visually confirm a product's stage actually changes as it ages
+— e.g. a product launched August 2025 correctly shows Y1 for Jan-Jul 2026
+and flips to PY1 exactly in August 2026, the 12-month mark, verified
+directly against real TOC data before shipping. Same search requirement
+(2+ characters) as the Masterlist, capped at 100 matches given the much
+wider table (24 month columns vs. Masterlist's single "stage this month").
+The date range is a fixed window, not derived from upload history — it
+covers Launch Dates already in the TOC comfortably (latest launch on file
+is August 2026, needing visibility through August 2027 to see its full
+F3M→PY1 progression).
+
 ## Targets — how they get in
 
 Targets are **not entered manually in the dashboard.** There are two layers:
