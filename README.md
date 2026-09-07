@@ -49,6 +49,16 @@ exactly its own file's total, Combined stayed completely unrelated
 (unchanged throughout), and re-uploading the main file afterward correctly
 preserved both country uploads instead of resetting them to pending.
 
+**If a country upload comes back with 0 matched products**, the status
+message says exactly why instead of leaving it a silent €0.00:
+- The file had zero child rows at all (every SKU was blank) — usually
+  means a parent-only export, or the wrong file.
+- Or: N row(s) were in the file, but none matched — broken down into how
+  many ASINs aren't in the TOC mapping at all vs. how many ARE in the TOC
+  but weren't computed as F3M for that specific month (a different stage,
+  or not launched yet). Verified directly with both cases against real
+  data before shipping.
+
 The earlier ASIN→marketplace mapping approach (`build_marketplace_mapping.py`,
 subtraction-based Pan-EU override) has been fully retired in favor of this
 — it was always going to be approximate at best, since that export's
@@ -113,6 +123,15 @@ column):
   Capped at 300 matches. Verified directly: Stage=F3M + Month=Aug 2026
   correctly returned 20 real ASINs, including a product launched June
   2026 (2 months prior — correctly F3M).
+
+**Searching an ASIN that returns zero matches says why**, not just "0
+matches" — if the search text looks like an ASIN (`B0` + 8 characters)
+and nothing was found, the message says it's most likely not in the TOC
+mapping yet and to add it there. This is genuinely useful: it's the
+fastest way to confirm "is this specific ASIN even tracked yet?" Same fix
+applied to the Masterlist's search for consistency. Verified directly
+against a real unmapped ASIN from an actual export — got the explanatory
+message, not a bare zero.
 
 The date range is a fixed window, not derived from upload history — it
 covers Launch Dates already in the TOC comfortably (latest launch on file

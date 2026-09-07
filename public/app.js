@@ -319,7 +319,11 @@ function renderMasterlist() {
 
   footerEl.textContent = matches.length > CAP
     ? `Showing first ${CAP} matches of ${matches.length}+ — refine your search to see more specific results.`
-    : `${matches.length} match${matches.length === 1 ? '' : 'es'}.`;
+    : matches.length === 0
+      ? (looksLikeAsin(filter)
+          ? `No match for "${filterEl.value.trim()}". This looks like an ASIN, so the most likely reason is it isn't in the TOC mapping yet — add it to the TOC's "ASIN Report" tab (with a Launch Date) and rebuild the mapping.`
+          : `No match for "${filterEl.value.trim()}".`)
+      : `${matches.length} match${matches.length === 1 ? '' : 'es'}.`;
 }
 
 function setTab(t) {
@@ -450,7 +454,14 @@ function renderStageHistory() {
 
   footerEl.textContent = matches.length > CAP
     ? `Showing first ${CAP} matches of ${matches.length}+ — refine your search to see more specific results.`
-    : `${matches.length} match${matches.length === 1 ? '' : 'es'}.`;
+    : matches.length === 0
+      ? (looksLikeAsin(filter)
+          ? `No match for "${filterEl.value.trim()}". This looks like an ASIN, so the most likely reason is it isn't in the TOC mapping yet — add it to the TOC's "ASIN Report" tab (with a Launch Date) and rebuild the mapping.`
+          : `No match for "${filterEl.value.trim()}".`)
+      : `${matches.length} match${matches.length === 1 ? '' : 'es'}.`;
+}
+function looksLikeAsin(text) {
+  return /^b0[a-z0-9]{8}$/i.test(text.trim());
 }
 
 // ---------- Quarterly tab: sum of each month's ALREADY-COMPUTED bonus ----------
@@ -689,10 +700,17 @@ async function applyCountryUpload(file, country) {
   if (CURRENT && CURRENT.month === month) { CURRENT = data; render(CURRENT, 'monthly'); if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab(); }
 
   const countryLabel = country === 'germany' ? 'Germany' : 'Pan-EU';
-  return {
-    file: file.name, ok: true,
-    msg: `${formatMonthLabel(month)}: ${countryLabel} set to €${totals.sales.toFixed(2)} from ${totals.matched} F3M product(s). Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`,
-  };
+  let msg = `${formatMonthLabel(month)}: ${countryLabel} set to €${totals.sales.toFixed(2)} from ${totals.matched} F3M product(s). Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
+  // If the result is suspiciously zero, say exactly why instead of leaving it a mystery.
+  if (totals.matched === 0) {
+    const totalRows = totals.matched + totals.skippedNonF3M + totals.skippedUnmapped;
+    if (totalRows === 0) {
+      msg += ` ⚠ The file itself had zero child rows (every row's SKU column was empty) — this looks like it might be a parent-only export, or the wrong file.`;
+    } else {
+      msg += ` ⚠ ${totalRows} row(s) were in the file, but none matched: ${totals.skippedUnmapped} ASIN(s) aren't in the TOC mapping at all, ${totals.skippedNonF3M} ASIN(s) ARE in the TOC but weren't computed as F3M for ${formatMonthLabel(month)} (they may be a different stage, or not launched yet).`;
+    }
+  }
+  return { file: file.name, ok: true, msg };
 }
 
 async function handleCountryFiles(fileList, country) {
