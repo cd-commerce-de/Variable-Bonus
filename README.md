@@ -8,93 +8,52 @@ with a **Monthly** and **Quarterly** view, mirroring the calculator's own
 (private) GitHub repo, and a small Vercel deployment provides login +
 serves that data.
 
-## Launch Manager: Germany vs. Pan-EU split
+## Launch Manager: two independent uploads, no computed subtraction
 
-Real, not approximated: each F3M-stage ASIN is joined against an
-ASIN → marketplace lookup built from Sellerboard's **Products** export
-(the one with a `Marketplace` column — the "Group by Parent" sales export
-doesn't have one):
-```bash
-python3 scripts/build_marketplace_mapping.py path/to/products_export.csv
-cp mapping/marketplace_mapping.json public/marketplace_mapping.json
-```
+Germany and Pan-EU each come from their **own dedicated F3M export**,
+uploaded separately (Upload tab):
+- **"Launch Manager — Germany (F3M)"** — same columns as the main export,
+  filtered to Germany only.
+- **"Launch Manager — Pan-EU (F3M)"** — same columns, filtered to Pan-EU
+  marketplaces only.
 
-**Known data-quality caveat, not a bug:** that field mostly records where
-each ASIN's *cost settings* live (Germany, almost always — this is a
-Products/cost-catalog export, not a per-order sales log), not which
-marketplace each individual sale happened on. In practice this currently
-resolves ~100% of ASINs to Germany, so Pan-EU actuals may read close to
-€0 even in months with real Pan-EU sales. The dashboard says this
-explicitly in the Launch Manager section rather than presenting the
-split as more reliable than it is. If Sellerboard offers a true
-per-marketplace sales export, re-point `build_marketplace_mapping.py` at
-that instead — the rest of the pipeline doesn't need to change.
+Each upload sets that country's actual **directly** — no subtraction, no
+residual math, no ASIN->marketplace guessing. Upload either one, both, or
+neither; they're completely independent. Neither is derived from the main
+export at all (the main export still drives R&D and Brand Manager, and
+its F3M total is still shown as "Combined" for reference, but Combined is
+never split or computed from — it's just the full F3M pool from all
+marketplaces together).
 
-A handful of ASINs (~10 out of ~3,100) appear under more than one
-marketplace in the source file (cross-listed catalog entries); Germany
-wins when present. F3M ASINs with no marketplace entry at all are excluded
-from the DE/Pan-EU split (but still counted in "Combined") and listed in
-a data-quality banner on the page.
+**Filenames need the same date-range pattern as the main export** (e.g.
+`01_08_2026-31_08_2026…`) so the month can be detected — same convention
+as every other upload in this dashboard. Both file inputs accept multiple
+files at once, so several months can be done in one go. Each upload:
+- Works against the **currently-loaded month in this session** if it
+  matches, or **loads and updates an already-saved month** otherwise (no
+  need to re-upload the main file just to add Launch Manager data) —
+  saves immediately either way.
+- **Survives a main-file re-upload.** If the main export for a month is
+  re-uploaded later (e.g. to fix an incomplete/filtered export), any
+  already-uploaded Germany/Pan-EU data for that month is carried forward,
+  not reset to "awaiting upload" — they're tracked as genuinely separate
+  uploads (`germany_source` / `pan_eu_source` = `'dedicated_upload'` vs.
+  `'pending'` on the saved data).
+- Before either file is uploaded for a month, the Monthly tab shows
+  "awaiting dedicated upload" for that country rather than a guessed
+  number or a silent zero.
 
-### Optional Pan-EU export override (Upload tab)
+Verified directly: uploaded synthetic Germany (€32,000.00) and Pan-EU
+(€5,500.00) files against a real August month — each country showed
+exactly its own file's total, Combined stayed completely unrelated
+(unchanged throughout), and re-uploading the main file afterward correctly
+preserved both country uploads instead of resetting them to pending.
 
-If you have a separate Sellerboard export already filtered to Pan-EU
-marketplaces (same columns as the main export, same ASINs — just their
-Pan-EU-specific slice of Sales/Units/Net profit), drop it into the
-second upload zone on the Upload tab **after** uploading the main file
-for that month. This replaces the default mapping's guess with real
-numbers, for whichever F3M ASINs appear in that file:
-- **Pan-EU** = exactly what that file reports for the ASIN.
-- **Germany** = the residual (main file's total for that ASIN − the
-  Pan-EU file's amount) — since the main export already covers all
-  marketplaces combined, the Pan-EU slice subtracted out leaves Germany.
-- Any F3M ASIN *not* in the Pan-EU file still falls back to the default
-  marketplace mapping (unchanged).
-- If the Pan-EU file claims *more* revenue for an ASIN than the main
-  file has (which shouldn't happen if both cover the same period),
-  Germany is floored at €0 for that ASIN rather than going negative, and
-  it's flagged in a red banner with both numbers shown — never silently
-  absorbed.
-- **This never touches R&D or Brand Manager** — it only ever affects
-  `launch_manager`'s Germany/Pan-EU numbers.
-- "Clear Pan-EU override" reverts to the default mapping without
-  needing to re-upload the main file.
-
-Verified directly (not just reasoned about): uploaded a synthetic
-Pan-EU file covering 3 real ASINs against a real August export —
-Combined stayed byte-for-byte identical before/after (confirming the
-override never changes total F3M revenue, only its split), Germany's
-decrease and Pan-EU's increase matched hand-calculated residual math
-exactly, and an intentionally-over-claiming test ASIN was correctly
-caught and flagged rather than silently producing a negative number.
-
-### Bulk-applying Pan-EU to months already uploaded & saved
-
-For months whose main export was already uploaded and saved earlier,
-there's no need to re-upload the main file just to add Pan-EU detail.
-The same section (Upload tab, under "Bulk-apply...") accepts **multiple
-Pan-EU files at once** — each filename needs the same date-range pattern
-as the main export (e.g. `01_07_2026-31_07_2026…`) so its month can be
-detected, same as the main upload flow.
-
-This is coarser than the single-file flow above by necessity: without
-the original main file's per-ASIN breakdown (which isn't persisted —
-only the aggregated result is saved), the split can only happen at the
-**month-total level** — Germany = the already-saved Combined total minus
-this file's F3M total — rather than per-ASIN. That also means the
-reconciliation check is month-level (Pan-EU total vs. saved Combined
-total), not per-ASIN. **Each month is saved immediately** after
-processing, overwriting its previous Launch Manager split — there's no
-review step in between, since the whole point is bulk efficiency.
-
-Verified directly: ran this against the real August seed with a
-synthetic 2-ASIN Pan-EU file — Germany, Pan-EU, and Combined all came
-out exactly as hand-calculated, and the `pan_eu_override_applied` flag
-correctly persisted through the save/reload cycle so the Monthly tab
-knows to show the "override active" note instead of the generic
-data-source caveat. Also tested the over-claim edge case (Pan-EU
-total exceeding the saved Combined total) — correctly floors Germany at
-€0 and flags it, both in the bulk-run log and in the saved data.
+The earlier ASIN→marketplace mapping approach (`build_marketplace_mapping.py`,
+subtraction-based Pan-EU override) has been fully retired in favor of this
+— it was always going to be approximate at best, since that export's
+Marketplace field records where an ASIN's cost settings live, not which
+marketplace each sale happened on.
 
 ## Stage is computed live, not read from a fixed TOC column
 
@@ -411,14 +370,14 @@ public/index.html, app.js     the dashboard itself (static, client-side compute 
 public/favicon.ico, assets/*  CD Commerce icon mark (icon only, no wordmark) -- favicon + header/login branding
 public/toc_mapping.json       ASIN → brand/stage/product code (regenerate via build_mapping.py)
 public/targets.json           Q3 targets + rates/weights (regenerate via extract_targets.py)
-public/marketplace_mapping.json  ASIN -> DE/Pan-EU (regenerate via build_marketplace_mapping.py)
+public/marketplace_mapping.json  DEPRECATED (see "Launch Manager: two independent uploads" above) -- no longer read by app.js, kept only for reference
 public/targets_monthly/*.json real per-month Good/Better/Best targets (regenerate via extract_monthly_targets.py)
 public/data/2026-08.json      seeded August data (real Aug 2026 numbers, computed against Q3÷3 targets)
 api/login.js, session.js,     real server-side passcode check + persistent session
   logout.js, _auth.js           (survives a page refresh; "Lock" actually clears it)
 api/data.js, save-month.js    read/write month JSON in the private GitHub repo
 scripts/build_mapping.py      TOC .xlsx -> mapping/toc_mapping.json
-scripts/build_marketplace_mapping.py  Products .csv -> mapping/marketplace_mapping.json (ASIN -> DE/Pan-EU, for Launch Manager)
+scripts/build_marketplace_mapping.py  DEPRECATED -- superseded by the two dedicated Germany/Pan-EU F3M uploads
 scripts/extract_targets.py    calculator .xlsx -> mapping/targets.json (quarterly rates/weights + ÷3 fallback)
 scripts/extract_monthly_targets.py  calculator .xlsx -> mapping/targets_monthly/<month>.json (real Good/Better/Best)
 scripts/process_month.py      early CLI reference for the actuals-only aggregation (no targets/tiering yet — app.js is the source of truth)

@@ -321,10 +321,10 @@
    "sku_count": 15
   },
   "actual_germany": {
-   "sales": 140043.47,
-   "units": 1861,
-   "net_profit": 7221.7,
-   "sku_count": 15
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
   },
   "actual_pan_eu": {
    "sales": 0,
@@ -332,13 +332,14 @@
    "net_profit": 0,
    "sku_count": 0
   },
-  "unmapped_marketplace_asins": [],
+  "germany_source": "pending",
+  "pan_eu_source": "pending",
   "germany": {
    "actual": {
-    "sales": 140043.47,
-    "units": 1861,
-    "net_profit": 7221.7,
-    "sku_count": 15
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
    },
    "target": {
     "green": 181289.45,
@@ -347,8 +348,8 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": 0.051567559701284175,
-   "tier": "❌ MISS",
+   "actual_margin_pct": null,
+   "tier": "-",
    "bonus_eur": 0
   },
   "pan_eu": {

@@ -202,28 +202,32 @@
 
   <section>
     <div class="section-head">
-      <h2>Pan-EU export <span style="font-weight:400; color:var(--line-400);">(optional)</span></h2>
-      <span class="section-note">Same columns as the main export, filtered to Pan-EU marketplaces — overrides ONLY the Launch Manager Germany/Pan-EU split, nothing else</span>
+      <h2>Launch Manager — Germany (F3M)</h2>
+      <span class="section-note">Same columns as the main export, filtered to Germany only — sets Germany's actual directly, no computation</span>
+    </div>
+    <div class="upload-zone" id="germanyDropZone">
+      <div>
+        <p>Drop the Germany-only CSV here, or choose file(s)</p>
+        <p class="hint">Filenames need the same date-range pattern as the main export (e.g. "01_08_2026-31_08_2026…") so the month can be detected. Works for the currently-loaded month or any already-saved month — pick multiple files to do several months at once. Saves immediately.</p>
+      </div>
+      <input type="file" id="germanyFileInput" accept=".csv" multiple>
+    </div>
+    <div id="germanyUploadStatus" style="margin-top:14px;"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Launch Manager — Pan-EU (F3M)</h2>
+      <span class="section-note">Same columns as the main export, filtered to Pan-EU marketplaces — sets Pan-EU's actual directly, no computation</span>
     </div>
     <div class="upload-zone" id="panEuDropZone">
       <div>
-        <p>Drop the Pan-EU CSV here, or choose a file</p>
-        <p class="hint">Upload the main export above first. Germany becomes the residual (main total − Pan-EU) for whichever F3M products appear in this file; everything else keeps using the default mapping.</p>
+        <p>Drop the Pan-EU-only CSV here, or choose file(s)</p>
+        <p class="hint">Same as the Germany upload above, just for Pan-EU. Both are completely independent — upload either one, both, or neither; nothing is calculated as a difference between them.</p>
       </div>
-      <input type="file" id="panEuFileInput" accept=".csv">
+      <input type="file" id="panEuFileInput" accept=".csv" multiple>
     </div>
-    <div id="panEuStatus" style="margin-top:14px;"></div>
-    <button class="btn ghost" onclick="clearPanEuOverride()" style="margin-top:8px; font-size:12px;">Clear Pan-EU override</button>
-
-    <details style="margin-top:20px;">
-      <summary style="cursor:pointer; font-weight:600; font-size:13.5px;">Bulk-apply Pan-EU to months already uploaded &amp; saved</summary>
-      <div style="margin-top:10px;">
-        <p class="hint">For months whose main export was already uploaded and saved earlier — pick every Pan-EU file at once (filenames need the same date-range pattern as the main export, e.g. "01_07_2026-31_07_2026…", so the month can be detected). No need to re-upload the main files.</p>
-        <p class="hint" style="color:var(--line-500);">Coarser than the single-file flow above: without the original main file's per-ASIN detail, the split happens at the month-total level (Germany = saved Combined total − this file's F3M total), not per-ASIN — so there's a month-level reconciliation check instead of a per-ASIN one. <b>Each month is saved immediately</b> after processing, overwriting its previous Launch Manager split.</p>
-        <input type="file" id="bulkPanEuFileInput" accept=".csv" multiple onchange="handleBulkPanEuFiles(this.files)">
-        <div id="bulkPanEuStatus" style="margin-top:12px;"></div>
-      </div>
-    </details>
+    <div id="panEuUploadStatus" style="margin-top:14px;"></div>
   </section>
 
   <section id="dataQualitySection" style="display:none;">
@@ -292,7 +296,7 @@
     </div>
     <div class="banner warn" id="launchCaveatBanner" style="margin-bottom:12px;">
       <span>⚠</span>
-      <span><b>Data source caveat, not a bug.</b> The Germany/Pan-EU split below is real (joined by ASIN against Sellerboard's Products export), but that export's Marketplace field mostly just records where an ASIN's cost settings live — Germany, almost always — not a true log of which marketplace each sale happened on. Pan-EU numbers may understate real Pan-EU performance until a proper per-marketplace sales export is available. Upload a Pan-EU export above (Upload tab) to override this with real numbers.</span>
+      <span><b>Awaiting dedicated uploads.</b> Germany and Pan-EU actuals are set by two separate exports (Upload tab → "Launch Manager — Germany (F3M)" and "— Pan-EU (F3M)"), not derived from the main export or guessed. Neither has been uploaded for this month yet.</span>
     </div>
 <div class="table-scroll">
     <table>
