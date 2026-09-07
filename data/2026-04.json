@@ -368,7 +368,8 @@
   },
   "combined_bonus_eur": 0,
   "pan_eu_override_applied": true,
-  "pan_eu_reconciliation_issues": []
+  "pan_eu_reconciliation_issues": [],
+  "pan_eu_source": "dedicated_upload"
  },
  "brand_manager": {
   "PD": {
