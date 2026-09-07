@@ -299,7 +299,9 @@
    "gold_margin": 0.143,
    "source": "estimated"
   },
-  "combined_bonus_eur": 0
+  "combined_bonus_eur": 0,
+  "pan_eu_override_applied": true,
+  "pan_eu_reconciliation_issues": []
  },
  "brand_manager": {
   "PD": {
