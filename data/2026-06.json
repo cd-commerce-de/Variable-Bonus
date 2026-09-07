@@ -304,10 +304,10 @@
    "sku_count": 2
   },
   "actual_germany": {
-   "sales": 6019,
-   "units": 24,
-   "net_profit": 83.99999999999999,
-   "sku_count": 2
+   "sales": 236900.19000000003,
+   "units": 3353,
+   "net_profit": 60834.43999999998,
+   "sku_count": 26
   },
   "actual_pan_eu": {
    "sales": 0,
@@ -318,10 +318,10 @@
   "unmapped_marketplace_asins": [],
   "germany": {
    "actual": {
-    "sales": 6019,
-    "units": 24,
-    "net_profit": 83.99999999999999,
-    "sku_count": 2
+    "sales": 236900.19000000003,
+    "units": 3353,
+    "net_profit": 60834.43999999998,
+    "sku_count": 26
    },
    "target": {
     "green": 145304.71666666667,
@@ -330,9 +330,9 @@
     "gold_margin": 0.143,
     "source": "estimated"
    },
-   "actual_margin_pct": 0.013955806612394083,
-   "tier": "❌ MISS",
-   "bonus_eur": 0
+   "actual_margin_pct": 0.2567935466830988,
+   "tier": "🥇 GOLD",
+   "bonus_eur": 587.6349966666668
   },
   "pan_eu": {
    "actual": {
@@ -366,9 +366,10 @@
    "gold_margin": 0.143,
    "source": "estimated"
   },
-  "combined_bonus_eur": 0,
+  "combined_bonus_eur": 587.6349966666668,
   "pan_eu_override_applied": true,
-  "pan_eu_reconciliation_issues": []
+  "pan_eu_reconciliation_issues": [],
+  "germany_source": "dedicated_upload"
  },
  "brand_manager": {
   "Nasswerk": {
