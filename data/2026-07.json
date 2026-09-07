@@ -327,25 +327,25 @@
    "sku_count": 22
   },
   "actual_germany": {
-   "sales": 234464.18999999997,
-   "units": 1983,
-   "net_profit": 40695.78,
-   "sku_count": 13
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
   },
   "actual_pan_eu": {
-   "sales": 18768.53,
-   "units": 233,
-   "net_profit": 1294.95,
-   "sku_count": 9
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
   },
-  "germany_source": "dedicated_upload",
-  "pan_eu_source": "dedicated_upload",
+  "germany_source": "pending",
+  "pan_eu_source": "pending",
   "germany": {
    "actual": {
-    "sales": 234464.18999999997,
-    "units": 1983,
-    "net_profit": 40695.78,
-    "sku_count": 13
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
    },
    "target": {
     "green": 254624.7,
@@ -354,16 +354,16 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": 0.17356927725295707,
-   "tier": "❌ MISS",
+   "actual_margin_pct": null,
+   "tier": "-",
    "bonus_eur": 0
   },
   "pan_eu": {
    "actual": {
-    "sales": 18768.53,
-    "units": 233,
-    "net_profit": 1294.95,
-    "sku_count": 9
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
    },
    "target": {
     "green": 18350.2,
@@ -372,8 +372,8 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": 0.06899581373714404,
-   "tier": "❌ MISS",
+   "actual_margin_pct": null,
+   "tier": "-",
    "bonus_eur": 0
   },
   "germany_target": {
@@ -390,33 +390,7 @@
    "gold_margin": 0.143,
    "source": "real"
   },
-  "combined_bonus_eur": 0,
-  "germany_asins": [
-   "B0H5VM13XG",
-   "B0H5VMXPJY",
-   "B0GZ5KG2XW",
-   "B0GZ5GZBRK",
-   "B0GZ5K24L4",
-   "B0H2BM3SJD",
-   "B0H2BNX5K4",
-   "B0H2BP8P7Z",
-   "B0H2BG2TT3",
-   "B0H2BS1CB8",
-   "B0H2BMJ8G6",
-   "B0H2BKVS97",
-   "B0H2BNG3XM"
-  ],
-  "pan_eu_asins": [
-   "B0GLPPYPRH",
-   "B0GLPJG4YZ",
-   "B0GLPFRRBM",
-   "B0GLPHB1GW",
-   "B0GLPL3X9D",
-   "B0GLP7ZLXV",
-   "B0GLPPML9K",
-   "B0GLPL13W5",
-   "B0GLPMKBRF"
-  ]
+  "combined_bonus_eur": 0
  },
  "brand_manager": {
   "PD": {
