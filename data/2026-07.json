@@ -15,23 +15,11 @@
     "net_profit": 1284.8000000000002,
     "sku_count": 11
    },
-   "VZW": {
-    "sales": 66418.37000000001,
-    "units": 549,
-    "net_profit": 16501.510000000002,
-    "sku_count": 15
-   },
    "WGH25": {
     "sales": 17129.07,
     "units": 282,
     "net_profit": 808.7099999999999,
     "sku_count": 8
-   },
-   "TSE": {
-    "sales": 8214.18,
-    "units": 263,
-    "net_profit": 1522.01,
-    "sku_count": 2
    },
    "FES": {
     "sales": 21633.57,
@@ -44,12 +32,6 @@
     "units": 152,
     "net_profit": -3768.82,
     "sku_count": 8
-   },
-   "WHS": {
-    "sales": 11052.649999999998,
-    "units": 148,
-    "net_profit": 2517.5000000000005,
-    "sku_count": 14
    },
    "AKS": {
     "sales": 3288.07,
@@ -114,17 +96,17 @@
    "TSE": {
     "label": "Toilet seat - TSE",
     "actual": {
-     "sales": 8214.18,
-     "units": 263,
-     "net_profit": 1522.01,
-     "sku_count": 2
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
     },
     "green_target": 0,
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
     "target_source": "real",
-    "actual_margin_pct": 0.18529055852197054,
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
@@ -199,17 +181,17 @@
    "WHS": {
     "label": "Waders - WHS",
     "actual": {
-     "sales": 11052.649999999998,
-     "units": 148,
-     "net_profit": 2517.5000000000005,
-     "sku_count": 14
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
     },
     "green_target": 0,
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
     "target_source": "estimated",
-    "actual_margin_pct": 0.22777342990142643,
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
@@ -233,17 +215,17 @@
    "VZW": {
     "label": "Awning caravan - VZW",
     "actual": {
-     "sales": 66418.37000000001,
-     "units": 549,
-     "net_profit": 16501.510000000002,
-     "sku_count": 15
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
     },
     "green_target": 0,
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
     "target_source": "estimated",
-    "actual_margin_pct": 0.24844798208688348,
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
@@ -390,33 +372,7 @@
    "gold_margin": 0.143,
    "source": "real"
   },
-  "combined_bonus_eur": 0,
-  "germany_asins": [
-   "B0H5VM13XG",
-   "B0H5VMXPJY",
-   "B0GZ5KG2XW",
-   "B0GZ5GZBRK",
-   "B0GZ5K24L4",
-   "B0H2BM3SJD",
-   "B0H2BNX5K4",
-   "B0H2BP8P7Z",
-   "B0H2BG2TT3",
-   "B0H2BS1CB8",
-   "B0H2BMJ8G6",
-   "B0H2BKVS97",
-   "B0H2BNG3XM"
-  ],
-  "pan_eu_asins": [
-   "B0GLPPYPRH",
-   "B0GLPJG4YZ",
-   "B0GLPFRRBM",
-   "B0GLPHB1GW",
-   "B0GLPL3X9D",
-   "B0GLP7ZLXV",
-   "B0GLPPML9K",
-   "B0GLPL13W5",
-   "B0GLPMKBRF"
-  ]
+  "combined_bonus_eur": 0
  },
  "brand_manager": {
   "PD": {
@@ -584,7 +540,7 @@
     "PY1": {
      "sales": 440167.5200000001,
      "units": 8068,
-     "net_profit": 68907.07000000002,
+     "net_profit": 68935.04000000001,
      "sku_count": 244
     },
     "Y1 (F4-12)": {
@@ -603,7 +559,7 @@
    "combined_actual": {
     "sales": 465834.2700000001,
     "units": 8287,
-    "net_profit": 72224.16000000002,
+    "net_profit": 72252.13,
     "sku_count": 262
    },
    "bm_group": "BM2",
@@ -612,7 +568,7 @@
      "actual": {
       "sales": 440167.5200000001,
       "units": 8068,
-      "net_profit": 68907.07000000002,
+      "net_profit": 68935.04000000001,
       "sku_count": 244
      },
      "green_target": 575367,
@@ -620,7 +576,7 @@
      "tier": "❌ MISS",
      "bonus_eur": 0,
      "target_source": "real",
-     "actual_margin_pct": 0.156547375417432,
+     "actual_margin_pct": 0.15661091940632058,
      "green_margin_pct": 0.221865,
      "gold_margin_pct": 0.23243
     },
@@ -1176,9 +1132,9 @@
   "sku_count": 2
  },
  "meta": {
-  "total_rows_processed": 3149,
+  "total_rows_processed": 3153,
   "mapped_rows": 3112,
-  "unmapped_rows": 37,
+  "unmapped_rows": 41,
   "unmapped_asins": [
    "B077ZH2W5C",
    "B08VDD358M",
