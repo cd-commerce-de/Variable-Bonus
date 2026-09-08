@@ -57,6 +57,35 @@ files at once, so several months can be done in one go. Each upload:
   "awaiting dedicated upload" for that country rather than a guessed
   number or a silent zero.
 
+### UK marketplace policy: always Germany, never Pan-EU
+
+**Permanent rule, confirmed directly**: any ASIN also listed on
+Amazon.co.uk has its revenue counted as Germany, even when it arrives in
+a Pan-EU upload. A handful of ASINs are dual-listed on both Amazon.de and
+Amazon.co.uk (found via the Products export's Marketplace field, from
+earlier in this project — `mapping/marketplace_mapping.json`'s
+`ambiguous_asins`, filtered to those that include `"Amazon.co.uk"`) —
+`UK_ASINS` in `app.js`, loaded once at boot.
+
+When a Pan-EU file is processed, any matched F3M ASIN in that set is
+**redirected**: its revenue is added to Germany's actual (on top of
+whatever Germany already has that month, not overwriting it) instead of
+counting toward Pan-EU, and it moves into `germany_asins` instead of
+`pan_eu_asins` — so Stage History's Country column reflects the redirect
+too. The upload status message says explicitly how many ASINs were
+redirected and for how much, rather than silently changing the number.
+
+Verified directly: uploaded a synthetic Pan-EU file with 2 known
+UK-listed ASINs (€7,000 combined) and 1 genuine Pan-EU ASIN (€2,000)
+against a real August month — Germany correctly received exactly
+€7,000.00, Pan-EU correctly kept only €2,000.00, and both ASIN lists
+(`germany_asins`/`pan_eu_asins`) came out correctly split.
+
+**This only applies going forward** — any month already saved before this
+fix was deployed still has the old (incorrect) attribution baked in.
+Re-upload that month's Pan-EU file once this version is live to apply the
+redirect retroactively to already-saved data.
+
 Verified directly: uploaded synthetic Germany (€32,000.00) and Pan-EU
 (€5,500.00) files against a real August month — each country showed
 exactly its own file's total, Combined stayed completely unrelated
@@ -411,8 +440,33 @@ fully confirmed.
   its own overflow, no blending needed anymore). See "Launch Manager:
   Germany vs. Pan-EU split" above for how the split works and its caveat.
   A "Combined" row sums both for reference.
-- **Marketplace** — still fully manual (actual and target), per the
-  original spec.
+- **Marketplace** — fully manual, but now genuinely scoped to a single
+  month and matches every other track's format. **This was a real bug,
+  found and fixed**: the 3 original input fields (Actual/Green/Gold) had
+  *zero* JavaScript wiring at all — no save, no read-back, nothing
+  clearing them on month switch. Whatever was typed just sat in the DOM
+  regardless of which month was selected, which looked exactly like data
+  "saving across all months" even though nothing was actually being saved
+  anywhere. Rebuilt properly:
+  - 6 inputs now (added Actual/Green/Gold **margin** fields, typed as
+    plain percentages — e.g. `24` for 24%), matching every other track's
+    revenue + margin quality-gate shape.
+  - Tier and Bonus (€) compute live via the same `tierOf`/`bonusOf`
+    functions every other track uses, plus a pool-bonus-÷-team-size row
+    like R&D.
+  - **Saved to `data.marketplace` on the currently-viewed month only**,
+    debounced (800ms after the last keystroke) via the same
+    `saveMonthData()` every other save path uses.
+  - Switching months now actually **populates or clears these 6 fields**
+    from that month's saved data — the missing piece that caused the bug.
+  - Survives a main-file re-upload, same as Germany/Pan-EU (carried
+    forward via `entered: true`, not reset just because R&D/Brand
+    Manager's source file was reprocessed).
+
+  Verified directly: entered values for July, computed correctly (🟢
+  GREEN tier, €50.00 bonus), switched to August — fields came back
+  completely empty, not showing July's numbers — then switched back to
+  July and got the exact persisted values and tier back.
 - **Every track's table shows Actual Margin % and Target Margin %
   explicitly**, not just as an invisible pass/fail baked into the tier —
   these numbers drive the quality gate (per the Variable Bonus Framework:

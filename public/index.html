@@ -387,20 +387,28 @@
   <section id="mpSection" style="display:none;">
     <div class="section-head">
       <h2>Marketplace Team</h2>
-      <span class="section-note">Not derivable from Sellerboard data — enter manually</span>
+      <span class="section-note">Not derivable from Sellerboard data — enter manually. Saved with this month only, same as every other track.</span>
     </div>
-<div class="table-scroll">
+    <div class="table-scroll">
     <table>
-      <thead><tr><th>Metric</th><th>Actual (manual)</th><th>Green target</th><th>Gold target</th><th>Tier</th></tr></thead>
+      <thead><tr><th>Market</th><th>Actual Rev.</th><th class="th-green">Green target</th><th class="th-gold">Gold target</th><th>Actual Margin %</th><th class="th-green">Green Margin Target</th><th class="th-gold">Gold Margin Target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody>
         <tr>
-          <td class="name">Actual Revenue (€)</td>
-          <td><input class="target-input" id="mpActual" type="number" step="0.01"></td>
-          <td><input class="target-input" id="mpGreen" type="number" step="0.01"></td>
-          <td><input class="target-input" id="mpGold" type="number" step="0.01"></td>
-          <td id="mpTier"><span class="tier-tag pending">— </span></td>
+          <td class="name">Off-Amazon</td>
+          <td><input class="target-input" id="mpActual" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>
+          <td class="tint-green"><input class="target-input" id="mpGreen" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>
+          <td class="tint-gold"><input class="target-input" id="mpGold" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>
+          <td><input class="target-input" id="mpActualMargin" type="number" step="0.01" placeholder="%" oninput="onMarketplaceInputChange()"></td>
+          <td class="tint-green"><input class="target-input" id="mpGreenMargin" type="number" step="0.01" placeholder="%" oninput="onMarketplaceInputChange()"></td>
+          <td class="tint-gold"><input class="target-input" id="mpGoldMargin" type="number" step="0.01" placeholder="%" oninput="onMarketplaceInputChange()"></td>
+          <td id="mpTier"><span class="tier-tag pending">—</span></td>
+          <td class="num" id="mpBonus">—</td>
         </tr>
       </tbody>
+      <tfoot>
+        <tr class="total-row-solid"><td>Pool bonus total</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num" id="mpTotalBonus">€0.00</td></tr>
+        <tr id="mpPerPersonRow" style="font-weight:400;"><td>÷ team members</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="num"></td></tr>
+      </tfoot>
     </table>
     </div>
   </section>

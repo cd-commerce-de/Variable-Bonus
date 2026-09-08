@@ -195,11 +195,18 @@ function fmtPct(n) {
 }
 
 // ---------- Load mapping + targets + month list on boot ----------
+let UK_ASINS = new Set(); // ASINs also listed on Amazon.co.uk -- per confirmed policy, their revenue always counts as Germany, never Pan-EU, even when it comes from a "Pan-EU" upload
 async function boot() {
   [MAPPING, TARGETS] = await Promise.all([
     fetch('toc_mapping.json').then(r => r.json()),
     fetch('targets.json').then(r => r.json()),
   ]);
+  try {
+    const mm = await fetch('marketplace_mapping.json').then(r => r.ok ? r.json() : null);
+    if (mm && mm.ambiguous_asins) {
+      UK_ASINS = new Set(mm.ambiguous_asins.filter(a => (a.marketplaces_seen || []).includes('Amazon.co.uk')).map(a => a.asin));
+    }
+  } catch (e) { /* optional -- if this file isn't present, UK redirection simply doesn't apply */ }
   await refreshMonthList();
 }
 async function loadMonthlyTargets(month) {
@@ -274,6 +281,67 @@ async function loadMonth(month) {
   return null;
 }
 
+// ---------- Marketplace: fully manual, but scoped strictly to CURRENT.month ----------
+// Populates the 6 input fields from data.marketplace whenever a month is
+// loaded/switched -- this is the actual fix: previously nothing ever
+// touched these inputs on month-switch, so whatever was typed just sat in
+// the DOM regardless of which month was selected, making it look like the
+// value "carried over" when really nothing was scoped to a month at all.
+function populateMarketplaceInputs(data) {
+  const mp = data.marketplace || {};
+  const setVal = (id, v) => { document.getElementById(id).value = (v == null ? '' : v); };
+  setVal('mpActual', mp.actual_sales);
+  setVal('mpGreen', mp.green_target);
+  setVal('mpGold', mp.gold_target);
+  setVal('mpActualMargin', mp.actual_margin_pct == null ? null : mp.actual_margin_pct * 100);
+  setVal('mpGreenMargin', mp.green_margin_pct == null ? null : mp.green_margin_pct * 100);
+  setVal('mpGoldMargin', mp.gold_margin_pct == null ? null : mp.gold_margin_pct * 100);
+  const tier = mp.tier || '-';
+  document.getElementById('mpTier').innerHTML = tierTag(tier);
+  document.getElementById('mpBonus').textContent = fmtEUR(mp.bonus_eur || 0);
+  document.getElementById('mpBonus').className = `num ${tierCellClass(tier)}`;
+  const teamSize = TARGETS.rates.marketplace.team_size || 1;
+  document.getElementById('mpTotalBonus').textContent = fmtEUR(mp.bonus_eur || 0);
+  const perPersonRow = document.getElementById('mpPerPersonRow');
+  perPersonRow.querySelector('td:first-child').textContent = `÷ ${teamSize} team member${teamSize === 1 ? '' : 's'}`;
+  perPersonRow.querySelector('td.num').textContent = fmtEUR((mp.bonus_eur || 0) / teamSize);
+}
+
+let _mpSaveTimer = null;
+function onMarketplaceInputChange() {
+  if (!CURRENT) return;
+  const val = (id) => { const v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); };
+  const actualSales = val('mpActual');
+  const greenTarget = val('mpGreen');
+  const goldTarget = val('mpGold');
+  // Margin inputs are typed as plain percentages (e.g. 24 for 24%) -- stored as fractions internally, same convention as every other track.
+  const actualMarginPct = val('mpActualMargin');
+  const greenMarginPct = val('mpGreenMargin');
+  const goldMarginPct = val('mpGoldMargin');
+  const actualMargin = actualMarginPct == null ? null : actualMarginPct / 100;
+  const greenMargin = greenMarginPct == null ? null : greenMarginPct / 100;
+  const goldMargin = goldMarginPct == null ? null : goldMarginPct / 100;
+
+  const tier = tierOf(actualSales, greenTarget, goldTarget, actualMargin, greenMargin, goldMargin, null);
+  const rates = TARGETS.rates;
+  const bonus = bonusOf(tier, actualSales, greenTarget, goldTarget, rates.marketplace.green, rates.marketplace.gold);
+
+  CURRENT.marketplace = {
+    label: 'Marketplace — manually entered', entered: true,
+    actual_sales: actualSales, green_target: greenTarget, gold_target: goldTarget,
+    actual_margin_pct: actualMargin, green_margin_pct: greenMargin, gold_margin_pct: goldMargin,
+    tier, bonus_eur: bonus,
+  };
+  populateMarketplaceInputs(CURRENT); // refresh Tier/Bonus display without re-fetching the whole month
+
+  // Debounced auto-save -- scoped to CURRENT.month specifically, so this
+  // can never bleed into any other month's saved data.
+  clearTimeout(_mpSaveTimer);
+  _mpSaveTimer = setTimeout(async () => {
+    if (CURRENT) await saveMonthData(CURRENT);
+  }, 800);
+}
+
 async function onMonthChange() {
   const month = document.getElementById('monthSelect').value;
   const data = await loadMonth(month);
@@ -283,6 +351,7 @@ async function onMonthChange() {
     // extract later automatically upgrades a previously-saved month too.
     CURRENT = applyTargetsAndTiers(data, false, await loadMonthlyTargets(month));
     render(CURRENT, 'monthly');
+    populateMarketplaceInputs(CURRENT);
   }
   renderMasterlist();
 }
@@ -798,6 +867,7 @@ function handleFile(file) {
         statusEl.innerHTML = `<div class="banner info">Parsed ${results.data.length.toLocaleString('en-US')} rows for <b>${monthVal}</b> (${howDetected}). Check the Monthly tab to review, then come back here and click "Save to history" if it looks right.</div>`;
         CURRENT = computed;
         render(CURRENT, 'monthly');
+        populateMarketplaceInputs(CURRENT);
         if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab();
       } catch (err) {
         statusEl.innerHTML = `<div class="banner error"><b>Couldn't process this file.</b> ${err.message}</div>`;
@@ -827,17 +897,31 @@ function parseCountryF3MFile(file, month) {
         const children = results.data.filter(r => (r.SKU || '').trim() !== '');
         let sales = 0, units = 0, net_profit = 0, matched = 0, skippedNonF3M = 0, skippedUnmapped = 0;
         const matchedAsins = [];
+        // Separately track any ASIN also listed on Amazon.co.uk -- per
+        // confirmed policy, UK revenue always counts as Germany, even
+        // when it arrives in a "Pan-EU" file. Kept as its own bucket so
+        // the caller can redirect it without touching the rest.
+        let ukRedirectSales = 0, ukRedirectUnits = 0, ukRedirectNetProfit = 0;
+        const ukRedirectAsins = [];
         children.forEach(r => {
           const asin = (r.ASIN || '').trim();
           const info = MAPPING[asin];
           if (!info) { skippedUnmapped++; return; }
           const stage = computeStageForMonth(info, month);
           if (stage !== 'F3M') { skippedNonF3M++; return; }
-          sales += cleanNumber(r.Sales); units += cleanNumber(r.Units); net_profit += cleanNumber(r['Net profit']);
+          if (UK_ASINS.has(asin)) {
+            ukRedirectSales += cleanNumber(r.Sales); ukRedirectUnits += cleanNumber(r.Units); ukRedirectNetProfit += cleanNumber(r['Net profit']);
+            ukRedirectAsins.push(asin);
+          } else {
+            sales += cleanNumber(r.Sales); units += cleanNumber(r.Units); net_profit += cleanNumber(r['Net profit']);
+            matchedAsins.push(asin);
+          }
           matched++;
-          matchedAsins.push(asin);
         });
-        resolve({ sales, units, net_profit, sku_count: matched, matched, skippedNonF3M, skippedUnmapped, matchedAsins });
+        resolve({
+          sales, units, net_profit, sku_count: matchedAsins.length, matched, skippedNonF3M, skippedUnmapped, matchedAsins,
+          ukRedirect: { sales: ukRedirectSales, units: ukRedirectUnits, net_profit: ukRedirectNetProfit, asins: ukRedirectAsins },
+        });
       },
       error: (err) => reject(err),
     });
@@ -857,16 +941,37 @@ async function applyCountryUpload(file, country) {
   catch (err) { return { file: file.name, ok: false, msg: `Couldn't read this file: ${err.message}` }; }
 
   data = JSON.parse(JSON.stringify(data));
-  data.launch_manager[`actual_${country === 'germany' ? 'germany' : 'pan_eu'}`] = { sales: totals.sales, units: totals.units, net_profit: totals.net_profit, sku_count: totals.sku_count };
-  data.launch_manager[`${country === 'germany' ? 'germany' : 'pan_eu'}_source`] = 'dedicated_upload';
-  data.launch_manager[`${country === 'germany' ? 'germany' : 'pan_eu'}_asins`] = totals.matchedAsins; // which specific F3M ASINs this country's actual came from -- lets Stage History show "which country" per ASIN
+  const key = country === 'germany' ? 'germany' : 'pan_eu';
+  data.launch_manager[`actual_${key}`] = { sales: totals.sales, units: totals.units, net_profit: totals.net_profit, sku_count: totals.sku_count };
+  data.launch_manager[`${key}_source`] = 'dedicated_upload';
+  data.launch_manager[`${key}_asins`] = totals.matchedAsins; // which specific F3M ASINs this country's actual came from -- lets Stage History show "which country" per ASIN
+
+  let redirectMsg = '';
+  if (country === 'pan_eu' && totals.ukRedirect.asins.length) {
+    // These ASINs came from the Pan-EU file but sell on Amazon.co.uk too --
+    // redirect their revenue into Germany (adding to whatever Germany
+    // already has this month, not overwriting it) and into germany_asins,
+    // so Stage History's Country column reflects the same redirect.
+    const existingGermany = data.launch_manager.actual_germany || { sales: 0, units: 0, net_profit: 0, sku_count: 0 };
+    data.launch_manager.actual_germany = {
+      sales: existingGermany.sales + totals.ukRedirect.sales,
+      units: existingGermany.units + totals.ukRedirect.units,
+      net_profit: existingGermany.net_profit + totals.ukRedirect.net_profit,
+      sku_count: existingGermany.sku_count + totals.ukRedirect.asins.length,
+    };
+    // Only mark Germany as "dedicated_upload" if it wasn't already pending -- redirection alone still counts as real data for Germany.
+    data.launch_manager.germany_source = 'dedicated_upload';
+    data.launch_manager.germany_asins = Array.from(new Set([...(data.launch_manager.germany_asins || []), ...totals.ukRedirect.asins]));
+    redirectMsg = ` ${totals.ukRedirect.asins.length} ASIN(s) also listed on Amazon.co.uk were redirected to Germany instead (€${totals.ukRedirect.sales.toFixed(2)}), per policy — UK sales always count as Germany, never Pan-EU.`;
+  }
+
   data = applyTargetsAndTiers(data, false, await loadMonthlyTargets(month));
 
   const saveResult = await saveMonthData(data);
-  if (CURRENT && CURRENT.month === month) { CURRENT = data; render(CURRENT, 'monthly'); if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab(); }
+  if (CURRENT && CURRENT.month === month) { CURRENT = data; render(CURRENT, 'monthly'); populateMarketplaceInputs(CURRENT); if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab(); }
 
   const countryLabel = country === 'germany' ? 'Germany' : 'Pan-EU';
-  let msg = `${formatMonthLabel(month)}: ${countryLabel} set to €${totals.sales.toFixed(2)} from ${totals.matched} F3M product(s). Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
+  let msg = `${formatMonthLabel(month)}: ${countryLabel} set to €${totals.sales.toFixed(2)} from ${totals.matched - totals.ukRedirect.asins.length} F3M product(s).${redirectMsg} Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
   // If the result is suspiciously zero, say exactly why instead of leaving it a mystery.
   if (totals.matched === 0) {
     const totalRows = totals.matched + totals.skippedNonF3M + totals.skippedUnmapped;
@@ -988,17 +1093,19 @@ async function computeFromRows(rows, month) {
     brandManager[displayName] = { stages, combined_actual: combined, bm_group: officialBrandGroup(displayName) };
   });
 
-  // If Germany/Pan-EU F3M data was already uploaded separately for this
-  // month (via applyCountryUpload), carry it forward rather than
-  // resetting to "pending" just because the main file was re-uploaded
-  // (e.g. to fix an incomplete export) -- those are independent uploads.
+  // If Germany/Pan-EU F3M data or Marketplace figures were already
+  // entered separately for this month, carry them forward rather than
+  // resetting just because the main file was re-uploaded (e.g. to fix an
+  // incomplete export) -- those are independently maintained.
   let priorGermany = null, priorPanEu = null, priorGermanySource = 'pending', priorPanEuSource = 'pending';
+  let priorMarketplace = null;
   try {
     const prior = await loadMonth(month);
     if (prior && prior.launch_manager) {
       if (prior.launch_manager.germany_source === 'dedicated_upload') { priorGermany = prior.launch_manager.actual_germany; priorGermanySource = 'dedicated_upload'; }
       if (prior.launch_manager.pan_eu_source === 'dedicated_upload') { priorPanEu = prior.launch_manager.actual_pan_eu; priorPanEuSource = 'dedicated_upload'; }
     }
+    if (prior && prior.marketplace && prior.marketplace.entered) { priorMarketplace = prior.marketplace; }
   } catch (e) { /* no prior save, or API unavailable -- fine, start from pending */ }
 
   const result = {
@@ -1014,7 +1121,12 @@ async function computeFromRows(rows, month) {
     },
     brand_manager: brandManager,
     other_brands_unassigned: otherBrandsSeen, // brands with real revenue that AREN'T part of the Brand Manager bonus program (e.g. Van De Boos, MESSEREI, Arganoel Zauber) -- kept visible, not silently dropped
-    marketplace: { label: 'Marketplace — manually entered' },
+    marketplace: priorMarketplace || {
+      label: 'Marketplace — manually entered', entered: false,
+      actual_sales: null, green_target: null, gold_target: null,
+      actual_margin_pct: null, green_margin_pct: null, gold_margin_pct: null,
+      tier: '-', bonus_eur: 0,
+    },
     quality_issue_unassigned: qualityIssue,
     meta: {
       total_rows_processed: children.length,
