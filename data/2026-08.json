@@ -303,10 +303,10 @@
    "sku_count": 15
   },
   "actual_germany": {
-   "sales": 0,
-   "units": 0,
-   "net_profit": 0,
-   "sku_count": 0
+   "sales": 61111.75,
+   "units": 817,
+   "net_profit": 6766.690000000001,
+   "sku_count": 9
   },
   "actual_pan_eu": {
    "sales": 0,
@@ -318,10 +318,10 @@
   "pan_eu_source": "dedicated_upload",
   "germany": {
    "actual": {
-    "sales": 0,
-    "units": 0,
-    "net_profit": 0,
-    "sku_count": 0
+    "sales": 61111.75,
+    "units": 817,
+    "net_profit": 6766.690000000001,
+    "sku_count": 9
    },
    "target": {
     "green": 181289.45,
@@ -330,8 +330,8 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": null,
-   "tier": "-",
+   "actual_margin_pct": 0.11072649695025918,
+   "tier": "❌ MISS",
    "bonus_eur": 0
   },
   "pan_eu": {
@@ -367,7 +367,17 @@
    "source": "real"
   },
   "combined_bonus_eur": 0,
-  "germany_asins": [],
+  "germany_asins": [
+   "B0HBXK2M39",
+   "B0H5VMXPJY",
+   "B0H5VM13XG",
+   "B0H2BG2TT3",
+   "B0H2BS1CB8",
+   "B0H2BM3SJD",
+   "B0H2BKVS97",
+   "B0H2BP8P7Z",
+   "B0H2BNX5K4"
+  ],
   "pan_eu_asins": [],
   "pan_eu_contributions": {
    "CD_Commerce_Dashboard_Products_Group_by_Parent_01_08_2026-31_08_2026_(2026_09_08_08_19_45_312)_sellerboard.com.csv": {
@@ -383,7 +393,24 @@
     "asins": []
    }
   },
-  "germany_contributions": {}
+  "germany_contributions": {
+   "CD_Commerce_Dashboard_Products_Group_by_Parent_01_08_2026-31_08_2026_(2026_09_07_19_09_10_164)_sellerboard.com.csv": {
+    "sales": 61111.75,
+    "units": 817,
+    "net_profit": 6766.690000000001,
+    "asins": [
+     "B0HBXK2M39",
+     "B0H5VMXPJY",
+     "B0H5VM13XG",
+     "B0H2BG2TT3",
+     "B0H2BS1CB8",
+     "B0H2BM3SJD",
+     "B0H2BKVS97",
+     "B0H2BP8P7Z",
+     "B0H2BNX5K4"
+    ]
+   }
+  }
  },
  "brand_manager": {
   "PD": {
