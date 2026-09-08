@@ -14,13 +14,22 @@
 
 const PASSCODE_HASH = "REPLACE_WITH_SHA256_HASH"; // set via scripts/hash_passcode.py — see README
 
+// NOTE: STAGE_LABELS['M4-12'] intentionally stays "Y1 (F4-12)" -- this
+// exact string is also used as an OBJECT KEY into targets.json and the
+// monthly targets files (generated from the calculator workbook's own
+// section header text, which literally says "F4-12"). Changing this
+// value would silently break every lookup into those files. The visible
+// typo fix (showing "M4-12" to the user, since that's the TOC's actual
+// stage code) is applied separately, only at render time, via
+// displayStageLabel() below -- never as a key.
 const STAGE_LABELS = { 'PY1': 'PY1', 'M4-12': 'Y1 (F4-12)', 'Discontinued': 'Discontinued', 'F3M': 'F3M', 'Quality Issue': 'Quality Issue (unassigned)' };
+function displayStageLabel(label) { return label === 'Y1 (F4-12)' ? 'Y1 (M4-12)' : label; }
 
 // ---------- Stage computation, embedded (no manual TOC updates needed) ----------
 // A SKU's stage is a function of (launch date, the month being attributed),
 // NOT a fixed label -- it moves forward every month on its own:
 //   months 1-3 since launch  -> F3M
-//   months 4-12 since launch -> M4-12 ("Y1 (F4-12)")
+//   months 4-12 since launch -> M4-12 ("Y1 (M4-12)")
 //   month 13+ since launch   -> PY1
 // Discontinued / Quality Issue are manual overrides (there's no calendar
 // rule for them) -- once their start date is reached, they take over from
@@ -332,16 +341,146 @@ function setTab(t) {
   document.getElementById('tabQuarterly').style.display = t === 'quarterly' ? 'block' : 'none';
   document.getElementById('tabImpact').style.display = t === 'impact' ? 'block' : 'none';
   document.getElementById('tabStage').style.display = t === 'stage' ? 'block' : 'none';
+  document.getElementById('tabFramework').style.display = t === 'framework' ? 'block' : 'none';
   document.getElementById('tabUploadBtn').classList.toggle('active', t === 'upload');
   document.getElementById('tabMonthlyBtn').classList.toggle('active', t === 'monthly');
   document.getElementById('tabQuarterlyBtn').classList.toggle('active', t === 'quarterly');
   document.getElementById('tabImpactBtn').classList.toggle('active', t === 'impact');
   document.getElementById('tabStageBtn').classList.toggle('active', t === 'stage');
+  document.getElementById('tabFrameworkBtn').classList.toggle('active', t === 'framework');
   document.getElementById('monthSelect').style.display = t === 'quarterly' ? 'none' : '';
   document.getElementById('quarterSelect').style.display = t === 'quarterly' ? '' : 'none';
   document.getElementById('periodBadge').style.display = t === 'quarterly' ? 'none' : '';
   if (t === 'quarterly') renderQuarterlyTab();
   if (t === 'stage') renderStageHistory();
+  if (t === 'framework') renderBonusFramework();
+}
+
+// ---------- Bonus Framework tab: how data is extracted + how bonus is
+// calculated per track. Rates are pulled live from TARGETS.rates so this
+// stays accurate if Config changes -- never hardcoded numbers. ----------
+function pct(rate) { return (rate * 100).toLocaleString('en-US', { maximumFractionDigits: 2 }) + '%'; }
+function renderBonusFramework() {
+  const r = TARGETS.rates;
+  const w = TARGETS.stage_weights;
+
+  document.getElementById('fwBrandManager').innerHTML = `
+    <div class="section-head">
+      <h2>1. Brand Manager — Revenue Overflow Bonus</h2>
+    </div>
+    <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
+      <b>How the data is extracted:</b> every SKU's Brand comes from the TOC.
+      Only the 9 official Brand Manager brands count (grouped BM1-4 by
+      supervisor) — other brands the company sells are tracked but
+      excluded from this bonus. Each brand's revenue is split into three
+      stages by <b>computed</b> stage (Launch Date-based, not a fixed TOC
+      column — see the Stage History tab): PY1, Y1 (M4-12), and
+      Discontinued. F3M-stage revenue is NOT included here — that belongs
+      to Launch Manager below.
+    </p>
+    <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
+      <b>Formula:</b> for each stage — Bonus = (Actual Revenue − Target) ×
+      Rate, where Rate is the <i>effective</i> rate for that stage (base
+      rate × the stage's weight). Green pays at the Green target once
+      revenue clears it; Gold pays at the (higher) Gold rate once revenue
+      clears the Gold target instead — they don't stack.
+    </p>
+    <table style="width:auto; margin-bottom:14px;">
+      <thead><tr><th>Stage</th><th>Weight</th><th>Green rate (effective)</th><th>Gold rate (effective)</th></tr></thead>
+      <tbody>
+        <tr><td class="name">PY1</td><td class="num">${pct(w['PY1'].weight)}</td><td class="num tint-green">${pct(w['PY1'].eff_green)}</td><td class="num tint-gold">${pct(w['PY1'].eff_gold)}</td></tr>
+        <tr><td class="name">Y1 (M4-12)</td><td class="num">${pct(w['Y1 (F4-12)'].weight)}</td><td class="num tint-green">${pct(w['Y1 (F4-12)'].eff_green)}</td><td class="num tint-gold">${pct(w['Y1 (F4-12)'].eff_gold)}</td></tr>
+        <tr><td class="name">Discontinued</td><td class="num">${pct(w['Discontinued'].weight)}</td><td class="num tint-green">${pct(w['Discontinued'].eff_green)}</td><td class="num tint-gold">${pct(w['Discontinued'].eff_gold)}</td></tr>
+      </tbody>
+    </table>
+    <div class="banner warn">
+      <span>⚠</span>
+      <span><b>Quality gate — both conditions required, not either/or:</b> (1) Actual revenue must clear the stage's Green or Gold target, <b>AND</b> (2) actual profit margin % must meet or exceed that stage's target margin. If the margin gate fails, no bonus is paid for that stage no matter how far revenue overflowed.</span>
+    </div>
+  `;
+
+  document.getElementById('fwLaunchManager').innerHTML = `
+    <div class="section-head">
+      <h2>2. Launch Manager — F3M Revenue Overflow Bonus</h2>
+    </div>
+    <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
+      <b>How the data is extracted:</b> Germany and Pan-EU actuals each
+      come from their own dedicated upload (Upload tab) — real per-country
+      numbers, not a computed split. Only F3M-stage products count (months
+      1-3 since Launch Date, computed live). "Combined" is the full F3M
+      pool from the main export, shown for reference only — it isn't used
+      in either country's bonus calculation.
+    </p>
+    <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
+      <b>Formula:</b> Bonus = (Actual F3M Revenue − Target) × Rate, applied
+      separately per country using that country's own rate.
+    </p>
+    <table style="width:auto; margin-bottom:14px;">
+      <thead><tr><th>Market</th><th>Green rate</th><th>Gold rate</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Germany</td><td class="num tint-green">${pct(r.launch_mgr_germany.green)}</td><td class="num tint-gold">${pct(r.launch_mgr_germany.gold)}</td></tr>
+        <tr><td class="name">Pan-EU</td><td class="num tint-green">${pct(r.launch_mgr_pan_eu.green)}</td><td class="num tint-gold">${pct(r.launch_mgr_pan_eu.gold)}</td></tr>
+      </tbody>
+    </table>
+    <div class="banner warn">
+      <span>⚠</span>
+      <span><b>Quality gate:</b> actual profit margin % for the F3M period must meet or exceed that country's target margin. Revenue overflow alone doesn't pay a bonus if the margin gate fails.</span>
+    </div>
+  `;
+
+  document.getElementById('fwRnD').innerHTML = `
+    <div class="section-head">
+      <h2>3. R&amp;D Team — Y1 Revenue Overflow Bonus (Team Pool)</h2>
+    </div>
+    <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
+      <b>How the data is extracted:</b> every SKU's TOC Product Code is
+      matched (exact, then prefix) against the calculator's named target
+      rows — e.g. <code>SLP120</code>/<code>SLP400</code> both roll up
+      under <code>SLP</code>. Only <b>F3M + M4-12</b> stage revenue counts
+      (Year 1, computed live from Launch Date) — once a product's ASINs
+      graduate to PY1, that revenue is Brand Manager's from then on, not
+      R&amp;D's. A single product code can have a mix (an older variant
+      already PY1 alongside a newer one still M4-12) — only the still-Y1
+      portion counts.
+    </p>
+    <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
+      <b>Formula:</b> Team Pool Bonus = Σ (Actual Y1 Revenue − Target) ×
+      Rate, summed across every matched product, then divided evenly
+      across the team (${r.rd_team.team_size} member${r.rd_team.team_size === 1 ? '' : 's'}, from Config).
+    </p>
+    <table style="width:auto; margin-bottom:14px;">
+      <thead><tr><th>Green rate</th><th>Gold rate</th></tr></thead>
+      <tbody><tr><td class="num tint-green">${pct(r.rd_team.green)}</td><td class="num tint-gold">${pct(r.rd_team.gold)}</td></tr></tbody>
+    </table>
+    <div class="banner warn">
+      <span>⚠</span>
+      <span><b>Two quality gates, both required:</b> (1) actual profit margin % must meet or exceed the target margin, <b>AND</b> (2) zero confirmed product quality issues during the Y1 period. Either gate failing means no bonus, regardless of revenue.</span>
+    </div>
+  `;
+
+  document.getElementById('fwMarketplace').innerHTML = `
+    <div class="section-head">
+      <h2>4. Marketplace Team — Off-Amazon Revenue Overflow Bonus</h2>
+    </div>
+    <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
+      <b>How the data is extracted:</b> fully manual — actual and target
+      revenue are typed in directly (Monthly tab), since Sellerboard's
+      export doesn't cover off-Amazon marketplaces.
+    </p>
+    <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
+      <b>Formula:</b> Team Pool Bonus = (Actual Off-Amazon Revenue −
+      Target) × Rate, divided across the team (${r.marketplace.team_size}
+      member${r.marketplace.team_size === 1 ? '' : 's'}, from Config).
+    </p>
+    <table style="width:auto; margin-bottom:14px;">
+      <thead><tr><th>Green rate</th><th>Gold rate</th></tr></thead>
+      <tbody><tr><td class="num tint-green">${pct(r.marketplace.green)}</td><td class="num tint-gold">${pct(r.marketplace.gold)}</td></tr></tbody>
+    </table>
+    <div class="banner warn">
+      <span>⚠</span>
+      <span><b>Quality gate:</b> actual profit margin % must meet or exceed the target margin for the period, same shape as every other track.</span>
+    </div>
+  `;
 }
 
 // ---------- Stage History: audit view, month-by-month, computed live ----------
@@ -434,7 +573,7 @@ async function renderStageHistoryInner() {
         <td>${stageBadge(stage)}</td>
         ${showCountry ? `<td>${countryCell(asin)}</td>` : ''}
       </tr>`).join('');
-    const stageLabel = STAGE_LABELS[stageFilter] || stageFilter;
+    const stageLabel = displayStageLabel(STAGE_LABELS[stageFilter] || stageFilter);
     let footerMsg = matches.length > CAP
       ? `Showing first ${CAP} of ${matches.length}+ ASINs that were ${stageLabel} in ${formatMonthLabel(monthFilter)}${filter ? ' (matching your search too)' : ''}.`
       : `${matches.length} ASIN${matches.length === 1 ? '' : 's'} ${matches.length === 1 ? 'was' : 'were'} ${stageLabel} in ${formatMonthLabel(monthFilter)}${filter ? ' (matching your search too)' : ''}.`;
@@ -595,7 +734,7 @@ async function renderQuarterlyTab() {
       const brandTotal = sum3(brandPerMonth);
       bmHtml += `<tr class="brand-row"><td class="name sub-brand" title="${brandName}">${brandName}</td>${brandPerMonth.map(v => `<td class="num">${v != null ? fmtEUR(v) : '—'}</td>`).join('')}<td class="num">${fmtEUR(brandTotal)}</td></tr>`;
 
-      const stageLabels = ['PY1', 'Y1 (F4-12)', 'Discontinued'];
+      const stageLabels = ['PY1', 'Y1 (F4-12)', 'Discontinued']; // internal keys -- match targets.json's own key scheme, NOT the display label
       stageLabels.forEach(stageLabel => {
         const stagePerMonth = monthData.map(d => {
           if (!d) return null;
@@ -610,7 +749,7 @@ async function renderQuarterlyTab() {
           return sd ? sd.tier : null;
         });
         const stageTotal = sum3(stagePerMonth);
-        bmHtml += `<tr class="stage-row"><td class="name sub">${stageLabel}</td>${stagePerMonth.map((v, i) => bonusCell(v, stageTiers[i])).join('')}<td class="num">${fmtEUR(stageTotal)}</td></tr>`;
+        bmHtml += `<tr class="stage-row"><td class="name sub">${displayStageLabel(stageLabel)}</td>${stagePerMonth.map((v, i) => bonusCell(v, stageTiers[i])).join('')}<td class="num">${fmtEUR(stageTotal)}</td></tr>`;
       });
     }
   }
@@ -796,12 +935,12 @@ async function computeFromRows(rows, month) {
 
   const stageTotals = {};
   const brandStage = {};
-  const byProduct = {}; // R&D: keyed by matched target product code
+  const byProduct = {}; // R&D: keyed by matched target product code -- Y1 ONLY (F3M + M4-12), never PY1/Discontinued/Quality Issue, since R&D's bonus is specifically "Y1 revenue overflow" per the framework, not lifetime revenue. A product code can have a mix of ASINs at different stages (e.g. an older variant already PY1 alongside a newer variant still M4-12) -- only the still-Y1 ones count here.
   byAsin.forEach(rec => {
     bump(stageTotals, rec.stage, rec);
     bump(brandStage, `${rec.brand}||${rec.stage}`, rec);
     const rdCode = matchRdCode(rec.product_code);
-    if (rdCode) bump(byProduct, rdCode, rec);
+    if (rdCode && (rec.stage === 'F3M' || rec.stage === 'M4-12')) bump(byProduct, rdCode, rec);
   });
 
   // Launch Manager's Germany/Pan-EU actuals do NOT come from this file at
@@ -1188,7 +1327,7 @@ function renderInner(data, viewLabel) {
         for (const [stageLabel, sd] of Object.entries(v.stage_detail)) {
           bmHtml += `
             <tr class="stage-row">
-              <td class="name sub">${stageLabel}</td>
+              <td class="name sub">${displayStageLabel(stageLabel)}</td>
               <td class="num">${fmtEUR(sd.actual.sales)}</td>
               <td class="num tint-green">${fmtEUR(sd.green_target)}${sourceTag(sd.target_source)}</td>
               <td class="num tint-gold">${fmtEUR(sd.gold_target)}</td>

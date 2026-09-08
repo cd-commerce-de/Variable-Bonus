@@ -169,6 +169,35 @@ covers Launch Dates already in the TOC comfortably (latest launch on file
 is August 2026, needing visibility through August 2027 to see its full
 F3M→PY1 progression).
 
+### Bonus Framework tab
+
+A reference page explaining, per track, exactly how the bonus is
+calculated — not computed from uploaded data, this is the *rules*
+themselves. For each of the 4 tracks (Brand Manager, Launch Manager,
+R&D, Marketplace): how the data is extracted/matched, the formula, a
+rate table (Green/Gold), and the quality gate(s). **Rates are pulled
+live from `TARGETS.rates` and `TARGETS.stage_weights`, never
+hardcoded** — if Finance updates Config and `extract_targets.py` is
+re-run, this page automatically reflects the new numbers without any
+text needing to be edited. Verified directly: PY1's displayed effective
+rates (0.9% green / 1.8% gold) were checked against the actual
+precomputed `eff_green`/`eff_gold` fields in `targets.json` — matched
+exactly, since the tab reads those same precomputed fields rather than
+recalculating them independently (guarantees this page can never quietly
+disagree with what the Monthly tab actually calculates).
+
+This surfaced a related bug while building it: the display label "Y1
+(F4-12)" was shown everywhere in the UI, but that exact string is also
+the literal **object key** `targets.json` uses internally (inherited from
+the calculator workbook's own section header). An earlier fix that
+changed the label's value directly broke that lookup silently. Fixed
+properly this time — the internal key stays `"Y1 (F4-12)"` (matching
+external files), and a separate `displayStageLabel()` helper converts it
+to "Y1 (M4-12)" only at the point of rendering visible text, never for
+object-key lookups. Verified directly: Brand Manager's total bonus for
+August (€2,447.52) matches the known-correct value exactly after this
+fix, confirming the targets.json lookup wasn't broken.
+
 ## Targets — how they get in
 
 Targets are **not entered manually in the dashboard.** There are two layers:
@@ -323,8 +352,32 @@ fully confirmed.
 
 ## What's computed automatically, and how
 
-- **R&D Team** — per product (matched by TOC Product Code, e.g. `SLP`
-  rolls up `SLP120` + `SLP400`), against that product's calculator target.
+- **R&D Team** — per product, matched by TOC **Product Code** against the
+  calculator's named target rows (`GWK`, `DSD`, `TSE`, `TSF`, `KMS`, `FES`,
+  `FRM02`, `WHS`, `SLP`, `VZW`, `AKS`, `WGH25`, `KMK`, `SUP`). Matching is
+  exact-or-prefix (`matchRdCode()` in `app.js`): a TOC code matches a
+  target row if it equals that row's code, or starts with it — e.g.
+  `SLP120` and `SLP400` both roll up under the calculator's single `SLP`
+  row, `WGH25` and any `WGH25xx` variant roll up under `WGH25`. This
+  mirrors the calculator's own target structure (14 named rows,
+  deliberately coarser than the TOC's per-variant product codes).
+
+  **Critically: only F3M + M4-12 stage revenue counts toward R&D, never
+  PY1 or Discontinued** — R&D's bonus is specifically "Y1 revenue
+  overflow" per the framework (Year 1 = F3M + M4-12 together, the first
+  12 months), not lifetime revenue. A single product code can have a MIX
+  of ASINs at different stages (an older variant already graduated to
+  PY1 alongside a newer variant still in M4-12) — only the still-Y1 ones
+  are counted; a graduated variant's ongoing revenue is Brand Manager's
+  concern from then on, not R&D's. **This was a real bug, found and
+  fixed**: the stage filter was missing entirely, so ALL revenue for a
+  matched product code was counted regardless of stage. Verified against
+  real August data: `VZW` and `WHS` are 100% PY1-stage as of August 2026
+  (every ASIN under those codes has graduated) — before the fix, their
+  full August revenue (€62,896.05 and €13,639.47 respectively) was being
+  wrongly counted toward R&D's Y1 pool; after the fix, both correctly
+  show €0 for August.
+
   Tier: GOLD if Actual ≥ Gold target, GREEN if ≥ Green target, MISS
   otherwise — same logic as the workbook. Bonus pool total is shown, plus
   ÷ team size (from Config).
@@ -336,11 +389,15 @@ fully confirmed.
   - **BM3 (Camille)**: PD
   - **BM4 (Michael)**: Nasswerk, PoolLöwe, TeichHeld
 
-  Each brand's PY1 / Y1 (F4-12) / Discontinued stage is tiered and bonused
-  independently using that stage's *effective* weighted rate from Config
-  (e.g. PY1 = 60% × base rate), summing to a per-brand total, a per-group
-  (BM1-4) subtotal, and a grand total — matching the calculator's own
-  "BM# — BRAND BONUS" subtotal rows.
+  Each brand's PY1 / Y1 (M4-12) / Discontinued stage is tiered and
+  bonused independently using that stage's *effective* weighted rate from
+  Config (e.g. PY1 = 60% × base rate), summing to a per-brand total, a
+  per-group (BM1-4) subtotal, and a grand total — matching the
+  calculator's own "BM# — BRAND BONUS" subtotal rows. (Label fixed:
+  previously displayed as "Y1 (F4-12)" everywhere — a typo, since the TOC
+  and internal stage key have always been `M4-12`, not `F4-12`. Purely a
+  display fix; the underlying calculation was never affected by the
+  label.)
 
   **The company sells other brands too** (the TOC lists ~17), and those
   show up in the Sellerboard export like anything else. Any brand *not*
