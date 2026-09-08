@@ -290,6 +290,18 @@ applied to the Masterlist's search for consistency. Verified directly
 against a real unmapped ASIN from an actual export — got the explanatory
 message, not a bare zero.
 
+**Brand filter dropdown** (populated from every distinct brand actually
+in the TOC — 17 currently) narrows both modes: in reverse-lookup, it
+combines with Stage + Month as an AND filter (e.g. "which Tarpofix ASINs
+were PY1 in August"); in matrix mode, picking a brand alone is now enough
+to see results — the 2-character search requirement only applies when no
+brand is selected, since a brand alone is already a reasonably narrow
+filter. Verified directly: Stage=PY1 + Month=Aug 2026 + Brand=Tarpofix
+returned 170 real ASINs, confirmed every single one actually has Brand =
+Tarpofix (not a partial-match false positive); brand-only in matrix mode
+correctly showed real Tarpofix products across all 24 months without
+needing to type anything in the search box first.
+
 **Reverse-lookup mode adds a "Country" column when Stage = F3M** —
 Germany or Pan-EU only means anything for F3M-stage products (that's the
 only track with a per-country split), so the column only appears then,

@@ -199,7 +199,7 @@
     .auth-card{width:calc(100vw - 48px); max-width:340px; padding:28px 24px;}
 
     /* Stage History / Masterlist filter rows: stack full-width */
-    #stageHistoryFilter, #stageFilterSelect, #monthFilterSelect{width:100%; max-width:none; flex:none;}
+    #stageHistoryFilter, #stageFilterSelect, #monthFilterSelect, #brandFilterSelect{width:100%; max-width:none; flex:none;}
     #masterlistFilter{max-width:none;}
   }
   @media (max-width: 420px) {
@@ -543,7 +543,10 @@
       <select id="monthFilterSelect" onchange="renderStageHistory()">
         <option value="">Pick a month…</option>
       </select>
-      <button class="btn ghost" onclick="document.getElementById('stageFilterSelect').value=''; document.getElementById('monthFilterSelect').value=''; document.getElementById('stageHistoryFilter').value=''; renderStageHistory();" style="font-size:12px;">Clear filters</button>
+      <select id="brandFilterSelect" onchange="renderStageHistory()">
+        <option value="">All brands</option>
+      </select>
+      <button class="btn ghost" onclick="document.getElementById('stageFilterSelect').value=''; document.getElementById('monthFilterSelect').value=''; document.getElementById('brandFilterSelect').value=''; document.getElementById('stageHistoryFilter').value=''; renderStageHistory();" style="font-size:12px;">Clear filters</button>
     </div>
     <div class="table-scroll">
     <table class="stage-history-table" id="stageHistoryTable">

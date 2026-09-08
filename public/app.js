@@ -691,17 +691,31 @@ function ensureMonthFilterOptions() {
   });
   _stageMonthDropdownBuilt = true;
 }
+let _stageBrandDropdownBuilt = false;
+function ensureBrandFilterOptions() {
+  if (_stageBrandDropdownBuilt || !MAPPING) return;
+  const sel = document.getElementById('brandFilterSelect');
+  const brands = Array.from(new Set(Object.values(MAPPING).map(v => v.brand).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  brands.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b; opt.textContent = b;
+    sel.appendChild(opt);
+  });
+  _stageBrandDropdownBuilt = true;
+}
 
 function renderStageHistory() {
   renderStageHistoryInner().catch(err => console.error('Stage History render error:', err));
 }
 async function renderStageHistoryInner() {
   ensureMonthFilterOptions();
+  ensureBrandFilterOptions();
   const months = stageHistoryMonths();
   const filterEl = document.getElementById('stageHistoryFilter');
   const filter = (filterEl.value || '').trim().toLowerCase();
   const stageFilter = document.getElementById('stageFilterSelect').value;
   const monthFilter = document.getElementById('monthFilterSelect').value;
+  const brandFilter = document.getElementById('brandFilterSelect').value;
   const bodyEl = document.getElementById('stageHistoryBody');
   const footerEl = document.getElementById('stageHistoryFooter');
   const headerRow = document.getElementById('stageHistoryHeaderRow');
@@ -735,6 +749,7 @@ async function renderStageHistoryInner() {
     const CAP = 300;
     const matches = [];
     for (const [asin, info] of Object.entries(MAPPING)) {
+      if (brandFilter && info.brand !== brandFilter) continue;
       if (filter) {
         const hay = `${asin} ${info.product || ''} ${info.brand || ''}`.toLowerCase();
         if (!hay.includes(filter)) continue;
@@ -752,9 +767,10 @@ async function renderStageHistoryInner() {
         ${showCountry ? `<td>${countryCell(asin)}</td>` : ''}
       </tr>`).join('');
     const stageLabel = displayStageLabel(STAGE_LABELS[stageFilter] || stageFilter);
+    const qualifiers = [brandFilter ? `brand "${brandFilter}"` : null, filter ? 'matching your search' : null].filter(Boolean).join(' and ');
     let footerMsg = matches.length > CAP
-      ? `Showing first ${CAP} of ${matches.length}+ ASINs that were ${stageLabel} in ${formatMonthLabel(monthFilter)}${filter ? ' (matching your search too)' : ''}.`
-      : `${matches.length} ASIN${matches.length === 1 ? '' : 's'} ${matches.length === 1 ? 'was' : 'were'} ${stageLabel} in ${formatMonthLabel(monthFilter)}${filter ? ' (matching your search too)' : ''}.`;
+      ? `Showing first ${CAP} of ${matches.length}+ ASINs that were ${stageLabel} in ${formatMonthLabel(monthFilter)}${qualifiers ? ` (${qualifiers})` : ''}.`
+      : `${matches.length} ASIN${matches.length === 1 ? '' : 's'} ${matches.length === 1 ? 'was' : 'were'} ${stageLabel} in ${formatMonthLabel(monthFilter)}${qualifiers ? ` (${qualifiers})` : ''}.`;
     if (showCountry && !countryDataAvailable) footerMsg += ` No Germany/Pan-EU file has been uploaded for ${formatMonthLabel(monthFilter)} yet, so the Country column can't be filled in.`;
     footerEl.textContent = footerMsg;
     return;
@@ -769,17 +785,21 @@ async function renderStageHistoryInner() {
     footerEl.textContent = `Pick a month too — a stage alone isn't enough to look up matching ASINs (the same product can be a different stage in different months).`;
     return;
   }
-  if (filter.length < 2) {
+  if (filter.length < 2 && !brandFilter) {
     bodyEl.innerHTML = '';
-    footerEl.textContent = `${Object.keys(MAPPING).length.toLocaleString('en-US')} ASINs on file. Type at least 2 characters above to search, or pick a stage + month to look up matching ASINs directly.`;
+    footerEl.textContent = `${Object.keys(MAPPING).length.toLocaleString('en-US')} ASINs on file. Type at least 2 characters above to search, pick a brand, or pick a stage + month to look up matching ASINs directly.`;
     return;
   }
 
   const CAP = 100; // wide table (24 month columns) -- keep row count tighter than the plain masterlist
   const matches = [];
   for (const [asin, info] of Object.entries(MAPPING)) {
-    const hay = `${asin} ${info.product || ''} ${info.brand || ''}`.toLowerCase();
-    if (hay.includes(filter)) matches.push([asin, info]);
+    if (brandFilter && info.brand !== brandFilter) continue;
+    if (filter) {
+      const hay = `${asin} ${info.product || ''} ${info.brand || ''}`.toLowerCase();
+      if (!hay.includes(filter)) continue;
+    }
+    matches.push([asin, info]);
     if (matches.length > CAP) break;
   }
 
