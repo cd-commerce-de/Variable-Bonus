@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="vendor/papaparse.min.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
 <style>
   :root{
     --ink:#0F172A; --ink-2:#1E293B; --ember:#D97757; --ember-light:#E8956F;
@@ -394,7 +394,7 @@
       <thead><tr><th>Market</th><th>Actual Rev.</th><th class="th-green">Green target</th><th class="th-gold">Gold target</th><th>Actual Margin %</th><th class="th-green">Green Margin Target</th><th class="th-gold">Gold Margin Target</th><th>Tier</th><th>Bonus (€)</th></tr></thead>
       <tbody>
         <tr>
-          <td class="name">Off-Amazon</td>
+          <td class="name">eBay, Otto &amp; Kaufland</td>
           <td><input class="target-input" id="mpActual" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>
           <td class="tint-green"><input class="target-input" id="mpGreen" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>
           <td class="tint-gold"><input class="target-input" id="mpGold" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>

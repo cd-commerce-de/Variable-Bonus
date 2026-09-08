@@ -529,15 +529,15 @@ function renderBonusFramework() {
 
   document.getElementById('fwMarketplace').innerHTML = `
     <div class="section-head">
-      <h2>4. Marketplace Team — Off-Amazon Revenue Overflow Bonus</h2>
+      <h2>4. Marketplace Team — eBay, Otto &amp; Kaufland Revenue Overflow Bonus</h2>
     </div>
     <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
       <b>How the data is extracted:</b> fully manual — actual and target
       revenue are typed in directly (Monthly tab), since Sellerboard's
-      export doesn't cover off-Amazon marketplaces.
+      export doesn't cover these marketplaces.
     </p>
     <p style="margin:0 0 12px; font-size:13.5px; color:var(--line-700);">
-      <b>Formula:</b> Team Pool Bonus = (Actual Off-Amazon Revenue −
+      <b>Formula:</b> Team Pool Bonus = (Actual Revenue −
       Target) × Rate, divided across the team (${r.marketplace.team_size}
       member${r.marketplace.team_size === 1 ? '' : 's'}, from Config).
     </p>

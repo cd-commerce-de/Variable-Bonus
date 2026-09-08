@@ -312,6 +312,22 @@ even if you're not touching targets.
   are manual inputs that aren't currently saved with the rest of the
   month's data, so there's nothing to compute from yet.
 
+## No external CDN dependencies
+
+PapaParse and Chart.js are **bundled locally** (`public/vendor/`) rather
+than loaded from a CDN. Previously both loaded from `cdnjs.cloudflare.com`
+— reported symptom: "Chart is not defined" below the Marketplace section,
+meaning the CDN script failed to load for that specific user's network
+(browser/firewall/ad-blocker — cdnjs itself was reachable from other
+environments, so this wasn't a global outage, just not universally
+reachable). Rather than guess at the exact network cause, removed the
+dependency entirely: `npm install papaparse chart.js`, copied
+`chart.umd.min.js` and `papaparse.min.js` straight from each package's
+own `dist/` into `public/vendor/`, and pointed `index.html`'s two
+`<script>` tags at the local files instead. Verified both files execute
+correctly and expose their real API (`Papa.parse`, `Chart`) after this
+change, not just that they're syntactically valid.
+
 ## Mobile
 
 Added a real breakpoint (`@media max-width: 720px`, with a second one at
