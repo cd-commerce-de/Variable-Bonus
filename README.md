@@ -47,6 +47,36 @@ files at once, so several months can be done in one go. Each upload:
   matches, or **loads and updates an already-saved month** otherwise (no
   need to re-upload the main file just to add Launch Manager data) —
   saves immediately either way.
+
+### Multiple files for the same country+month: combine, not overwrite
+
+**Real bug, found and fixed**: if you have to export a separate report
+per marketplace (e.g. France, Italy, Spain each as their own file, all
+rolling up into "Pan-EU"), uploading a second file for the same
+country+month used to silently **overwrite** the first — the second
+upload's numbers replaced the first's entirely, with no warning. Multiple
+distinct files for the same country+month now correctly **add together**.
+
+Fixed via per-file contribution tracking, keyed by filename
+(`pan_eu_contributions` / `germany_contributions` on the saved month) —
+the country's total is always recomputed fresh by summing every tracked
+file's own contribution, never overwritten by "whichever file was
+uploaded last." This also handles the natural follow-up case correctly:
+**re-uploading the exact same filename** (e.g. a corrected version of a
+file you already uploaded) **replaces only that file's own contribution**
+instead of double-counting it — new distinct filenames add, matching
+filenames replace. The UK-marketplace redirect (see below) follows the
+same per-file rule, so re-uploading a Pan-EU file that had UK ASINs
+doesn't duplicate its Germany redirect either.
+
+Verified directly, not just reasoned about: uploaded a France file
+(€5,000) then an Italy file (€3,000) for the same month — correctly
+combined to €8,000 across 2 files. Then re-uploaded a corrected version
+of the France file under the identical filename (now €6,000) — correctly
+came out to €9,000 total (the corrected France + the original Italy),
+not €14,000, confirming the replace-on-same-filename rule actually works
+and doesn't silently double-count.
+
 - **Survives a main-file re-upload.** If the main export for a month is
   re-uploaded later (e.g. to fix an incomplete/filtered export), any
   already-uploaded Germany/Pan-EU data for that month is carried forward,
@@ -145,6 +175,17 @@ one thing along the way: my own hand-rolled test-harness CSV parser (used
 earlier for quick tests throughout this project) was mangling this
 particular row — re-verified with the *real* PapaParse library to
 confirm the actual app code was never affected, just my test tooling.
+
+**Backward-compatibility bug, found and fixed**: months saved *before*
+`unmapped_details` existed only have the older `unmapped_asins` field
+(bare ASIN strings, no product name) — the tab originally only looked for
+`unmapped_details` and found nothing in those older saves, silently
+reporting "No unmapped ASINs found" even though real ones existed.
+Fixed with a fallback: falls back to `unmapped_asins` when
+`unmapped_details` isn't present (shown with no product name, since the
+older format never captured one). Verified directly against the real
+seed data (saved in the older format) — correctly finds all 23 real
+unmapped ASINs instead of reporting zero.
 
 ## Stage is computed live, not read from a fixed TOC column
 

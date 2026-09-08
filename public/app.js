@@ -601,16 +601,24 @@ async function renderUnmappedAsinsTab() {
 
   const months = Array.from(document.getElementById('monthSelect').options).map(o => o.value);
   const seen = {}; // asin -> product (first one found)
+  const collect = (meta) => {
+    if (!meta) return;
+    // Newer format: {asin, product} pairs -- has a real product name.
+    if (meta.unmapped_details) {
+      meta.unmapped_details.forEach(u => { if (u.asin && !(u.asin in seen)) seen[u.asin] = u.product; });
+    }
+    // Older saves (from before unmapped_details existed) only have bare
+    // ASIN strings -- still worth surfacing, just with no product name to show.
+    if (meta.unmapped_asins) {
+      meta.unmapped_asins.forEach(asin => { if (asin && !(asin in seen)) seen[asin] = ''; });
+    }
+  };
   for (const m of months) {
     const d = await loadMonth(m);
-    if (d && d.meta && d.meta.unmapped_details) {
-      d.meta.unmapped_details.forEach(u => { if (u.asin && !(u.asin in seen)) seen[u.asin] = u.product; });
-    }
+    if (d) collect(d.meta);
   }
   // Also fold in whatever's currently loaded in-session, even if not saved yet.
-  if (CURRENT && CURRENT.meta && CURRENT.meta.unmapped_details) {
-    CURRENT.meta.unmapped_details.forEach(u => { if (u.asin && !(u.asin in seen)) seen[u.asin] = u.product; });
-  }
+  if (CURRENT) collect(CURRENT.meta);
 
   // Drop anything that's already mapped now (a manual addition from
   // earlier in this session, or an updated toc_mapping.json) -- it's
@@ -1029,6 +1037,17 @@ function parseCountryF3MFile(file, month) {
   });
 }
 
+function sumContributions(contributions) {
+  const out = { sales: 0, units: 0, net_profit: 0, sku_count: 0 };
+  const allAsins = new Set();
+  for (const c of Object.values(contributions || {})) {
+    out.sales += c.sales; out.units += c.units; out.net_profit += c.net_profit;
+    (c.asins || []).forEach(a => allAsins.add(a));
+  }
+  out.sku_count = allAsins.size;
+  return { totals: out, asins: Array.from(allAsins) };
+}
+
 async function applyCountryUpload(file, country) {
   // country: 'germany' | 'pan_eu'
   const month = guessMonthFromFilename(file.name);
@@ -1043,28 +1062,46 @@ async function applyCountryUpload(file, country) {
 
   data = JSON.parse(JSON.stringify(data));
   const key = country === 'germany' ? 'germany' : 'pan_eu';
-  data.launch_manager[`actual_${key}`] = { sales: totals.sales, units: totals.units, net_profit: totals.net_profit, sku_count: totals.sku_count };
-  data.launch_manager[`${key}_source`] = 'dedicated_upload';
-  data.launch_manager[`${key}_asins`] = totals.matchedAsins; // which specific F3M ASINs this country's actual came from -- lets Stage History show "which country" per ASIN
+
+  // Per-file contribution tracking, keyed by filename: multiple DISTINCT
+  // files for the same country+month ADD together (e.g. a separate
+  // export per marketplace, all rolling up into "Pan-EU"); re-uploading
+  // the SAME filename (a correction) REPLACES only that file's own prior
+  // contribution instead of double-counting it.
+  data.launch_manager[`${key}_contributions`] = data.launch_manager[`${key}_contributions`] || {};
+  data.launch_manager[`${key}_contributions`][file.name] = {
+    sales: totals.sales, units: totals.units, net_profit: totals.net_profit, asins: totals.matchedAsins,
+  };
 
   let redirectMsg = '';
-  if (country === 'pan_eu' && totals.ukRedirect.asins.length) {
-    // These ASINs came from the Pan-EU file but sell on Amazon.co.uk too --
-    // redirect their revenue into Germany (adding to whatever Germany
-    // already has this month, not overwriting it) and into germany_asins,
-    // so Stage History's Country column reflects the same redirect.
-    const existingGermany = data.launch_manager.actual_germany || { sales: 0, units: 0, net_profit: 0, sku_count: 0 };
-    data.launch_manager.actual_germany = {
-      sales: existingGermany.sales + totals.ukRedirect.sales,
-      units: existingGermany.units + totals.ukRedirect.units,
-      net_profit: existingGermany.net_profit + totals.ukRedirect.net_profit,
-      sku_count: existingGermany.sku_count + totals.ukRedirect.asins.length,
-    };
-    // Only mark Germany as "dedicated_upload" if it wasn't already pending -- redirection alone still counts as real data for Germany.
-    data.launch_manager.germany_source = 'dedicated_upload';
-    data.launch_manager.germany_asins = Array.from(new Set([...(data.launch_manager.germany_asins || []), ...totals.ukRedirect.asins]));
-    redirectMsg = ` ${totals.ukRedirect.asins.length} ASIN(s) also listed on Amazon.co.uk were redirected to Germany instead (€${totals.ukRedirect.sales.toFixed(2)}), per policy — UK sales always count as Germany, never Pan-EU.`;
+  if (country === 'pan_eu') {
+    // UK-redirect is tracked as this SAME file's own entry in Germany's
+    // contributions (keyed off this filename too) -- so it follows the
+    // exact same add-once/replace-on-reupload rule, never duplicating.
+    data.launch_manager.germany_contributions = data.launch_manager.germany_contributions || {};
+    const redirectKey = `${file.name}::uk_redirect`;
+    if (totals.ukRedirect.asins.length) {
+      data.launch_manager.germany_contributions[redirectKey] = {
+        sales: totals.ukRedirect.sales, units: totals.ukRedirect.units, net_profit: totals.ukRedirect.net_profit, asins: totals.ukRedirect.asins,
+      };
+      redirectMsg = ` ${totals.ukRedirect.asins.length} ASIN(s) also listed on Amazon.co.uk were redirected to Germany instead (€${totals.ukRedirect.sales.toFixed(2)}), per policy — UK sales always count as Germany, never Pan-EU.`;
+    } else {
+      delete data.launch_manager.germany_contributions[redirectKey]; // this file has no UK ASINs (or none anymore, if re-uploaded) -- don't leave a stale redirect behind
+    }
   }
+
+  // Recompute both countries' totals fresh from ALL tracked
+  // contributions -- never from just this one file -- so multiple
+  // distinct uploads correctly combine.
+  const panEuSum = sumContributions(data.launch_manager.pan_eu_contributions);
+  data.launch_manager.actual_pan_eu = panEuSum.totals;
+  data.launch_manager.pan_eu_asins = panEuSum.asins;
+  if (Object.keys(data.launch_manager.pan_eu_contributions || {}).length) data.launch_manager.pan_eu_source = 'dedicated_upload';
+
+  const germanySum = sumContributions(data.launch_manager.germany_contributions);
+  data.launch_manager.actual_germany = germanySum.totals;
+  data.launch_manager.germany_asins = germanySum.asins;
+  if (Object.keys(data.launch_manager.germany_contributions || {}).length) data.launch_manager.germany_source = 'dedicated_upload';
 
   data = applyTargetsAndTiers(data, false, await loadMonthlyTargets(month));
 
@@ -1072,7 +1109,9 @@ async function applyCountryUpload(file, country) {
   if (CURRENT && CURRENT.month === month) { CURRENT = data; render(CURRENT, 'monthly'); populateMarketplaceInputs(CURRENT); if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab(); }
 
   const countryLabel = country === 'germany' ? 'Germany' : 'Pan-EU';
-  let msg = `${formatMonthLabel(month)}: ${countryLabel} set to €${totals.sales.toFixed(2)} from ${totals.matched - totals.ukRedirect.asins.length} F3M product(s).${redirectMsg} Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
+  const newTotal = country === 'germany' ? germanySum.totals.sales : panEuSum.totals.sales;
+  const fileCount = Object.keys(data.launch_manager[`${key}_contributions`]).length;
+  let msg = `${formatMonthLabel(month)}: this file contributed €${totals.sales.toFixed(2)} from ${totals.matched - totals.ukRedirect.asins.length} F3M product(s). ${countryLabel} total is now €${newTotal.toFixed(2)} across ${fileCount} file(s).${redirectMsg} Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
   // If the result is suspiciously zero, say exactly why instead of leaving it a mystery.
   if (totals.matched === 0) {
     const totalRows = totals.matched + totals.skippedNonF3M + totals.skippedUnmapped;
