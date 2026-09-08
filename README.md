@@ -108,6 +108,44 @@ subtraction-based Pan-EU override) has been fully retired in favor of this
 Marketplace field records where an ASIN's cost settings live, not which
 marketplace each sale happened on.
 
+## Unmapped ASINs tab
+
+Aggregates every ASIN not in the TOC, across **every saved month** (not
+just the currently-viewed one) — via each month's `meta.unmapped_details`
+(now `{asin, product}` pairs, not just bare ASIN strings, so this tab has
+a real product name to show without needing the original file
+re-uploaded). For each one: enter Brand and Launch Date (required —
+Launch Date is what makes stage computation possible at all) and
+optionally a Product Code (only matters if it should count toward an R&D
+target). Click Save and it's merged into the live `MAPPING` immediately —
+usable in Stage History, the Masterlist, everywhere — with zero need to
+regenerate `toc_mapping.json` or reload the page.
+
+**Persistence reuses the exact same save infrastructure as a real
+month** — no new API endpoint needed. Additions are stored under a
+pseudo-month key (`_manual_asin_additions`) that can never collide with a
+real `YYYY-MM` month, via the same `saveMonthData()`/`loadMonth()`
+functions everything else already uses. Loaded and merged into `MAPPING`
+once at boot, and again immediately after each save.
+
+**Important limitation, stated directly rather than glossed over**: this
+fixes the ASIN going forward. An **already-saved** month's numbers don't
+change until that month's main export is re-uploaded — computing R&D/
+Brand Manager/stage attribution requires the original raw rows, which
+aren't kept around after a month is saved (only the aggregated result
+is). The tab's own banner says this explicitly.
+
+Verified directly against real July data (not synthetic): scanned and
+found 23 real unmapped ASINs, filled in Brand + Launch Date for one
+(`B08WBQ184L`, a real Tarpofix accessory), confirmed the save persisted
+the exact right product name (German umlaut and all — `"PH2
+Planenknöpfe Kunststoff"`), and confirmed a rescan correctly dropped it
+from the list (22 remaining) since it's now resolved. Caught and fixed
+one thing along the way: my own hand-rolled test-harness CSV parser (used
+earlier for quick tests throughout this project) was mangling this
+particular row — re-verified with the *real* PapaParse library to
+confirm the actual app code was never affected, just my test tooling.
+
 ## Stage is computed live, not read from a fixed TOC column
 
 This is the core fix: a SKU's stage (F3M / Y1 "M4-12" / PY1) is a **function
@@ -312,6 +350,40 @@ even if you're not touching targets.
   are manual inputs that aren't currently saved with the rest of the
   month's data, so there's nothing to compute from yet.
 
+## Auth gate actually blocks content now
+
+**Real bug, found and fixed**: the passcode overlay showed correctly, but
+the dashboard content behind it was fully visible and scrollable the
+whole time — a `.locked` CSS class existed (blur + `pointer-events:none`)
+but was never actually applied anywhere in the JavaScript, so it did
+nothing. Fixed properly:
+- Wrapped all real content in `<div id="appContent">`, with `class="locked"`
+  hardcoded directly in the raw HTML (not added by JS after the fact) —
+  this matters: if the lock were only applied after an async session
+  check resolves, there'd be a brief window where unlocked content could
+  render before JS finishes. Failing closed by default means there's no
+  such window.
+- Added `body.auth-locked{overflow:hidden}` too, since blur +
+  pointer-events on a child doesn't necessarily stop the page itself from
+  scrolling if `<body>`/`<html>` is the actual scroll container.
+- A single `unlockDashboard()` function removes both the overlay and both
+  lock classes together, called from every path that previously only
+  hid the overlay (successful login, valid existing session) — 4 call
+  sites consolidated into one.
+
+Verified directly, not just reasoned about: checked the raw HTML *before
+any JavaScript runs* and confirmed both lock classes are already present;
+simulated a 401 (no valid session) and confirmed the content stays locked
+rather than assuming a successful path; then simulated a successful
+unlock and confirmed both classes are correctly removed.
+
+## Tab order
+
+Reordered by importance, with Upload data moved to last (an
+administrative action, not a primary viewing destination): **Monthly,
+Quarterly, Impact Analysis, Bonus Framework, Stage History, Unmapped
+ASINs, Upload data.**
+
 ## No external CDN dependencies
 
 PapaParse and Chart.js are **bundled locally** (`public/vendor/`) rather
@@ -483,6 +555,17 @@ fully confirmed.
   GREEN tier, €50.00 bonus), switched to August — fields came back
   completely empty, not showing July's numbers — then switched back to
   July and got the exact persisted values and tier back.
+
+  **Currency/percent symbols on the input fields themselves**: an
+  `<input type="number">` can't contain a "€" or "%" inside its value at
+  all (that would make it an invalid number) — so these inputs looked
+  bare no matter what, unlike every other track's read-only cells which
+  use `fmtEUR()`/`fmtPct()` to format display text. Fixed the only way
+  actually possible for a live number input: wrapped each one in a small
+  `.input-affix` span that overlays a static "€" (left) or "%" (right)
+  next to the box via CSS `::before`/`::after`, with matching padding on
+  the input so the typed digits never overlap the symbol. Applied to all
+  6 Marketplace fields — 3 currency, 3 percent.
 - **Every track's table shows Actual Margin % and Target Margin %
   explicitly**, not just as an invisible pass/fail baked into the tier —
   these numbers drive the quality gate (per the Variable Bonus Framework:

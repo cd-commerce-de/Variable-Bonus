@@ -116,6 +116,14 @@ function monthsInQuarterKey(quarterKey) { // "2026-Q3" -> ["2026-07","2026-08","
 }
 
 // ---------- Auth (local convenience gate only — see note above) ----------
+function unlockDashboard() {
+  // Both must happen together: hiding the overlay alone leaves the real
+  // content sitting there, blurred but still scrollable/interactive
+  // underneath if this isn't also cleared -- that was the actual bug.
+  document.getElementById('authGate').style.display = 'none';
+  document.getElementById('appContent').classList.remove('locked');
+  document.body.classList.remove('auth-locked');
+}
 async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -132,7 +140,7 @@ async function tryLogin() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ passcode: val }),
     });
-    if (res.ok) { document.getElementById('authGate').style.display = 'none'; return; }
+    if (res.ok) { unlockDashboard(); return; }
     if (res.status === 401) { errEl.textContent = 'Incorrect passcode.'; return; }
     // any other status (e.g. 500 not configured) -> fall through to local check
   } catch (e) { /* API not deployed (e.g. local static preview) -> fall through */ }
@@ -141,7 +149,7 @@ async function tryLogin() {
   const hash = await sha256(val);
   if (hash === PASSCODE_HASH && PASSCODE_HASH !== 'REPLACE_WITH_SHA256_HASH') {
     sessionStorage.setItem('cdc_authed', '1');
-    document.getElementById('authGate').style.display = 'none';
+    unlockDashboard();
   } else {
     errEl.textContent = 'Incorrect passcode.';
   }
@@ -157,13 +165,13 @@ async function checkSession() {
   // touches sessionStorage.
   try {
     const res = await fetch('/api/session');
-    if (res.ok) { document.getElementById('authGate').style.display = 'none'; return; }
+    if (res.ok) { unlockDashboard(); return; }
     if (res.status === 401) return; // definitively logged out server-side
   } catch (e) { /* API not deployed -- fall through to local-only check */ }
 
   // Fallback for local testing only -- NOT secure, see file header note.
   if (sessionStorage.getItem('cdc_authed') === '1') {
-    document.getElementById('authGate').style.display = 'none';
+    unlockDashboard();
   }
 }
 checkSession();
@@ -207,6 +215,9 @@ async function boot() {
       UK_ASINS = new Set(mm.ambiguous_asins.filter(a => (a.marketplaces_seen || []).includes('Amazon.co.uk')).map(a => a.asin));
     }
   } catch (e) { /* optional -- if this file isn't present, UK redirection simply doesn't apply */ }
+  try {
+    mergeManualAdditionsIntoMapping(await loadManualAdditions());
+  } catch (e) { /* none saved yet, or API unavailable -- fine, nothing to merge */ }
   await refreshMonthList();
 }
 async function loadMonthlyTargets(month) {
@@ -279,6 +290,30 @@ async function loadMonth(month) {
   } catch (e) {}
 
   return null;
+}
+
+// ---------- Manually-added ASINs (Unmapped ASINs tab) ----------
+// Reuses the exact same save/load infrastructure as a real month, under a
+// pseudo-month key that can never collide with a real "YYYY-MM" month --
+// no new API surface needed. Merged into the live MAPPING at boot and
+// again immediately after each save, so additions are usable right away
+// without a page reload or a new toc_mapping.json.
+const MANUAL_ASIN_KEY = '_manual_asin_additions';
+async function loadManualAdditions() {
+  const saved = await loadMonth(MANUAL_ASIN_KEY);
+  return (saved && saved.additions) ? saved.additions : {};
+}
+function mergeManualAdditionsIntoMapping(additions) {
+  for (const [asin, info] of Object.entries(additions)) {
+    MAPPING[asin] = { ...(MAPPING[asin] || {}), ...info };
+  }
+}
+async function saveManualAddition(asin, info) {
+  const existing = await loadManualAdditions();
+  existing[asin] = info;
+  await saveMonthData({ month: MANUAL_ASIN_KEY, additions: existing });
+  mergeManualAdditionsIntoMapping({ [asin]: info });
+  return existing;
 }
 
 // ---------- Marketplace: fully manual, but scoped strictly to CURRENT.month ----------
@@ -411,18 +446,21 @@ function setTab(t) {
   document.getElementById('tabImpact').style.display = t === 'impact' ? 'block' : 'none';
   document.getElementById('tabStage').style.display = t === 'stage' ? 'block' : 'none';
   document.getElementById('tabFramework').style.display = t === 'framework' ? 'block' : 'none';
+  document.getElementById('tabUnmapped').style.display = t === 'unmapped' ? 'block' : 'none';
   document.getElementById('tabUploadBtn').classList.toggle('active', t === 'upload');
   document.getElementById('tabMonthlyBtn').classList.toggle('active', t === 'monthly');
   document.getElementById('tabQuarterlyBtn').classList.toggle('active', t === 'quarterly');
   document.getElementById('tabImpactBtn').classList.toggle('active', t === 'impact');
   document.getElementById('tabStageBtn').classList.toggle('active', t === 'stage');
   document.getElementById('tabFrameworkBtn').classList.toggle('active', t === 'framework');
+  document.getElementById('tabUnmappedBtn').classList.toggle('active', t === 'unmapped');
   document.getElementById('monthSelect').style.display = t === 'quarterly' ? 'none' : '';
   document.getElementById('quarterSelect').style.display = t === 'quarterly' ? '' : 'none';
   document.getElementById('periodBadge').style.display = t === 'quarterly' ? 'none' : '';
   if (t === 'quarterly') renderQuarterlyTab();
   if (t === 'stage') renderStageHistory();
   if (t === 'framework') renderBonusFramework();
+  if (t === 'unmapped') renderUnmappedAsinsTab();
 }
 
 // ---------- Bonus Framework tab: how data is extracted + how bonus is
@@ -550,6 +588,69 @@ function renderBonusFramework() {
       <span><b>Quality gate:</b> actual profit margin % must meet or exceed the target margin for the period, same shape as every other track.</span>
     </div>
   `;
+}
+
+// ---------- Unmapped ASINs tab: aggregate across every saved month, let
+// the user fill in Brand + Launch Date (+ optional Product Code) right
+// here, and it's usable immediately -- no new toc_mapping.json needed. ----------
+async function renderUnmappedAsinsTab() {
+  const bodyEl = document.getElementById('unmappedAsinsBody');
+  const footerEl = document.getElementById('unmappedAsinsFooter');
+  bodyEl.innerHTML = '';
+  footerEl.textContent = 'Scanning every saved month…';
+
+  const months = Array.from(document.getElementById('monthSelect').options).map(o => o.value);
+  const seen = {}; // asin -> product (first one found)
+  for (const m of months) {
+    const d = await loadMonth(m);
+    if (d && d.meta && d.meta.unmapped_details) {
+      d.meta.unmapped_details.forEach(u => { if (u.asin && !(u.asin in seen)) seen[u.asin] = u.product; });
+    }
+  }
+  // Also fold in whatever's currently loaded in-session, even if not saved yet.
+  if (CURRENT && CURRENT.meta && CURRENT.meta.unmapped_details) {
+    CURRENT.meta.unmapped_details.forEach(u => { if (u.asin && !(u.asin in seen)) seen[u.asin] = u.product; });
+  }
+
+  // Drop anything that's already mapped now (a manual addition from
+  // earlier in this session, or an updated toc_mapping.json) -- it's
+  // resolved, even if some already-saved month's stale meta still lists it.
+  const stillUnmapped = Object.entries(seen).filter(([asin]) => !MAPPING[asin]);
+
+  if (!stillUnmapped.length) {
+    footerEl.textContent = months.length ? 'No unmapped ASINs found across any saved month. Everything checks out.' : 'No saved months to scan yet.';
+    return;
+  }
+
+  bodyEl.innerHTML = stillUnmapped.map(([asin, product]) => `
+    <tr id="ua-row-${asin}">
+      <td class="name">${asin}</td>
+      <td class="name" title="${product || ''}">${product || '—'}</td>
+      <td><input class="target-input" style="width:130px; text-align:left;" id="ua-brand-${asin}" type="text" placeholder="Brand"></td>
+      <td><input class="target-input" style="width:100px; text-align:left;" id="ua-code-${asin}" type="text" placeholder="optional"></td>
+      <td><input class="target-input" style="width:130px;" id="ua-launch-${asin}" type="date"></td>
+      <td><button class="btn primary" style="padding:6px 12px; font-size:12px;" onclick="saveUnmappedAsinRow('${asin}')">Save</button></td>
+    </tr>`).join('');
+  footerEl.textContent = `${stillUnmapped.length} unmapped ASIN(s) found across ${months.length} saved month(s).`;
+}
+
+async function saveUnmappedAsinRow(asin) {
+  const brand = document.getElementById(`ua-brand-${asin}`).value.trim();
+  const productCode = document.getElementById(`ua-code-${asin}`).value.trim();
+  const launchDate = document.getElementById(`ua-launch-${asin}`).value;
+  const row = document.getElementById(`ua-row-${asin}`);
+  if (!brand || !launchDate) {
+    const existingMsg = row.querySelector('.ua-error');
+    if (existingMsg) existingMsg.remove();
+    row.insertAdjacentHTML('beforeend', `<td class="ua-error" style="color:var(--bad); font-size:11.5px;">Brand and Launch Date are both required.</td>`);
+    return;
+  }
+  const product = row.querySelector('td:nth-child(2)').getAttribute('title') || '';
+  const info = { brand, product, product_code: productCode || null, launch_date: launchDate, discontinued_start_date: null, quality_issue_start_date: null, toc_stage_snapshot: null };
+  await saveManualAddition(asin, info);
+  row.style.opacity = '0.5';
+  row.querySelector('td:last-child').innerHTML = '<span class="tier-tag green">Saved ✓</span>';
+  renderMasterlist(); // if the Upload tab's masterlist is open, reflect the new ASIN there too
 }
 
 // ---------- Stage History: audit view, month-by-month, computed live ----------
@@ -1133,6 +1234,10 @@ async function computeFromRows(rows, month) {
       mapped_rows: byAsin.length,
       unmapped_rows: unmapped.filter(u => u.reason !== 'future_launch_or_unknown').length,
       unmapped_asins: Array.from(new Set(unmapped.filter(u => u.reason !== 'future_launch_or_unknown').map(u => u.asin))).filter(Boolean).sort(),
+      // {asin, product} pairs, not just bare ASINs -- needed so the Unmapped ASINs tab can show a useful product name without re-uploading the original file. Deduplicated by ASIN.
+      unmapped_details: Object.values(Object.fromEntries(
+        unmapped.filter(u => u.reason !== 'future_launch_or_unknown' && u.asin).map(u => [u.asin, { asin: u.asin, product: u.product || '' }])
+      )),
       future_launch_rows: unmapped.filter(u => u.reason === 'future_launch_or_unknown').length,
       future_launch_asins: Array.from(new Set(unmapped.filter(u => u.reason === 'future_launch_or_unknown').map(u => u.asin))).filter(Boolean).sort(),
     },

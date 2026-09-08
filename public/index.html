@@ -132,6 +132,12 @@
   tr.impact-role-row td{background:var(--line-50); font-weight:700;}
 
   .target-input{width:100px; padding:5px 8px; border:1px solid var(--line-300); border-radius:7px; font-size:12.5px; text-align:right; font-family:'Inter',sans-serif;}
+  .input-affix{position:relative; display:inline-block;}
+  .input-affix.currency .target-input{padding-left:16px;}
+  .input-affix.percent .target-input{padding-right:16px;}
+  .input-affix::before, .input-affix::after{position:absolute; top:50%; transform:translateY(-50%); font-size:12px; color:var(--line-500); pointer-events:none;}
+  .input-affix.currency::before{content:'€'; left:7px;}
+  .input-affix.percent::after{content:'%'; right:7px;}
   .tier-tag{font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; white-space:nowrap;}
   .tier-tag.gold{background:#FEF3C7; color:#92400E;}
   .tier-tag.green{background:#D1FAE5; color:#065F46;}
@@ -148,6 +154,7 @@
   footer .confidential{font-weight:600; color:var(--line-500);}
 
   .locked{filter:blur(6px); pointer-events:none; user-select:none;}
+  body.auth-locked{overflow:hidden;}
   #authGate{
     position:fixed; inset:0; background:rgba(15,23,42,.92); display:flex; align-items:center; justify-content:center; z-index:50;
   }
@@ -201,7 +208,7 @@
   }
 </style>
 </head>
-<body>
+<body class="auth-locked">
 
 <div id="authGate">
   <div class="auth-card">
@@ -212,6 +219,8 @@
     <button class="btn primary" onclick="tryLogin()">Unlock dashboard</button>
   </div>
 </div>
+
+<div id="appContent" class="locked">
 
 <header class="top">
   <div class="top-row">
@@ -229,10 +238,11 @@
   <nav class="tab-nav">
     <button id="tabMonthlyBtn" class="tab-btn active" onclick="setTab('monthly')">Monthly</button>
     <button id="tabQuarterlyBtn" class="tab-btn" onclick="setTab('quarterly')">Quarterly</button>
-    <button id="tabUploadBtn" class="tab-btn" onclick="setTab('upload')">Upload data</button>
     <button id="tabImpactBtn" class="tab-btn" onclick="setTab('impact')">Impact Analysis</button>
-    <button id="tabStageBtn" class="tab-btn" onclick="setTab('stage')">Stage History</button>
     <button id="tabFrameworkBtn" class="tab-btn" onclick="setTab('framework')">Bonus Framework</button>
+    <button id="tabStageBtn" class="tab-btn" onclick="setTab('stage')">Stage History</button>
+    <button id="tabUnmappedBtn" class="tab-btn" onclick="setTab('unmapped')">Unmapped ASINs</button>
+    <button id="tabUploadBtn" class="tab-btn" onclick="setTab('upload')">Upload data</button>
   </nav>
 </header>
 
@@ -395,12 +405,12 @@
       <tbody>
         <tr>
           <td class="name">eBay, Otto &amp; Kaufland</td>
-          <td><input class="target-input" id="mpActual" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>
-          <td class="tint-green"><input class="target-input" id="mpGreen" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>
-          <td class="tint-gold"><input class="target-input" id="mpGold" type="number" step="0.01" oninput="onMarketplaceInputChange()"></td>
-          <td><input class="target-input" id="mpActualMargin" type="number" step="0.01" placeholder="%" oninput="onMarketplaceInputChange()"></td>
-          <td class="tint-green"><input class="target-input" id="mpGreenMargin" type="number" step="0.01" placeholder="%" oninput="onMarketplaceInputChange()"></td>
-          <td class="tint-gold"><input class="target-input" id="mpGoldMargin" type="number" step="0.01" placeholder="%" oninput="onMarketplaceInputChange()"></td>
+          <td><span class="input-affix currency"><input class="target-input" id="mpActual" type="number" step="0.01" oninput="onMarketplaceInputChange()"></span></td>
+          <td class="tint-green"><span class="input-affix currency"><input class="target-input" id="mpGreen" type="number" step="0.01" oninput="onMarketplaceInputChange()"></span></td>
+          <td class="tint-gold"><span class="input-affix currency"><input class="target-input" id="mpGold" type="number" step="0.01" oninput="onMarketplaceInputChange()"></span></td>
+          <td><span class="input-affix percent"><input class="target-input" id="mpActualMargin" type="number" step="0.01" oninput="onMarketplaceInputChange()"></span></td>
+          <td class="tint-green"><span class="input-affix percent"><input class="target-input" id="mpGreenMargin" type="number" step="0.01" oninput="onMarketplaceInputChange()"></span></td>
+          <td class="tint-gold"><span class="input-affix percent"><input class="target-input" id="mpGoldMargin" type="number" step="0.01" oninput="onMarketplaceInputChange()"></span></td>
           <td id="mpTier"><span class="tier-tag pending">—</span></td>
           <td class="num" id="mpBonus">—</td>
         </tr>
@@ -549,11 +559,36 @@
 
 </div>
 
+<div id="tabUnmapped" style="display:none;">
+
+  <section>
+    <div class="section-head">
+      <h2>Unmapped ASINs</h2>
+      <span class="section-note">Every ASIN not yet in the TOC, found across every saved month — add a Launch Date (and Brand) here and it's usable immediately, no re-export needed</span>
+    </div>
+    <div class="banner info" style="margin-bottom:16px;">
+      <span>ℹ</span>
+      <span>Brand and Launch Date are required — Launch Date is what lets the dashboard compute this ASIN's stage (F3M/Y1/PY1) automatically, same as everything else. Product Code is optional, only needed if this ASIN should count toward an R&amp;D bonus target. <b>Saving here fixes it going forward</b> — an already-saved month's numbers won't change until that month's main export is re-uploaded.</span>
+    </div>
+    <button class="btn ghost" onclick="renderUnmappedAsinsTab()" style="margin-bottom:14px; font-size:12px;">Rescan all saved months</button>
+    <div class="table-scroll">
+    <table id="unmappedAsinsTable">
+      <thead><tr><th>ASIN</th><th>Product (from export)</th><th>Brand</th><th>Product Code</th><th>Launch Date</th><th></th></tr></thead>
+      <tbody id="unmappedAsinsBody"></tbody>
+    </table>
+    </div>
+    <p class="section-note" id="unmappedAsinsFooter" style="margin-top:8px;"></p>
+  </section>
+
+</div>
+
 </main>
 
 <footer>
   <p><span class="confidential">Confidential — Internal Use Only.</span> Tier and bonus figures require Green/Gold revenue targets, which are not present in the Sellerboard export; they will populate once target data is connected.</p>
 </footer>
+
+</div>
 
 <script src="app.js"></script>
 </body>
