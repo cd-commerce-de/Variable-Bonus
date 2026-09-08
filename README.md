@@ -77,6 +77,41 @@ came out to €9,000 total (the corrected France + the original Italy),
 not €14,000, confirming the replace-on-same-filename rule actually works
 and doesn't silently double-count.
 
+**Follow-up regression from this same fix, found and fixed**: uploading
+*only* Pan-EU (Germany untouched) was wiping Germany's data to zero for
+any month whose Germany total had been set before per-file contribution
+tracking existed (no matching entry in `germany_contributions`) — the
+code recomputed Germany's total from its (empty) contributions
+unconditionally on every upload, regardless of which country was
+actually being uploaded. Fixed by migrating any such "legacy" total into
+the contributions system (as a `__legacy__` entry) the first time either
+country is touched again, before summing — so it's preserved rather than
+clobbered. Verified directly: simulated a month with Germany set the old
+way (€12,000, no contributions entry), uploaded only a Pan-EU file, and
+confirmed Germany's €12,000 survived completely untouched while Pan-EU
+picked up the new €3,000. Confirmed symmetric the other direction too
+(Pan-EU survives a Germany-only upload) with the same test in reverse.
+
+**A third bug, found while confirming a real workflow change (a combined
+Germany+UK export uploaded through the Germany zone, not Pan-EU)**:
+`parseCountryF3MFile` always splits UK-listed ASINs into their own bucket
+regardless of which zone the file lands in — correct when the file came
+in through Pan-EU (that bucket then gets redirected into Germany), but
+the code that puts that bucket back only ran for `country === 'pan_eu'`.
+Uploading a combined DE+UK file *into the Germany zone itself* was
+silently dropping the UK-listed ASINs' revenue — split out, then never
+added back anywhere, since there was nothing to "redirect" it to (it was
+already the destination). Fixed: for a Germany upload, the split-out UK
+bucket is merged straight back into that file's own contribution instead
+of being treated as a redirect candidate. Verified directly: a 3-ASIN
+file (€4,000 Germany-only + €3,000 + €2,000 UK-listed = €9,000) uploaded
+into the Germany zone now correctly totals €9,000 (previously came back
+as €4,000, silently missing both UK-listed ASINs) — and confirmed the
+original Pan-EU-upload redirect behavior is completely unaffected by
+this fix, re-tested with the identical file uploaded into the Pan-EU zone
+instead (€4,000 Pan-EU / €5,000 correctly redirected to Germany, exactly
+as before).
+
 - **Survives a main-file re-upload.** If the main export for a month is
   re-uploaded later (e.g. to fix an incomplete/filtered export), any
   already-uploaded Germany/Pan-EU data for that month is carried forward,
@@ -370,14 +405,19 @@ even if you're not touching targets.
   target-vs-actual comparison at the quarter level — it just adds up each
   month's *already-computed* bonus €, per product/market/brand/stage,
   across the quarter's 3 months. Same row structure as Monthly (same R&D
-  products, same BM1-4 grouping), columns are just Month 1 | Month 2 |
-  Month 3 | Total, and each month's bonus cell is tinted by *that row's
-  own tier that month* (a subtotal/group/total row is never tinted this
-  way, since it isn't tied to one tier). R&D also shows the ÷ team-size
-  per-person row here, same as Monthly. A month with no saved data shows
-  "—" for that column (not €0 — the two mean different things), and a
-  banner says explicitly how many of the 3 months actually have data if
-  the quarter isn't complete yet.
+  products, same BM1-4 grouping, Marketplace's single row), columns are
+  just Month 1 | Month 2 | Month 3 | Total, and each month's bonus cell
+  is tinted by *that row's own tier that month* (a subtotal/group/total
+  row is never tinted this way, since it isn't tied to one tier). R&D and
+  Marketplace both show the ÷ team-size per-person row here, same as
+  Monthly. A month with no saved data (or, for Marketplace, no manual
+  entry that month) shows "—" for that column (not €0 — the two mean
+  different things), and a banner says explicitly how many of the 3
+  months actually have data if the quarter isn't complete yet. Verified
+  directly: entered Marketplace data for July only, left August/September
+  blank, and confirmed the Quarterly tab correctly showed July's real
+  bonus, "—" for the other two months, and a total that only counted the
+  one real entry.
 - **Upload data** — the CSV drop zone, data-quality panel, and Save button.
 - **Impact Analysis** — one row per role (R&D Team, Launch Manager) and per
   official Brand Manager brand, showing two figures side by side: **Growth

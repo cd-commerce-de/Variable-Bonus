@@ -831,7 +831,7 @@ async function renderQuarterlyTab() {
 
   const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const monthLabels = months.map(m => MONTH_NAMES[parseInt(m.slice(5, 7), 10) - 1]);
-  ['qRdM1Header', 'qRdM2Header', 'qRdM3Header', 'qLmM1Header', 'qLmM2Header', 'qLmM3Header', 'qBmM1Header', 'qBmM2Header', 'qBmM3Header'].forEach((id, i) => {
+  ['qRdM1Header', 'qRdM2Header', 'qRdM3Header', 'qLmM1Header', 'qLmM2Header', 'qLmM3Header', 'qBmM1Header', 'qBmM2Header', 'qBmM3Header', 'qMpM1Header', 'qMpM2Header', 'qMpM3Header'].forEach((id, i) => {
     document.getElementById(id).textContent = monthLabels[i % 3];
   });
 
@@ -933,6 +933,17 @@ async function renderQuarterlyTab() {
   }
   document.getElementById('qBmBody').innerHTML = bmHtml;
   document.getElementById('qBmTotalRow').innerHTML = `<td>Total, all brands</td>${bmGrandTotals.map(v => `<td class="num">${fmtEUR(v)}</td>`).join('')}<td class="num">${fmtEUR(bmGrandTotal)}</td>`;
+
+  // ---- Marketplace Team (fully manual, one row -- same pattern as R&D's pool + per-person row) ----
+  const mpPerMonth = monthData.map(d => (d && d.marketplace && d.marketplace.entered) ? d.marketplace.bonus_eur : null);
+  const mpTiers = monthData.map(d => (d && d.marketplace && d.marketplace.entered) ? d.marketplace.tier : null);
+  const mpTotal = sum3(mpPerMonth);
+  const mpTotals = [0, 0, 0];
+  mpPerMonth.forEach((v, i) => { if (v != null) mpTotals[i] = v; });
+  document.getElementById('qMpBody').innerHTML = `<tr><td class="name">eBay, Otto &amp; Kaufland</td>${mpPerMonth.map((v, i) => bonusCell(v, mpTiers[i])).join('')}<td class="num">${fmtEUR(mpTotal)}</td></tr>`;
+  document.getElementById('qMpTotalRow').innerHTML = `<td>Pool bonus total</td>${mpTotals.map(v => `<td class="num">${fmtEUR(v)}</td>`).join('')}<td class="num">${fmtEUR(mpTotal || 0)}</td>`;
+  const mpTeamSize = TARGETS.rates.marketplace.team_size || 1;
+  document.getElementById('qMpPerPersonRow').innerHTML = `<td>÷ ${mpTeamSize} team member${mpTeamSize === 1 ? '' : 's'}</td>${mpTotals.map(v => `<td class="num">${fmtEUR(v / mpTeamSize)}</td>`).join('')}<td class="num">${fmtEUR((mpTotal || 0) / mpTeamSize)}</td>`;
 }
 
 function wireDropZone(zoneId, inputId, handler) {
@@ -1068,9 +1079,26 @@ async function applyCountryUpload(file, country) {
   // export per marketplace, all rolling up into "Pan-EU"); re-uploading
   // the SAME filename (a correction) REPLACES only that file's own prior
   // contribution instead of double-counting it.
+  //
+  // parseCountryF3MFile always splits out UK-listed ASINs into their own
+  // bucket, regardless of which zone the file was uploaded into -- for a
+  // Germany upload that's wrong to leave split: UK revenue uploaded
+  // THROUGH THE GERMANY ZONE is already exactly where it belongs, so it
+  // gets merged straight back into this file's own contribution rather
+  // than being treated as something to "redirect" (that only makes sense
+  // starting from a Pan-EU upload). This was a real bug: uploading a
+  // combined Germany+UK file into the Germany zone was silently dropping
+  // the UK-listed ASINs' revenue entirely, since the only code that put
+  // the split-out bucket back only ran for country === 'pan_eu'.
+  let ownSales = totals.sales, ownUnits = totals.units, ownNetProfit = totals.net_profit;
+  let ownAsins = totals.matchedAsins;
+  if (country === 'germany' && totals.ukRedirect.asins.length) {
+    ownSales += totals.ukRedirect.sales; ownUnits += totals.ukRedirect.units; ownNetProfit += totals.ukRedirect.net_profit;
+    ownAsins = [...ownAsins, ...totals.ukRedirect.asins];
+  }
   data.launch_manager[`${key}_contributions`] = data.launch_manager[`${key}_contributions`] || {};
   data.launch_manager[`${key}_contributions`][file.name] = {
-    sales: totals.sales, units: totals.units, net_profit: totals.net_profit, asins: totals.matchedAsins,
+    sales: ownSales, units: ownUnits, net_profit: ownNetProfit, asins: ownAsins,
   };
 
   let redirectMsg = '';
@@ -1089,6 +1117,29 @@ async function applyCountryUpload(file, country) {
       delete data.launch_manager.germany_contributions[redirectKey]; // this file has no UK ASINs (or none anymore, if re-uploaded) -- don't leave a stale redirect behind
     }
   }
+
+  // Migrate any pre-existing "legacy" actual (set before per-file
+  // contribution tracking existed) into the contributions system before
+  // summing -- otherwise a month whose Germany (or Pan-EU) total was set
+  // the OLD way, with no matching contributions entry, would get wiped
+  // to zero here just because a DIFFERENT country's file was uploaded.
+  // This was a real bug: uploading only Pan-EU was recomputing Germany's
+  // total from (empty) contributions and overwriting real data with zero.
+  function migrateLegacyIfNeeded(countryKey) {
+    const contributions = data.launch_manager[`${countryKey}_contributions`];
+    const hasContributions = contributions && Object.keys(contributions).length;
+    const legacyActual = data.launch_manager[`actual_${countryKey}`];
+    const wasRealUpload = data.launch_manager[`${countryKey}_source`] === 'dedicated_upload';
+    if (!hasContributions && wasRealUpload && legacyActual && legacyActual.sales) {
+      data.launch_manager[`${countryKey}_contributions`] = data.launch_manager[`${countryKey}_contributions`] || {};
+      data.launch_manager[`${countryKey}_contributions`]['__legacy__'] = {
+        sales: legacyActual.sales, units: legacyActual.units, net_profit: legacyActual.net_profit,
+        asins: data.launch_manager[`${countryKey}_asins`] || [],
+      };
+    }
+  }
+  migrateLegacyIfNeeded('germany');
+  migrateLegacyIfNeeded('pan_eu');
 
   // Recompute both countries' totals fresh from ALL tracked
   // contributions -- never from just this one file -- so multiple
@@ -1111,7 +1162,7 @@ async function applyCountryUpload(file, country) {
   const countryLabel = country === 'germany' ? 'Germany' : 'Pan-EU';
   const newTotal = country === 'germany' ? germanySum.totals.sales : panEuSum.totals.sales;
   const fileCount = Object.keys(data.launch_manager[`${key}_contributions`]).length;
-  let msg = `${formatMonthLabel(month)}: this file contributed €${totals.sales.toFixed(2)} from ${totals.matched - totals.ukRedirect.asins.length} F3M product(s). ${countryLabel} total is now €${newTotal.toFixed(2)} across ${fileCount} file(s).${redirectMsg} Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
+  let msg = `${formatMonthLabel(month)}: this file contributed €${ownSales.toFixed(2)} from ${ownAsins.length} F3M product(s). ${countryLabel} total is now €${newTotal.toFixed(2)} across ${fileCount} file(s).${redirectMsg} Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
   // If the result is suspiciously zero, say exactly why instead of leaving it a mystery.
   if (totals.matched === 0) {
     const totalRows = totals.matched + totals.skippedNonF3M + totals.skippedUnmapped;
