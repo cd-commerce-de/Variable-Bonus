@@ -1149,7 +1149,16 @@
   }
  },
  "marketplace": {
-  "label": "Marketplace — manually entered"
+  "label": "Marketplace — manually entered",
+  "entered": true,
+  "actual_sales": 218932,
+  "green_target": null,
+  "gold_target": null,
+  "actual_margin_pct": null,
+  "green_margin_pct": null,
+  "gold_margin_pct": null,
+  "tier": "AWAITING TARGET",
+  "bonus_eur": 0
  },
  "quality_issue_unassigned": {
   "sales": 8214.18,
