@@ -366,7 +366,18 @@
    "gold_margin": 0.143,
    "source": "real"
   },
-  "combined_bonus_eur": 0
+  "combined_bonus_eur": 0,
+  "germany_asins": [
+   "B0HBXK2M39",
+   "B0H5VMXPJY",
+   "B0H5VM13XG",
+   "B0H2BG2TT3",
+   "B0H2BS1CB8",
+   "B0H2BM3SJD",
+   "B0H2BKVS97",
+   "B0H2BP8P7Z",
+   "B0H2BNX5K4"
+  ]
  },
  "brand_manager": {
   "PD": {
