@@ -309,9 +309,9 @@
    "sku_count": 9
   },
   "actual_pan_eu": {
-   "sales": 4744.1,
-   "units": 39,
-   "net_profit": 231.27,
+   "sales": 10797.85,
+   "units": 89,
+   "net_profit": 758.04,
    "sku_count": 3
   },
   "germany_source": "dedicated_upload",
@@ -336,9 +336,9 @@
   },
   "pan_eu": {
    "actual": {
-    "sales": 4744.1,
-    "units": 39,
-    "net_profit": 231.27,
+    "sales": 10797.85,
+    "units": 89,
+    "net_profit": 758.04,
     "sku_count": 3
    },
    "target": {
@@ -348,7 +348,7 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": 0.04874897240783289,
+   "actual_margin_pct": 0.07020286445912843,
    "tier": "❌ MISS",
    "bonus_eur": 0
   },
@@ -379,8 +379,8 @@
    "B0H2BNX5K4"
   ],
   "pan_eu_asins": [
-   "B0GYB6HPGD",
    "B0GY9QP54T",
+   "B0GYB6HPGD",
    "B0GY9R4MRZ"
   ],
   "pan_eu_contributions": {
@@ -397,10 +397,14 @@
     "asins": []
    },
    "Spain::CD_Commerce_Dashboard_Products_Group_by_ASIN_01_08_2026-31_08_2026_(2026_09_09_10_39_29_442)_sellerboard.com-Spain.csv": {
-    "sales": 0,
-    "units": 0,
-    "net_profit": 0,
-    "asins": [],
+    "sales": 6053.75,
+    "units": 50,
+    "net_profit": 526.77,
+    "asins": [
+     "B0GY9QP54T",
+     "B0GYB6HPGD",
+     "B0GY9R4MRZ"
+    ],
     "marketplace": "Spain"
    },
    "Italy::CD_Commerce_Dashboard_Products_Group_by_ASIN_01_08_2026-31_08_2026_(2026_09_09_10_42_36_942)_sellerboard.com-Italy.csv": {
