@@ -173,6 +173,83 @@ subtraction-based Pan-EU override) has been fully retired in favor of this
 Marketplace field records where an ASIN's cost settings live, not which
 marketplace each sale happened on.
 
+### Pan-EU TOC tab: a completely separate product database, keyed by (ASIN, Marketplace)
+
+A product can launch in Germany first and only expand into Pan-EU
+marketplaces months later — its F3M window for the **Pan-EU bonus**
+should be based on its own Pan-EU launch date, not the main TOC's German
+one. **The same ASIN is also often sold in multiple Pan-EU marketplaces**
+(France, Italy, Spain, ...), each potentially with its own launch date —
+so this is keyed by `(ASIN, Marketplace)`, not just ASIN:
+`PAN_EU_TOC[asin][marketplace] = { launch_date }`. Persisted the same
+reused-pseudo-month way as the manual ASIN additions above (key
+`_pan_eu_toc`).
+
+**Uploading now requires picking which marketplace the file is for** — a
+dropdown above the Pan-EU drop zone (Upload tab), populated from every
+marketplace already registered in the Pan-EU TOC tab. Stage is looked up
+for that ONE marketplace's entry only — never any other marketplace's
+entry for the same ASIN, and never the main TOC. An ASIN not registered
+for that specific marketplace is excluded and flagged, not silently
+guessed from a different marketplace's date or the main TOC's German
+date. **Germany uploads are completely unaffected** — they keep using the
+main TOC exactly as before, regardless of what's in the Pan-EU TOC.
+
+**Multiple marketplace files combine, never override** — contributions
+are tracked per `(marketplace, filename)`, so France's file and Italy's
+file both add into the Pan-EU total independently, even if the SAME ASIN
+appears in both (each marketplace's own launch date decides whether that
+ASIN counts as F3M for that marketplace specifically). Re-uploading the
+identical marketplace + filename (a correction) replaces only that one
+contribution, never duplicates it — same rule as the original
+multi-file-combining fix earlier in this document, extended to be
+marketplace-aware so two marketplaces' files named identically can never
+collide with each other.
+
+Verified directly with the exact scenario this was built for, not just
+reasoned about: the same real ASIN, registered with a France launch date
+that makes it F3M by August 2026 and a separate Italy launch date that
+makes it PY1 by the same month. Uploaded a France file — correctly
+counted (€4,000). Uploaded an Italy file for the identical ASIN —
+correctly excluded (€0, flagged as not-F3M for Italy specifically),
+confirmed Pan-EU's total stayed exactly €4,000 (France only), not €0 and
+not €7,000. Then re-uploaded a corrected France file under the identical
+marketplace + filename — correctly replaced the total to reflect only
+the new number, not duplicated. Also confirmed the marketplace dropdown
+correctly populates from real TOC entries.
+
+Also caught and fixed a real bug while first building this tab's add/
+delete buttons: both were missing an `await` before their re-render
+call, so the underlying data updated correctly but the visible table
+briefly lagged a step behind (an add could show one entry short, a
+delete could still show the just-removed row). Fixed by awaiting the
+re-render properly in both places; re-verified add and delete each land
+on the DOM immediately, matching the data every time.
+
+### Pending ASINs come from your uploads, not typed from memory
+
+Any ASIN found in a Pan-EU upload that isn't yet registered for that
+specific marketplace is automatically surfaced in the Pan-EU TOC tab's
+"Pending" section — no need to know or type ASINs by hand. Each pending
+row shows the ASIN and marketplace it came from, with just a Launch Date
+field to fill in and a Save button; saving moves it straight into the
+confirmed list below (and out of pending). A Dismiss button is also
+available if an ASIN genuinely doesn't need tracking.
+
+Persisted the same way as the confirmed entries (same `_pan_eu_toc`
+pseudo-month, now storing both `entries` and `pending`), so the list
+survives across sessions rather than needing to be re-uploaded to see it
+again.
+
+Verified directly: uploaded a real Pan-EU file (France) with 2 ASINs not
+yet in the Pan-EU TOC — both correctly appeared in the Pending section
+with the right marketplace. Filled in a Launch Date for one and saved —
+it correctly moved into the confirmed entries list, and only the other
+ASIN remained pending. Dismissed that second one — confirmed it was
+removed from pending without accidentally creating a confirmed entry for
+it (dismissing and saving are genuinely different actions with different
+outcomes).
+
 ## Unmapped ASINs tab
 
 Aggregates every ASIN not in the TOC, across **every saved month** (not

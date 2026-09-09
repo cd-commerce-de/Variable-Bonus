@@ -218,6 +218,12 @@ async function boot() {
   try {
     mergeManualAdditionsIntoMapping(await loadManualAdditions());
   } catch (e) { /* none saved yet, or API unavailable -- fine, nothing to merge */ }
+  try {
+    const full = await loadPanEuFull();
+    PAN_EU_TOC = full.entries;
+    PAN_EU_PENDING = full.pending;
+    await refreshPanEuMarketplaceDropdown();
+  } catch (e) { /* none saved yet, or API unavailable -- fine, empty for now */ }
   await refreshMonthList();
 }
 async function loadMonthlyTargets(month) {
@@ -314,6 +320,77 @@ async function saveManualAddition(asin, info) {
   await saveMonthData({ month: MANUAL_ASIN_KEY, additions: existing });
   mergeManualAdditionsIntoMapping({ [asin]: info });
   return existing;
+}
+
+// ---------- Pan-EU-specific product database (Pan-EU TOC tab) ----------
+// The SAME ASIN can be sold in multiple Pan-EU marketplaces, each with
+// its OWN launch date (e.g. launched in France in March, only expanded
+// to Italy in June) -- so this is keyed by (ASIN, Marketplace), not just
+// ASIN. Structure: PAN_EU_TOC[asin][marketplace] = { launch_date }.
+// Used ONLY when processing a Pan-EU upload, and only for the ONE
+// marketplace that upload is declared as; Germany uploads keep using the
+// main MAPPING as always, untouched by any of this. Same reused
+// pseudo-month persistence trick as the manual ASIN additions above.
+//
+// PAN_EU_PENDING[marketplace] = [asin, ...] -- ASINs seen in an uploaded
+// Pan-EU file for that marketplace that AREN'T in PAN_EU_TOC yet. Comes
+// from the upload itself, not typed in from memory -- surfaced in the
+// Pan-EU TOC tab so adding a Launch Date is a quick fill-in, the same
+// pattern as the Unmapped ASINs tab.
+let PAN_EU_TOC = {};
+let PAN_EU_PENDING = {};
+const PAN_EU_TOC_KEY = '_pan_eu_toc';
+async function loadPanEuFull() {
+  const saved = await loadMonth(PAN_EU_TOC_KEY);
+  return { entries: (saved && saved.entries) ? saved.entries : {}, pending: (saved && saved.pending) ? saved.pending : {} };
+}
+async function loadPanEuToc() {
+  return (await loadPanEuFull()).entries;
+}
+async function savePanEuTocEntry(asin, marketplace, info) {
+  const full = await loadPanEuFull();
+  full.entries[asin] = full.entries[asin] || {};
+  full.entries[asin][marketplace] = info;
+  // Resolved -- no longer pending for this marketplace.
+  if (full.pending[marketplace]) full.pending[marketplace] = full.pending[marketplace].filter(a => a !== asin);
+  await saveMonthData({ month: PAN_EU_TOC_KEY, entries: full.entries, pending: full.pending });
+  PAN_EU_TOC = full.entries;
+  PAN_EU_PENDING = full.pending;
+  return full.entries;
+}
+async function addPanEuPendingAsins(marketplace, asins) {
+  if (!asins.length) return;
+  const full = await loadPanEuFull();
+  const already = new Set(full.pending[marketplace] || []);
+  asins.forEach(a => { if (!(full.entries[a] && full.entries[a][marketplace])) already.add(a); }); // never re-add one that's already a real entry
+  full.pending[marketplace] = Array.from(already);
+  await saveMonthData({ month: PAN_EU_TOC_KEY, entries: full.entries, pending: full.pending });
+  PAN_EU_TOC = full.entries;
+  PAN_EU_PENDING = full.pending;
+}
+async function dismissPanEuPendingAsin(marketplace, asin) {
+  const full = await loadPanEuFull();
+  if (full.pending[marketplace]) full.pending[marketplace] = full.pending[marketplace].filter(a => a !== asin);
+  await saveMonthData({ month: PAN_EU_TOC_KEY, entries: full.entries, pending: full.pending });
+  PAN_EU_PENDING = full.pending;
+}
+function panEuTocMarketplaces() {
+  const set = new Set();
+  Object.values(PAN_EU_TOC).forEach(byMarketplace => Object.keys(byMarketplace).forEach(m => set.add(m)));
+  Object.keys(PAN_EU_PENDING).forEach(m => set.add(m)); // a marketplace might only exist via pending ASINs so far, no confirmed entries yet
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+}
+async function refreshPanEuMarketplaceDropdown() {
+  const marketplaces = panEuTocMarketplaces();
+  const sel = document.getElementById('panEuMarketplaceSelect');
+  const prevValue = sel.value;
+  sel.innerHTML = marketplaces.length
+    ? marketplaces.map(m => `<option value="${m}">${m}</option>`).join('')
+    : `<option value="">Add marketplaces in the Pan-EU TOC tab first…</option>`;
+  if (marketplaces.includes(prevValue)) sel.value = prevValue;
+
+  const datalist = document.getElementById('peMarketplaceList');
+  datalist.innerHTML = marketplaces.map(m => `<option value="${m}">`).join('');
 }
 
 // ---------- Marketplace: fully manual, but scoped strictly to CURRENT.month ----------
@@ -447,6 +524,7 @@ function setTab(t) {
   document.getElementById('tabStage').style.display = t === 'stage' ? 'block' : 'none';
   document.getElementById('tabFramework').style.display = t === 'framework' ? 'block' : 'none';
   document.getElementById('tabUnmapped').style.display = t === 'unmapped' ? 'block' : 'none';
+  document.getElementById('tabPanEuToc').style.display = t === 'paneutoc' ? 'block' : 'none';
   document.getElementById('tabUploadBtn').classList.toggle('active', t === 'upload');
   document.getElementById('tabMonthlyBtn').classList.toggle('active', t === 'monthly');
   document.getElementById('tabQuarterlyBtn').classList.toggle('active', t === 'quarterly');
@@ -454,6 +532,7 @@ function setTab(t) {
   document.getElementById('tabStageBtn').classList.toggle('active', t === 'stage');
   document.getElementById('tabFrameworkBtn').classList.toggle('active', t === 'framework');
   document.getElementById('tabUnmappedBtn').classList.toggle('active', t === 'unmapped');
+  document.getElementById('tabPanEuTocBtn').classList.toggle('active', t === 'paneutoc');
   document.getElementById('monthSelect').style.display = t === 'quarterly' ? 'none' : '';
   document.getElementById('quarterSelect').style.display = t === 'quarterly' ? '' : 'none';
   document.getElementById('periodBadge').style.display = t === 'quarterly' ? 'none' : '';
@@ -461,6 +540,7 @@ function setTab(t) {
   if (t === 'stage') renderStageHistory();
   if (t === 'framework') renderBonusFramework();
   if (t === 'unmapped') renderUnmappedAsinsTab();
+  if (t === 'paneutoc') renderPanEuTocTab();
 }
 
 // ---------- Bonus Framework tab: how data is extracted + how bonus is
@@ -659,6 +739,109 @@ async function saveUnmappedAsinRow(asin) {
   row.style.opacity = '0.5';
   row.querySelector('td:last-child').innerHTML = '<span class="tier-tag green">Saved ✓</span>';
   renderMasterlist(); // if the Upload tab's masterlist is open, reflect the new ASIN there too
+}
+
+// ---------- Pan-EU TOC tab: a separate ASIN -> Marketplace -> launch_date
+// database (the same ASIN can have a different entry per marketplace),
+// used ONLY when processing a Pan-EU upload for the ONE marketplace that
+// upload is declared as (Germany keeps using the main TOC). See
+// PAN_EU_TOC / loadPanEuToc / savePanEuTocEntry. ----------
+async function addPanEuTocEntry() {
+  const asin = document.getElementById('peAddAsin').value.trim();
+  const marketplace = document.getElementById('peAddMarketplace').value.trim();
+  const launchDate = document.getElementById('peAddLaunchDate').value;
+  const statusEl = document.getElementById('peAddStatus');
+  if (!/^B0[A-Z0-9]{8}$/i.test(asin)) { statusEl.textContent = 'Enter a valid ASIN (B0 + 8 characters).'; statusEl.style.color = 'var(--bad)'; return; }
+  if (!marketplace) { statusEl.textContent = 'Marketplace is required (e.g. France, Italy).'; statusEl.style.color = 'var(--bad)'; return; }
+  if (!launchDate) { statusEl.textContent = 'Pan-EU Launch Date is required.'; statusEl.style.color = 'var(--bad)'; return; }
+  await savePanEuTocEntry(asin.toUpperCase(), marketplace, { launch_date: launchDate });
+  document.getElementById('peAddAsin').value = '';
+  document.getElementById('peAddMarketplace').value = '';
+  document.getElementById('peAddLaunchDate').value = '';
+  statusEl.textContent = `Saved ${asin.toUpperCase()} for ${marketplace}.`;
+  statusEl.style.color = 'var(--line-500)';
+  await renderPanEuTocTab();
+  await refreshPanEuMarketplaceDropdown();
+}
+async function deletePanEuTocEntry(asin, marketplace) {
+  const full = await loadPanEuFull();
+  if (full.entries[asin]) {
+    delete full.entries[asin][marketplace];
+    if (Object.keys(full.entries[asin]).length === 0) delete full.entries[asin];
+  }
+  await saveMonthData({ month: PAN_EU_TOC_KEY, entries: full.entries, pending: full.pending });
+  PAN_EU_TOC = full.entries;
+  PAN_EU_PENDING = full.pending;
+  await renderPanEuTocTab();
+  await refreshPanEuMarketplaceDropdown();
+}
+async function renderPanEuTocTab() {
+  const full = await loadPanEuFull();
+  PAN_EU_TOC = full.entries;
+  PAN_EU_PENDING = full.pending;
+
+  // ---- Pending: found in an upload, not typed in -- quick fill-in ----
+  const pendingRows = [];
+  for (const [marketplace, asins] of Object.entries(PAN_EU_PENDING)) {
+    asins.forEach(asin => pendingRows.push([asin, marketplace]));
+  }
+  const pendingSection = document.getElementById('panEuPendingSection');
+  const pendingBody = document.getElementById('panEuPendingBody');
+  if (pendingRows.length) {
+    pendingSection.style.display = 'block';
+    pendingBody.innerHTML = pendingRows.map(([asin, marketplace]) => `
+      <tr id="pe-pending-row-${asin}-${marketplace}">
+        <td class="name">${asin}</td>
+        <td class="name">${marketplace}</td>
+        <td><input type="date" class="target-input" id="pe-pending-date-${asin}-${marketplace}" style="width:150px;"></td>
+        <td style="white-space:nowrap;">
+          <button class="btn primary" style="padding:4px 10px; font-size:11.5px;" onclick="savePendingPanEuAsin('${asin}', '${marketplace}')">Save</button>
+          <button class="btn ghost" style="padding:4px 10px; font-size:11.5px;" onclick="dismissPanEuPendingAsin('${marketplace}', '${asin}').then(renderPanEuTocTab)">Dismiss</button>
+        </td>
+      </tr>`).join('');
+  } else {
+    pendingSection.style.display = 'none';
+  }
+
+  // ---- Confirmed entries ----
+  const filter = (document.getElementById('panEuTocFilter').value || '').trim().toLowerCase();
+  const bodyEl = document.getElementById('panEuTocBody');
+  const footerEl = document.getElementById('panEuTocFooter');
+  const rows = []; // flatten to one row per (asin, marketplace) pair
+  for (const [asin, byMarketplace] of Object.entries(PAN_EU_TOC)) {
+    for (const [marketplace, info] of Object.entries(byMarketplace)) {
+      rows.push([asin, marketplace, info]);
+    }
+  }
+  const entries = rows.filter(([asin, marketplace]) => {
+    if (!filter) return true;
+    return asin.toLowerCase().includes(filter) || marketplace.toLowerCase().includes(filter);
+  }).sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
+
+  bodyEl.innerHTML = entries.map(([asin, marketplace, info]) => `
+    <tr>
+      <td class="name">${asin}</td>
+      <td class="name">${marketplace}</td>
+      <td class="num">${info.launch_date || '—'}</td>
+      <td><button class="btn ghost" style="padding:4px 10px; font-size:11.5px;" onclick="deletePanEuTocEntry('${asin}', '${marketplace}')">Remove</button></td>
+    </tr>`).join('');
+  const total = rows.length;
+  footerEl.textContent = filter
+    ? `${entries.length} of ${total} entries match "${filter}".`
+    : `${total} (ASIN, Marketplace) entr${total === 1 ? 'y' : 'ies'} in the Pan-EU TOC.`;
+}
+async function savePendingPanEuAsin(asin, marketplace) {
+  const launchDate = document.getElementById(`pe-pending-date-${asin}-${marketplace}`).value;
+  const row = document.getElementById(`pe-pending-row-${asin}-${marketplace}`);
+  if (!launchDate) {
+    const existingMsg = row.querySelector('.pe-pending-error');
+    if (existingMsg) existingMsg.remove();
+    row.insertAdjacentHTML('beforeend', `<td class="pe-pending-error" style="color:var(--bad); font-size:11.5px;">Launch Date required.</td>`);
+    return;
+  }
+  await savePanEuTocEntry(asin, marketplace, { launch_date: launchDate }); // this also removes it from pending automatically
+  await renderPanEuTocTab();
+  await refreshPanEuMarketplaceDropdown();
 }
 
 // ---------- Stage History: audit view, month-by-month, computed live ----------
@@ -1029,7 +1212,15 @@ function guessMonthFromFilename(name) {
 // target month is the one currently loaded in-session, or an already-saved
 // month from before (in which case it's loaded, updated, and re-saved
 // immediately -- same "bulk" pattern used elsewhere in this file).
-function parseCountryF3MFile(file, month) {
+function parseCountryF3MFile(file, month, country, marketplace) {
+  // country: 'germany' | 'pan_eu' -- decides which product database to
+  // look up stage from. Germany uses the main TOC (MAPPING) as always.
+  // Pan-EU uses the SEPARATE Pan-EU TOC (PAN_EU_TOC), keyed by
+  // (ASIN, marketplace) -- the SAME ASIN can have a different launch date
+  // per marketplace (launched in Germany first, expanded to France in
+  // March, Italy in June, etc.), so this looks up ONLY the entry for the
+  // ONE marketplace this specific file is declared as, never any other
+  // marketplace's entry for that same ASIN.
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true, delimiter: ';', encoding: 'utf-8', skipEmptyLines: true,
@@ -1037,19 +1228,21 @@ function parseCountryF3MFile(file, month) {
         const children = results.data.filter(r => (r.SKU || '').trim() !== '');
         let sales = 0, units = 0, net_profit = 0, matched = 0, skippedNonF3M = 0, skippedUnmapped = 0;
         const matchedAsins = [];
+        const skippedUnmappedAsins = []; // which ASINs specifically (not just a count) -- for Pan-EU, feeds the "pending" list in the Pan-EU TOC tab, so adding a Launch Date is a quick fill-in instead of typing ASINs from memory
         // Separately track any ASIN also listed on Amazon.co.uk -- per
         // confirmed policy, UK revenue always counts as Germany, even
         // when it arrives in a "Pan-EU" file. Kept as its own bucket so
-        // the caller can redirect it without touching the rest.
+        // the caller can redirect it without touching the rest. Only
+        // relevant for Pan-EU uploads (Germany uploads never redirect).
         let ukRedirectSales = 0, ukRedirectUnits = 0, ukRedirectNetProfit = 0;
         const ukRedirectAsins = [];
         children.forEach(r => {
           const asin = (r.ASIN || '').trim();
-          const info = MAPPING[asin];
-          if (!info) { skippedUnmapped++; return; }
+          const info = country === 'pan_eu' ? (PAN_EU_TOC[asin] && PAN_EU_TOC[asin][marketplace]) : MAPPING[asin];
+          if (!info) { skippedUnmapped++; if (asin) skippedUnmappedAsins.push(asin); return; }
           const stage = computeStageForMonth(info, month);
           if (stage !== 'F3M') { skippedNonF3M++; return; }
-          if (UK_ASINS.has(asin)) {
+          if (country === 'pan_eu' && UK_ASINS.has(asin)) {
             ukRedirectSales += cleanNumber(r.Sales); ukRedirectUnits += cleanNumber(r.Units); ukRedirectNetProfit += cleanNumber(r['Net profit']);
             ukRedirectAsins.push(asin);
           } else {
@@ -1059,7 +1252,7 @@ function parseCountryF3MFile(file, month) {
           matched++;
         });
         resolve({
-          sales, units, net_profit, sku_count: matchedAsins.length, matched, skippedNonF3M, skippedUnmapped, matchedAsins,
+          sales, units, net_profit, sku_count: matchedAsins.length, matched, skippedNonF3M, skippedUnmapped, matchedAsins, skippedUnmappedAsins,
           ukRedirect: { sales: ukRedirectSales, units: ukRedirectUnits, net_profit: ukRedirectNetProfit, asins: ukRedirectAsins },
         });
       },
@@ -1079,26 +1272,35 @@ function sumContributions(contributions) {
   return { totals: out, asins: Array.from(allAsins) };
 }
 
-async function applyCountryUpload(file, country) {
-  // country: 'germany' | 'pan_eu'
+async function applyCountryUpload(file, country, marketplace) {
+  // country: 'germany' | 'pan_eu'. marketplace: required for 'pan_eu' --
+  // which specific marketplace this file represents (e.g. "France").
   const month = guessMonthFromFilename(file.name);
   if (!month) return { file: file.name, ok: false, msg: `Couldn't detect a month from this filename.` };
+  if (country === 'pan_eu' && !marketplace) return { file: file.name, ok: false, msg: `Pick which marketplace this file is for (dropdown above the drop zone) before uploading.` };
 
   let data = (CURRENT && CURRENT.month === month) ? CURRENT : await loadMonth(month);
   if (!data) return { file: file.name, ok: false, msg: `No data for ${month} yet -- upload and save its main export first (Track: R&D/Brand Manager still need that file).` };
 
   let totals;
-  try { totals = await parseCountryF3MFile(file, month); }
+  try { totals = await parseCountryF3MFile(file, month, country, marketplace); }
   catch (err) { return { file: file.name, ok: false, msg: `Couldn't read this file: ${err.message}` }; }
+
+  if (country === 'pan_eu' && totals.skippedUnmappedAsins.length) {
+    await addPanEuPendingAsins(marketplace, totals.skippedUnmappedAsins); // surfaced in the Pan-EU TOC tab -- fill in a Launch Date there, not typed from memory
+  }
 
   data = JSON.parse(JSON.stringify(data));
   const key = country === 'germany' ? 'germany' : 'pan_eu';
 
-  // Per-file contribution tracking, keyed by filename: multiple DISTINCT
-  // files for the same country+month ADD together (e.g. a separate
-  // export per marketplace, all rolling up into "Pan-EU"); re-uploading
-  // the SAME filename (a correction) REPLACES only that file's own prior
-  // contribution instead of double-counting it.
+  // Per-file contribution tracking, keyed by (marketplace, filename) for
+  // Pan-EU -- the SAME ASIN can appear in multiple marketplace files, and
+  // multiple DISTINCT marketplace files ADD together (e.g. France + Italy
+  // both rolling up into "Pan-EU"); re-uploading the SAME marketplace +
+  // filename (a correction) REPLACES only that one file's own prior
+  // contribution instead of double-counting it. Keying by marketplace too
+  // (not just filename) means two marketplaces' files named identically
+  // still can't collide with each other.
   //
   // parseCountryF3MFile always splits out UK-listed ASINs into their own
   // bucket, regardless of which zone the file was uploaded into -- for a
@@ -1116,18 +1318,19 @@ async function applyCountryUpload(file, country) {
     ownSales += totals.ukRedirect.sales; ownUnits += totals.ukRedirect.units; ownNetProfit += totals.ukRedirect.net_profit;
     ownAsins = [...ownAsins, ...totals.ukRedirect.asins];
   }
+  const contributionKey = country === 'pan_eu' ? `${marketplace}::${file.name}` : file.name;
   data.launch_manager[`${key}_contributions`] = data.launch_manager[`${key}_contributions`] || {};
-  data.launch_manager[`${key}_contributions`][file.name] = {
-    sales: ownSales, units: ownUnits, net_profit: ownNetProfit, asins: ownAsins,
+  data.launch_manager[`${key}_contributions`][contributionKey] = {
+    sales: ownSales, units: ownUnits, net_profit: ownNetProfit, asins: ownAsins, marketplace: country === 'pan_eu' ? marketplace : undefined,
   };
 
   let redirectMsg = '';
   if (country === 'pan_eu') {
     // UK-redirect is tracked as this SAME file's own entry in Germany's
-    // contributions (keyed off this filename too) -- so it follows the
-    // exact same add-once/replace-on-reupload rule, never duplicating.
+    // contributions (keyed off this marketplace+filename too) -- so it
+    // follows the exact same add-once/replace-on-reupload rule, never duplicating.
     data.launch_manager.germany_contributions = data.launch_manager.germany_contributions || {};
-    const redirectKey = `${file.name}::uk_redirect`;
+    const redirectKey = `${contributionKey}::uk_redirect`;
     if (totals.ukRedirect.asins.length) {
       data.launch_manager.germany_contributions[redirectKey] = {
         sales: totals.ukRedirect.sales, units: totals.ukRedirect.units, net_profit: totals.ukRedirect.net_profit, asins: totals.ukRedirect.asins,
@@ -1179,17 +1382,22 @@ async function applyCountryUpload(file, country) {
   const saveResult = await saveMonthData(data);
   if (CURRENT && CURRENT.month === month) { CURRENT = data; render(CURRENT, 'monthly'); populateMarketplaceInputs(CURRENT); if (document.getElementById('tabQuarterly').style.display !== 'none') await renderQuarterlyTab(); }
 
-  const countryLabel = country === 'germany' ? 'Germany' : 'Pan-EU';
+  const countryLabel = country === 'germany' ? 'Germany' : `Pan-EU`;
   const newTotal = country === 'germany' ? germanySum.totals.sales : panEuSum.totals.sales;
   const fileCount = Object.keys(data.launch_manager[`${key}_contributions`]).length;
-  let msg = `${formatMonthLabel(month)}: this file contributed €${ownSales.toFixed(2)} from ${ownAsins.length} F3M product(s). ${countryLabel} total is now €${newTotal.toFixed(2)} across ${fileCount} file(s).${redirectMsg} Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
+  const marketplaceNote = country === 'pan_eu' ? ` (${marketplace})` : '';
+  let msg = `${formatMonthLabel(month)}: this${marketplaceNote} file contributed €${ownSales.toFixed(2)} from ${ownAsins.length} F3M product(s). ${countryLabel} total is now €${newTotal.toFixed(2)} across ${fileCount} file(s).${redirectMsg} Saved ${saveResult.shared ? 'to the shared repo' : 'locally only (API unavailable)'}.`;
+  if (country === 'pan_eu' && totals.skippedUnmappedAsins.length) {
+    msg += ` ${totals.skippedUnmappedAsins.length} ASIN(s) not yet in the Pan-EU TOC for "${marketplace}" — added to the pending list in the Pan-EU TOC tab, just needs a Launch Date.`;
+  }
   // If the result is suspiciously zero, say exactly why instead of leaving it a mystery.
   if (totals.matched === 0) {
     const totalRows = totals.matched + totals.skippedNonF3M + totals.skippedUnmapped;
     if (totalRows === 0) {
       msg += ` ⚠ The file itself had zero child rows (every row's SKU column was empty) — this looks like it might be a parent-only export, or the wrong file.`;
     } else {
-      msg += ` ⚠ ${totalRows} row(s) were in the file, but none matched: ${totals.skippedUnmapped} ASIN(s) aren't in the TOC mapping at all, ${totals.skippedNonF3M} ASIN(s) ARE in the TOC but weren't computed as F3M for ${formatMonthLabel(month)} (they may be a different stage, or not launched yet).`;
+      const tocName = country === 'pan_eu' ? `the Pan-EU TOC for marketplace "${marketplace}"` : 'the main TOC mapping';
+      msg += ` ⚠ ${totalRows} row(s) were in the file, but none matched: ${totals.skippedUnmapped} ASIN(s) aren't in ${tocName} at all, ${totals.skippedNonF3M} ASIN(s) ARE in it but weren't computed as F3M for ${formatMonthLabel(month)} (they may be a different stage, or not launched yet).`;
     }
   }
   return { file: file.name, ok: true, msg };
@@ -1200,10 +1408,15 @@ async function handleCountryFiles(fileList, country) {
   const statusEl = document.getElementById(statusElId);
   const files = Array.from(fileList);
   if (!files.length) return;
+  const marketplace = country === 'pan_eu' ? document.getElementById('panEuMarketplaceSelect').value : undefined;
+  if (country === 'pan_eu' && !marketplace) {
+    statusEl.innerHTML = `<div class="banner error">Pick which marketplace these file(s) are for (dropdown above) before uploading — add marketplaces in the Pan-EU TOC tab first if the list is empty.</div>`;
+    return;
+  }
   statusEl.innerHTML = `<div class="banner info">Processing ${files.length} file(s)…</div>`;
   const log = [];
   for (const file of files) {
-    log.push(await applyCountryUpload(file, country));
+    log.push(await applyCountryUpload(file, country, marketplace));
   }
   await refreshMonthList();
   statusEl.innerHTML = log.map(l => `<div class="banner ${l.ok ? 'info' : 'error'}" style="margin-top:6px;"><b>${l.file}:</b> ${l.msg}</div>`).join('');

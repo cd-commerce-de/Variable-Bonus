@@ -242,6 +242,7 @@
     <button id="tabFrameworkBtn" class="tab-btn" onclick="setTab('framework')">Bonus Framework</button>
     <button id="tabStageBtn" class="tab-btn" onclick="setTab('stage')">Stage History</button>
     <button id="tabUnmappedBtn" class="tab-btn" onclick="setTab('unmapped')">Unmapped ASINs</button>
+    <button id="tabPanEuTocBtn" class="tab-btn" onclick="setTab('paneutoc')">Pan-EU TOC</button>
     <button id="tabUploadBtn" class="tab-btn" onclick="setTab('upload')">Upload data</button>
   </nav>
 </header>
@@ -290,10 +291,16 @@
       <h2>Launch Manager — Pan-EU (F3M)</h2>
       <span class="section-note">Same columns as the main export, filtered to Pan-EU marketplaces — sets Pan-EU's actual directly, no computation</span>
     </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block; font-size:11.5px; color:var(--line-500); margin-bottom:4px;">Which marketplace is this file for?</label>
+      <select id="panEuMarketplaceSelect" style="min-width:220px; padding:8px 10px; border:1px solid var(--line-300); border-radius:8px; font-size:13px;">
+        <option value="">Add marketplaces in the Pan-EU TOC tab first…</option>
+      </select>
+    </div>
     <div class="upload-zone" id="panEuDropZone">
       <div>
         <p>Drop the Pan-EU-only CSV here, or choose file(s)</p>
-        <p class="hint">Same as the Germany upload above, just for Pan-EU. Both are completely independent — upload either one, both, or neither; nothing is calculated as a difference between them.</p>
+        <p class="hint">Same as the Germany upload above, just for Pan-EU. The SAME ASIN can appear in multiple marketplace files (e.g. France, then Italy) — each marketplace's revenue <b>adds</b> to the total, never overrides another marketplace's. Stage is looked up per-marketplace from the Pan-EU TOC tab, not the main TOC or any other marketplace's entry for that ASIN — an ASIN/marketplace pair not registered there is excluded and flagged.</p>
       </div>
       <input type="file" id="panEuFileInput" accept=".csv" multiple>
     </div>
@@ -598,6 +605,60 @@
     </table>
     </div>
     <p class="section-note" id="unmappedAsinsFooter" style="margin-top:8px;"></p>
+  </section>
+
+</div>
+
+<div id="tabPanEuToc" style="display:none;">
+
+  <section>
+    <div class="section-head">
+      <h2>Pan-EU TOC</h2>
+      <span class="section-note">A separate product database just for Pan-EU — a product's Pan-EU launch date can differ from its German one</span>
+    </div>
+    <div class="banner info" style="margin-bottom:16px;">
+      <span>ℹ</span>
+      <span>When a Pan-EU export is processed, this list is used to determine each ASIN's stage — <b>not</b> the main TOC. A product that launched in Germany months ago but only just expanded into Pan-EU marketplaces should have its own (later) Launch Date entered here, so its F3M window is computed correctly for the Pan-EU bonus. An ASIN not in this list is excluded from Pan-EU processing (flagged, never silently guessed).</span>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px; padding:16px; border:1px solid var(--line-200); border-radius:12px; background:var(--line-50);">
+      <div>
+        <label style="display:block; font-size:11.5px; color:var(--line-500); margin-bottom:4px;">ASIN</label>
+        <input type="text" id="peAddAsin" placeholder="B0XXXXXXXX" style="width:140px; padding:8px 10px; border:1px solid var(--line-300); border-radius:8px; font-size:13px;">
+      </div>
+      <div>
+        <label style="display:block; font-size:11.5px; color:var(--line-500); margin-bottom:4px;">Marketplace</label>
+        <input type="text" id="peAddMarketplace" list="peMarketplaceList" placeholder="e.g. France, Italy" style="width:160px; padding:8px 10px; border:1px solid var(--line-300); border-radius:8px; font-size:13px;">
+        <datalist id="peMarketplaceList"></datalist>
+      </div>
+      <div>
+        <label style="display:block; font-size:11.5px; color:var(--line-500); margin-bottom:4px;">Pan-EU Launch Date</label>
+        <input type="date" id="peAddLaunchDate" style="padding:8px 10px; border:1px solid var(--line-300); border-radius:8px; font-size:13px;">
+      </div>
+      <button class="btn primary" onclick="addPanEuTocEntry()">Add / Update</button>
+      <span id="peAddStatus" style="font-size:12.5px; color:var(--line-500);"></span>
+    </div>
+
+    <div id="panEuPendingSection" style="display:none; margin-bottom:20px;">
+      <div class="section-head">
+        <h2 style="font-size:16px;">Pending — found in an upload, needs a Launch Date</h2>
+        <span class="section-note">These ASINs came from a Pan-EU file you uploaded, not typed in — just fill in the date and save</span>
+      </div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>ASIN</th><th>Marketplace</th><th>Pan-EU Launch Date</th><th></th></tr></thead>
+        <tbody id="panEuPendingBody"></tbody>
+      </table>
+      </div>
+    </div>
+
+    <input type="text" id="panEuTocFilter" placeholder="Search by ASIN or marketplace…" style="width:100%; max-width:420px; padding:9px 12px; border:1px solid var(--line-300); border-radius:10px; font-size:13px; margin-bottom:12px;" oninput="renderPanEuTocTab()">
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>ASIN</th><th>Marketplace</th><th>Pan-EU Launch Date</th><th></th></tr></thead>
+      <tbody id="panEuTocBody"></tbody>
+    </table>
+    </div>
+    <p class="section-note" id="panEuTocFooter" style="margin-top:8px;"></p>
   </section>
 
 </div>
