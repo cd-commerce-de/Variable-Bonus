@@ -279,6 +279,33 @@ removed from pending without accidentally creating a confirmed entry for
 it (dismissing and saving are genuinely different actions with different
 outcomes).
 
+### Pan-EU TOC entries are also visible in Stage History
+
+Both Stage History modes (matrix and reverse-lookup) draw from
+`buildStageHistoryEntries()`, which combines the main TOC *and* every
+Pan-EU TOC entry into one list — not just the main TOC. A new **Source**
+column tags each row: `Main TOC` for a regular entry, or `Pan-EU:
+<Marketplace>` (e.g. `Pan-EU: Spain`) for a Pan-EU TOC entry, using that
+marketplace's own Launch Date for its own stage computation across every
+month — never the main TOC's date, and never another marketplace's date
+for the same ASIN.
+
+This means the **same ASIN can appear as multiple separate rows** — one
+for the main TOC (if it has an entry there) plus one per Pan-EU
+marketplace it's registered for — each showing its own Launch Date and
+its own independently-computed stage per month. Brand and Product are
+borrowed from the main TOC for display only when the ASIN happens to
+exist there too (a Pan-EU-only ASIN with no main TOC entry just shows
+without them) — never its Launch Date, which always comes from that
+row's own source.
+
+Verified directly: registered a real ASIN's Pan-EU TOC entry for Spain,
+searched for it in matrix mode, and got exactly 2 rows — the main TOC
+entry and the Pan-EU: Spain entry, each with a different Launch Date and
+its own month-by-month stage progression. Same ASIN, in reverse-lookup
+mode (Stage=F3M, a month where only the Spain entry qualifies) — correctly
+surfaced just the Pan-EU: Spain row, tagged accordingly.
+
 ## Unmapped ASINs tab
 
 Aggregates every ASIN not in the TOC, across **every saved month** (not

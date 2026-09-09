@@ -920,6 +920,29 @@ function ensureBrandFilterOptions() {
 function renderStageHistory() {
   renderStageHistoryInner().catch(err => console.error('Stage History render error:', err));
 }
+// Combines the main TOC with every (ASIN, Marketplace) entry in the
+// Pan-EU TOC into one list for Stage History -- each Pan-EU entry is its
+// own row (not merged into the main one), since it can have a completely
+// different launch date and therefore a different computed stage. Tagged
+// so it's never ambiguous which source a given row's stage came from.
+function buildStageHistoryEntries() {
+  const entries = [];
+  for (const [asin, info] of Object.entries(MAPPING)) {
+    entries.push({ asin, info, tag: null });
+  }
+  for (const [asin, byMarketplace] of Object.entries(PAN_EU_TOC || {})) {
+    for (const [marketplace, peInfo] of Object.entries(byMarketplace)) {
+      const mainInfo = MAPPING[asin]; // borrow brand/product for display only, if this ASIN also happens to be in the main TOC -- never borrow its launch_date
+      entries.push({
+        asin,
+        info: { launch_date: peInfo.launch_date, brand: mainInfo ? mainInfo.brand : null, product: mainInfo ? mainInfo.product : null },
+        tag: `Pan-EU: ${marketplace}`,
+      });
+    }
+  }
+  return entries;
+}
+
 async function renderStageHistoryInner() {
   ensureMonthFilterOptions();
   ensureBrandFilterOptions();
@@ -935,12 +958,13 @@ async function renderStageHistoryInner() {
   const tableEl = document.getElementById('stageHistoryTable');
 
   if (!MAPPING) { bodyEl.innerHTML = ''; footerEl.textContent = ''; return; }
+  const allEntries = buildStageHistoryEntries();
 
   // ---- Reverse-lookup mode: a specific stage AND month picked -> list every matching ASIN ----
   if (stageFilter && monthFilter) {
     const showCountry = stageFilter === 'F3M'; // Germany/Pan-EU only means anything for F3M-stage products
     tableEl.className = 'stage-history-table list-mode';
-    headerRow.innerHTML = '<th>ASIN</th><th>Product</th><th>Brand</th><th>Launch Date</th><th>Stage</th>' + (showCountry ? '<th>Country</th>' : '');
+    headerRow.innerHTML = '<th>ASIN</th><th>Product</th><th>Brand</th><th>Source</th><th>Launch Date</th><th>Stage</th>' + (showCountry ? '<th>Country</th>' : '');
 
     let germanyAsins = new Set(), panEuAsins = new Set(), countryDataAvailable = false;
     if (showCountry) {
@@ -961,20 +985,21 @@ async function renderStageHistoryInner() {
 
     const CAP = 300;
     const matches = [];
-    for (const [asin, info] of Object.entries(MAPPING)) {
+    for (const { asin, info, tag } of allEntries) {
       if (brandFilter && info.brand !== brandFilter) continue;
       if (filter) {
         const hay = `${asin} ${info.product || ''} ${info.brand || ''}`.toLowerCase();
         if (!hay.includes(filter)) continue;
       }
       const stage = computeStageForMonth(info, monthFilter);
-      if (stage === stageFilter) matches.push([asin, info, stage]);
+      if (stage === stageFilter) matches.push([asin, info, stage, tag]);
     }
-    bodyEl.innerHTML = matches.slice(0, CAP).map(([asin, info, stage]) => `
+    bodyEl.innerHTML = matches.slice(0, CAP).map(([asin, info, stage, tag]) => `
       <tr>
         <td class="name">${asin}</td>
         <td class="name" title="${info.product || ''}">${info.product || '—'}</td>
         <td class="name">${info.brand || '—'}</td>
+        <td>${tag ? `<span class="tier-tag pending">${tag}</span>` : '<span class="section-note">Main TOC</span>'}</td>
         <td class="num">${info.launch_date || '—'}</td>
         <td>${stageBadge(stage)}</td>
         ${showCountry ? `<td>${countryCell(asin)}</td>` : ''}
@@ -991,7 +1016,7 @@ async function renderStageHistoryInner() {
 
   // ---- Matrix mode: pick a product, see its stage across every month ----
   tableEl.className = 'stage-history-table matrix-mode';
-  headerRow.innerHTML = '<th>Product</th><th>Brand</th><th>Launch Date</th>' + months.map(m => `<th title="${formatMonthLabel(m)}">${formatMonthCompact(m)}</th>`).join('');
+  headerRow.innerHTML = '<th>Product</th><th>Brand</th><th>Source</th><th>Launch Date</th>' + months.map(m => `<th title="${formatMonthLabel(m)}">${formatMonthCompact(m)}</th>`).join('');
 
   if (stageFilter && !monthFilter) {
     bodyEl.innerHTML = '';
@@ -1006,21 +1031,22 @@ async function renderStageHistoryInner() {
 
   const CAP = 100; // wide table (24 month columns) -- keep row count tighter than the plain masterlist
   const matches = [];
-  for (const [asin, info] of Object.entries(MAPPING)) {
+  for (const { asin, info, tag } of allEntries) {
     if (brandFilter && info.brand !== brandFilter) continue;
     if (filter) {
       const hay = `${asin} ${info.product || ''} ${info.brand || ''}`.toLowerCase();
       if (!hay.includes(filter)) continue;
     }
-    matches.push([asin, info]);
+    matches.push([asin, info, tag]);
     if (matches.length > CAP) break;
   }
 
-  bodyEl.innerHTML = matches.slice(0, CAP).map(([asin, info]) => {
+  bodyEl.innerHTML = matches.slice(0, CAP).map(([asin, info, tag]) => {
     const cells = months.map(m => `<td>${stageBadge(computeStageForMonth(info, m))}</td>`).join('');
     return `<tr>
       <td class="name" title="${info.product || asin}">${info.product || asin}</td>
       <td class="name">${info.brand || '—'}</td>
+      <td>${tag ? `<span class="tier-tag pending">${tag}</span>` : '<span class="section-note">Main TOC</span>'}</td>
       <td class="num">${info.launch_date || '—'}</td>
       ${cells}
     </tr>`;
