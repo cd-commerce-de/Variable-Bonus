@@ -116,13 +116,26 @@ function monthsInQuarterKey(quarterKey) { // "2026-Q3" -> ["2026-07","2026-08","
 }
 
 // ---------- Auth (local convenience gate only — see note above) ----------
-function unlockDashboard() {
+async function unlockDashboard() {
   // Both must happen together: hiding the overlay alone leaves the real
   // content sitting there, blurred but still scrollable/interactive
   // underneath if this isn't also cleared -- that was the actual bug.
   document.getElementById('authGate').style.display = 'none';
   document.getElementById('appContent').classList.remove('locked');
   document.body.classList.remove('auth-locked');
+
+  // boot() runs unconditionally on page load, BEFORE the passcode is
+  // entered -- its first attempt to list real saved months from the
+  // server (/api/data?list=1) always fails with no valid session yet,
+  // silently falling back to just the 2 hardcoded seed months. This was
+  // a real bug: logging in successfully never re-triggered that fetch,
+  // so the incomplete list just sat there until a manual refresh, by
+  // which point a session cookie already existed from having logged in
+  // before. Fixed: wait for the initial boot to finish (so MAPPING/
+  // TARGETS are guaranteed loaded first, avoiding any race), then
+  // re-fetch the month list now that a valid session genuinely exists.
+  await bootPromise;
+  await refreshMonthList();
 }
 async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -2008,4 +2021,4 @@ async function saveMonth() {
   await refreshMonthList();
 }
 
-boot();
+const bootPromise = boot();

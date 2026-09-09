@@ -547,6 +547,38 @@ simulated a 401 (no valid session) and confirmed the content stays locked
 rather than assuming a successful path; then simulated a successful
 unlock and confirmed both classes are correctly removed.
 
+### Month list was stale until a manual refresh (real bug, found and fixed)
+
+**Symptom reported**: on first opening the dashboard, only July and
+August showed up in the month picker — every other saved month was
+missing until the page was manually refreshed.
+
+**Cause**: `boot()` runs immediately on page load, *before* the passcode
+is even entered, and one of its first steps (`refreshMonthList()`) asks
+the server for the real list of saved months (`/api/data?list=1`). That
+endpoint requires a valid session — which doesn't exist yet at that exact
+moment, since the person hasn't logged in — so the request always failed
+with 401 on that very first attempt, silently falling back to just 2
+hardcoded seed months (`2026-07`, `2026-08`) plus whatever happened to be
+in this browser's local cache. **Successfully logging in afterward never
+re-triggered that fetch** — so the incomplete list just sat there. A
+manual page refresh "fixed" it only because by then a session cookie
+already existed from having logged in moments earlier, so the *next*
+`boot()` succeeded on its first try.
+
+**Fix**: `unlockDashboard()` — the one function every successful
+login/session-check path already calls — now also re-fetches the month
+list once unlocked, using `await bootPromise` first to guarantee it runs
+after the initial `MAPPING`/`TARGETS` load (avoiding a race with
+undefined state if login happens to resolve unusually fast).
+
+Verified directly by reproducing the actual bug first, not just applying
+a fix blind: simulated no valid session at page load (matching the real
+failure condition) and confirmed only the 2 hardcoded months appeared —
+same broken behavior reported. Then simulated a successful login and
+confirmed all 8 real months appeared immediately afterward, with no page
+reload involved at any point in the test.
+
 ## Tab order
 
 Reordered by importance, with Upload data moved to last (an
