@@ -1262,7 +1262,15 @@ function parseCountryF3MFile(file, month, country, marketplace) {
         // leave the Promise pending forever, which is exactly what
         // "stuck at Processing 1 file(s)..." looks like from the outside.
         try {
-        const children = results.data.filter(r => (r.SKU || '').trim() !== '');
+        // Filter to real product rows by ASIN, not SKU: newer Sellerboard
+        // export formats (e.g. "Group by ASIN", as opposed to the
+        // original "Group by Parent") report at the ASIN level directly
+        // and leave SKU blank on every row -- filtering by SKU here would
+        // silently exclude every row in that format. ASIN is also what
+        // every lookup in this function (MAPPING, PAN_EU_TOC) is actually
+        // keyed by, so this is the correct criterion regardless of which
+        // export format produced the file.
+        const children = results.data.filter(r => (r.ASIN || '').trim() !== '');
         let sales = 0, units = 0, net_profit = 0, matched = 0, skippedNonF3M = 0, skippedUnmapped = 0;
         const matchedAsins = [];
         const skippedUnmappedAsins = []; // which ASINs specifically (not just a count) -- for Pan-EU, feeds the "pending" list in the Pan-EU TOC tab, so adding a Launch Date is a quick fill-in instead of typing ASINs from memory

@@ -48,6 +48,35 @@ files at once, so several months can be done in one go. Each upload:
   need to re-upload the main file just to add Launch Manager data) —
   saves immediately either way.
 
+### Country uploads filter rows by ASIN, not SKU (real bug, found and fixed)
+
+**Symptom reported**: uploading a Pan-EU file (Spain) using a newer
+Sellerboard export format ("Group by ASIN" rather than the original
+"Group by Parent") showed no F3M data at all.
+
+**Cause, confirmed against the actual uploaded file**: `parseCountryF3MFile`
+was filtering to "real product rows" by checking for a non-empty SKU
+column — correct for the original "Group by Parent" format, where blank
+SKU meant a parent/summary row to skip. But the newer "Group by ASIN"
+format reports at the ASIN level directly and leaves SKU blank on every
+single row — checked the real uploaded file directly: all 9 rows had a
+real ASIN and real sales data, but a completely blank SKU column. The
+old filter was silently excluding all 9 rows before they ever reached
+the TOC lookup step.
+
+**Fix**: this filter now checks ASIN instead of SKU — which is also more
+correct in general, since every lookup this function does (`MAPPING`,
+`PAN_EU_TOC`) is keyed by ASIN anyway, never SKU.
+
+Verified directly against the real Spain file, not a synthetic one:
+registered 3 of its real ASINs in the Pan-EU TOC with a Spain launch
+date that makes them F3M by August 2026, uploaded the actual file, and
+confirmed it correctly contributed €7,710.99 to Pan-EU's F3M total — the
+other 6 real ASINs from the same file correctly appeared in the Pending
+section (see "Pending ASINs" above), ready for a Launch Date. This
+fix is scoped to the country-specific uploads (Germany/Pan-EU) only —
+the main file's own row-filtering is unaffected.
+
 ### Multiple files for the same country+month: combine, not overwrite
 
 **Real bug, found and fixed**: if you have to export a separate report
