@@ -257,11 +257,12 @@ async function refreshMonthList() {
   sel.innerHTML = '';
   const months = new Set();
   months.add('2026-08'); months.add('2026-07');
+  const isRealMonth = (m) => /^\d{4}-\d{2}$/.test(m); // excludes pseudo-month keys used by other features sharing this same local-storage blob (e.g. _pan_eu_toc, _manual_asin_additions) -- those aren't real months and must never be treated as one
   const local = JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY) || '{}');
-  Object.keys(local).forEach(m => months.add(m));
+  Object.keys(local).filter(isRealMonth).forEach(m => months.add(m));
   try {
     const list = await fetch('/api/data?list=1').then(r => r.ok ? r.json() : null);
-    if (list && list.months) list.months.forEach(m => months.add(m));
+    if (list && list.months) list.months.filter(isRealMonth).forEach(m => months.add(m));
   } catch (e) {}
   const sortedMonths = Array.from(months).sort().reverse();
   sortedMonths.forEach(m => {
@@ -287,13 +288,29 @@ async function onQuarterChange() {
   await renderQuarterlyTab();
 }
 
+// fetch() has no built-in timeout -- if a serverless function ever hangs
+// (e.g. a slow/stuck GitHub API call inside /api/save-month or
+// /api/data), an un-timed-out fetch would wait forever, which looks
+// exactly like "stuck at Processing 1 file(s)..." from the outside,
+// since upload/save/load paths all await these calls. Used everywhere a
+// call to our own API might hang, so it always eventually fails and
+// falls through to the existing local-storage/static-file fallbacks
+// instead of leaving the UI stuck indefinitely.
+async function fetchWithTimeout(url, opts, timeoutMs = 20000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...(opts || {}), signal: controller.signal });
+  } finally { clearTimeout(timeoutId); }
+}
+
 async function loadMonth(month) {
   // Server (shared, GitHub-backed) is the source of truth whenever the API
   // is deployed and working -- everyone sees the same data from here.
   try {
-    const r = await fetch(`/api/data?month=${month}`);
+    const r = await fetchWithTimeout(`/api/data?month=${month}`);
     if (r.ok) return await r.json();
-  } catch (e) { /* API not deployed/reachable -- fall through */ }
+  } catch (e) { /* API not deployed/reachable, or timed out -- fall through */ }
 
   // Fallback 1: this browser's own local save (only relevant if the API
   // was unavailable when "Save to history" was clicked -- single-browser
@@ -1238,6 +1255,13 @@ function parseCountryF3MFile(file, month, country, marketplace) {
     Papa.parse(file, {
       header: true, delimiter: ';', encoding: 'utf-8', skipEmptyLines: true,
       complete: (results) => {
+        // Wrapped in try/catch deliberately: an exception thrown inside
+        // Papa.parse's async "complete" callback does NOT automatically
+        // reject this Promise (that only happens for synchronous throws
+        // in the executor above) -- an uncaught error in here would just
+        // leave the Promise pending forever, which is exactly what
+        // "stuck at Processing 1 file(s)..." looks like from the outside.
+        try {
         const children = results.data.filter(r => (r.SKU || '').trim() !== '');
         let sales = 0, units = 0, net_profit = 0, matched = 0, skippedNonF3M = 0, skippedUnmapped = 0;
         const matchedAsins = [];
@@ -1268,6 +1292,7 @@ function parseCountryF3MFile(file, month, country, marketplace) {
           sales, units, net_profit, sku_count: matchedAsins.length, matched, skippedNonF3M, skippedUnmapped, matchedAsins, skippedUnmappedAsins,
           ukRedirect: { sales: ukRedirectSales, units: ukRedirectUnits, net_profit: ukRedirectNetProfit, asins: ukRedirectAsins },
         });
+        } catch (err) { reject(err); }
       },
       error: (err) => reject(err),
     });
@@ -1429,9 +1454,27 @@ async function handleCountryFiles(fileList, country) {
   statusEl.innerHTML = `<div class="banner info">Processing ${files.length} file(s)…</div>`;
   const log = [];
   for (const file of files) {
-    log.push(await applyCountryUpload(file, country, marketplace));
+    try {
+      log.push(await applyCountryUpload(file, country, marketplace));
+    } catch (err) {
+      // Safety net: if anything unexpected throws here (rather than
+      // being caught and turned into a {ok:false, msg} result the normal
+      // way), this ensures the status message always updates with an
+      // error instead of leaving "Processing..." stuck forever with no
+      // feedback at all.
+      log.push({ file: file.name, ok: false, msg: `Unexpected error: ${err.message || err}. Try again, or check the browser console for details.` });
+    }
   }
-  await refreshMonthList();
+  // The whole rest of this function (not just the per-file loop above)
+  // needs its own safety net too: a crash in refreshMonthList() here
+  // would otherwise skip the final statusEl update entirely, leaving
+  // "Processing..." on screen forever even though every file itself
+  // actually finished -- indistinguishable from a genuine hang.
+  try {
+    await refreshMonthList();
+  } catch (err) {
+    console.error('refreshMonthList failed after upload:', err);
+  }
   statusEl.innerHTML = log.map(l => `<div class="banner ${l.ok ? 'info' : 'error'}" style="margin-top:6px;"><b>${l.file}:</b> ${l.msg}</div>`).join('');
 }
 
@@ -1994,7 +2037,7 @@ function renderImpactAnalysis(data) {
 // ---------- Save month (server if deployed, else localStorage) ----------
 async function saveMonthData(data) {
   try {
-    const res = await fetch('/api/save-month', {
+    const res = await fetchWithTimeout('/api/save-month', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
     });
     if (res.ok) {

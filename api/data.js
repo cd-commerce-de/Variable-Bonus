@@ -32,7 +32,16 @@ module.exports = async (req, res) => {
     const r = await ghFetch('data');
     if (!r.ok) return res.status(200).json({ months: [] });
     const listing = await r.json();
-    const months = listing.filter(f => f.name.endsWith('.json')).map(f => f.name.replace('.json', ''));
+    // Pseudo-month keys (e.g. _pan_eu_toc.json, _manual_asin_additions.json)
+    // share this same data/ folder and save-month endpoint as real months,
+    // but are NOT real months and must never be returned here -- a client
+    // that treated one as a selectable month would try to render it as if
+    // it were a month's full computed data and crash. Only genuine
+    // YYYY-MM.json filenames qualify.
+    const months = listing
+      .filter(f => f.name.endsWith('.json'))
+      .map(f => f.name.replace('.json', ''))
+      .filter(name => /^\d{4}-\d{2}$/.test(name));
     return res.status(200).json({ months });
   }
 

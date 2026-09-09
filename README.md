@@ -579,6 +579,56 @@ same broken behavior reported. Then simulated a successful login and
 confirmed all 8 real months appeared immediately afterward, with no page
 reload involved at any point in the test.
 
+### Pan-EU upload could get stuck at "Processing 1 file(s)…" (real bug, found and fixed)
+
+**Root cause, found by reproducing the exact trigger, not guessed at**:
+the Pan-EU TOC and Unmapped-ASINs features store their own data under
+special "pseudo-month" keys (`_pan_eu_toc`, `_manual_asin_additions`) in
+the *same* local-storage blob and the *same* GitHub `data/` folder used
+for real months — because they reuse the month save/load functions for
+convenience (see "Unmapped ASINs tab" and "Pan-EU TOC tab" above).
+`refreshMonthList()` was treating every key it found there as if it were
+a real month, with no filtering. Because of how strings sort, `_pan_eu_toc`
+sorts ahead of any real `YYYY-MM` month — so once that pseudo-key existed
+(e.g. after adding a Pan-EU TOC entry that fell back to local storage),
+it got auto-selected as "the current month" the next time the list
+refreshed, and the code crashed trying to treat that data blob as if it
+were a month's full computed structure (`Cannot read properties of
+undefined (reading 'by_product')`). Since this crash happened inside
+`refreshMonthList()`, called *after* the file's own upload had already
+finished successfully, it skipped the line that would update the status
+message — leaving "Processing 1 file(s)…" on screen forever even though
+the upload itself had completed.
+
+Fixed in three places, each independently useful:
+1. **The real fix**: `refreshMonthList()` now filters both the
+   local-storage keys and the server's file listing to only genuine
+   `YYYY-MM` names before treating anything as a selectable month.
+2. **Same filter applied server-side** in `/api/data?list=1` — this bug
+   would otherwise have hit *every* user of the shared deployment once
+   Pan-EU TOC data reached the shared GitHub repo, not just whoever
+   triggered it locally first.
+3. **Defensive hardening, regardless of root cause**: wrapped
+   `parseCountryF3MFile`'s Papa.parse callback in try/catch (an
+   exception thrown inside that async callback does NOT automatically
+   reject the surrounding Promise — it would otherwise hang forever,
+   silently, which is its own way of producing this exact symptom);
+   added a 20-second timeout to every fetch call to our own API
+   (`fetchWithTimeout`), so a hung serverless function falls through to
+   the existing local-storage fallback instead of waiting indefinitely;
+   and wrapped both the per-file loop and the post-loop
+   `refreshMonthList()` call in `handleCountryFiles` so any unexpected
+   failure anywhere in the chain always ends in a visible error message
+   rather than a silently stuck status line.
+
+Verified directly by reproducing the exact trigger condition, not just
+applying a fix and hoping: added a real Pan-EU TOC entry (creating the
+`_pan_eu_toc` local-storage key), confirmed it genuinely existed
+alongside a real saved month, then uploaded a Spain Pan-EU file and
+confirmed it completed cleanly with a correct status message — the
+dropdown correctly excluded the bogus `_pan_eu_toc` "month" and correctly
+selected the real `2026-08` instead.
+
 ## Tab order
 
 Reordered by importance, with Upload data moved to last (an
