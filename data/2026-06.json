@@ -310,10 +310,10 @@
    "sku_count": 26
   },
   "actual_pan_eu": {
-   "sales": 0,
-   "units": 0,
-   "net_profit": 0,
-   "sku_count": 0
+   "sales": 689.75,
+   "units": 5,
+   "net_profit": 67.66,
+   "sku_count": 3
   },
   "unmapped_marketplace_asins": [],
   "germany": {
@@ -336,10 +336,10 @@
   },
   "pan_eu": {
    "actual": {
-    "sales": 0,
-    "units": 0,
-    "net_profit": 0,
-    "sku_count": 0
+    "sales": 689.75,
+    "units": 5,
+    "net_profit": 67.66,
+    "sku_count": 3
    },
    "target": {
     "green": 8263.733333333334,
@@ -348,8 +348,8 @@
     "gold_margin": 0.143,
     "source": "estimated"
    },
-   "actual_margin_pct": null,
-   "tier": "-",
+   "actual_margin_pct": 0.09809351214208045,
+   "tier": "❌ MISS",
    "bonus_eur": 0
   },
   "germany_target": {
@@ -399,7 +399,59 @@
    "B0H5VMXPJY",
    "B0H5VM13XG"
   ],
-  "pan_eu_asins": []
+  "pan_eu_asins": [
+   "B0GY9QP54T",
+   "B0GY9R4MRZ",
+   "B0GYB6HPGD"
+  ],
+  "pan_eu_contributions": {
+   "Italy::CD_Commerce_Dashboard_Products_Group_by_ASIN_01_06_2026-30_06_2026_(2026_09_10_13_25_07_802)_sellerboard.com-Italy.csv": {
+    "sales": 689.75,
+    "units": 5,
+    "net_profit": 67.66,
+    "asins": [
+     "B0GY9QP54T",
+     "B0GY9R4MRZ",
+     "B0GYB6HPGD"
+    ],
+    "marketplace": "Italy"
+   }
+  },
+  "germany_contributions": {
+   "__legacy__": {
+    "sales": 236900.19000000003,
+    "units": 3353,
+    "net_profit": 60834.43999999998,
+    "asins": [
+     "B0H2BS1CB8",
+     "B0H2BP8P7Z",
+     "B0H2BG2TT3",
+     "B0H2BM3SJD",
+     "B0H2BNX5K4",
+     "B0H2BKVS97",
+     "B0H2BMJ8G6",
+     "B0H2BNG3XM",
+     "B0GZ5KG2XW",
+     "B0GZ5GZBRK",
+     "B0GZ5K24L4",
+     "B0GTRB8R4B",
+     "B0GTRK543K",
+     "B0GTRJD57Z",
+     "B0GTRD8C8L",
+     "B0GTRB5GJB",
+     "B0GXL3V73V",
+     "B0GXLDVGC1",
+     "B0GXLHSLMM",
+     "B0GXL7VM47",
+     "B0GXLCZT2Y",
+     "B0GXL3V73W",
+     "B0GXLHHPRF",
+     "B0GXLKWSZQ",
+     "B0H5VMXPJY",
+     "B0H5VM13XG"
+    ]
+   }
+  }
  },
  "brand_manager": {
   "Nasswerk": {
