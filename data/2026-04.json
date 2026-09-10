@@ -408,7 +408,60 @@
    "B0GXLDVGC1",
    "B0GTRDGF13"
   ],
-  "pan_eu_asins": []
+  "pan_eu_asins": [],
+  "pan_eu_contributions": {
+   "Italy::CD_Commerce_Dashboard_Products_Group_by_ASIN_01_04_2026-30_04_2026_(2026_09_10_13_30_39_889)_sellerboard.com-Italy.csv": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "asins": [],
+    "marketplace": "Italy"
+   }
+  },
+  "germany_contributions": {
+   "__legacy__": {
+    "sales": 78122.62999999996,
+    "units": 1430,
+    "net_profit": 19097.149999999998,
+    "asins": [
+     "B0FHHZQXTT",
+     "B0FHHWRWCG",
+     "B0GTRHV3D8",
+     "B0GTRLQFKK",
+     "B0FHHYRSVK",
+     "B0GTR67F7R",
+     "B0GTRDGNXH",
+     "B0GTR8JQMH",
+     "B0GTRFF1R7",
+     "B0GTRJD57Z",
+     "B0GTRD8C8L",
+     "B0GTRK543K",
+     "B0GTRB8R4B",
+     "B0GTR8MVVC",
+     "B0GTRG8LHK",
+     "B0GTRFMFTX",
+     "B0GTRCKSFT",
+     "B0GTRCQ1LB",
+     "B0GTRHTZFX",
+     "B0GTRG3V76",
+     "B0GTRB7MW3",
+     "B0GTRC7G5Q",
+     "B0GTRD9L8Q",
+     "B0GTR89BY1",
+     "B0GTRFRWNY",
+     "B0GTRB5GJB",
+     "B0GXL3V73V",
+     "B0GXLHSLMM",
+     "B0GXLCZT2Y",
+     "B0GXL7VM47",
+     "B0GXLHHPRF",
+     "B0GXL3V73W",
+     "B0GXLKWSZQ",
+     "B0GXLDVGC1",
+     "B0GTRDGF13"
+    ]
+   }
+  }
  },
  "brand_manager": {
   "PD": {
