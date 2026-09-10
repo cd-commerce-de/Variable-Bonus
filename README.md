@@ -306,6 +306,24 @@ its own month-by-month stage progression. Same ASIN, in reverse-lookup
 mode (Stage=F3M, a month where only the Spain entry qualifies) — correctly
 surfaced just the Pan-EU: Spain row, tagged accordingly.
 
+**The Stage dropdown's F3M option is split into two, in reverse-lookup
+mode**: "F3M (Launch)" matches only main-TOC entries (no Pan-EU tag) —
+this is the original F3M, just relabeled for clarity now that a second
+kind exists. "F3M (PanEU)" matches only Pan-EU TOC entries (any
+marketplace) that are F3M per their own Launch Date. The two are
+mutually exclusive — an ASIN registered in the Pan-EU TOC never appears
+under "F3M (Launch)" even if its main-TOC entry also happens to be F3M
+that month, and vice versa. Every other stage filter (Y1/PY1/
+Discontinued/Quality Issue) is unchanged and still matches either source,
+since only F3M was asked to be split this way.
+
+Verified directly: registered a real ASIN in the Pan-EU TOC (Spain,
+F3M-eligible for August) while a *different* real ASIN was independently
+F3M per the main TOC for the same month. Filtered to "F3M (Launch)" —
+got the main-TOC ASIN, correctly excluding the Pan-EU one. Filtered to
+"F3M (PanEU)" instead — got exactly the Pan-EU ASIN (tagged "Pan-EU:
+Spain"), correctly excluding the main-TOC one.
+
 ## Unmapped ASINs tab
 
 Aggregates every ASIN not in the TOC, across **every saved month** (not
@@ -491,17 +509,54 @@ fix, confirming the targets.json lookup wasn't broken.
 Targets are **not entered manually in the dashboard.** There are two layers:
 
 **1. Real per-month targets (preferred, used automatically when present).**
-Sourced directly from the workbook's actual monthly Good/Better/Best
-columns — no dividing, no estimating:
-- `BM Scorecard 3` → Launch Manager (`LM (F3M)` = Germany, `Expansion (F3M)`
-  = Pan-EU) and Brand Manager (each brand's `PY1` / `Y1` / `Discontinued`
-  sections), both Revenue and Profit Margin.
-- `Leadership Scorecard 3`, row 13 onward → R&D, one row per named product.
-  Revenue only — no margin *target* exists for R&D in the source yet.
-  Actual margin is still computed and shown (net profit ÷ revenue), and
-  the margin gate is treated as an automatic pass when there's no target
-  to grade it against (same rule the R&D and Brand Manager gates both use
-  for any missing target, not a special case).
+Sourced directly from the source scorecards' actual monthly Good/Better/Best
+columns — no dividing, no estimating. **The source is now two separate
+files**, not one combined workbook — extraction reads:
+- **BM Scorecard**, sheet `Brands` → Launch Manager (`LM (F3M)` = Germany,
+  `Expansion (F3M)` = Pan-EU) and Brand Manager (each brand's `PY1` / `Y1` /
+  `Discontinued` sections), both Revenue and Profit Margin.
+- **Leadership Scorecard**, sheet `Leadership`, row 13 onward → R&D, one
+  row per named product. Revenue only — no margin *target* exists for R&D
+  in the source. Actual margin is still computed and shown (net profit ÷
+  revenue), and the margin gate is treated as an automatic pass when
+  there's no target to grade it against.
+
+**A month's target block is identified by the date columns that follow
+it, not by its own leading date label** — the block's own label cell is
+unreliable (found to read the *previous* month in the actual source
+files), but the weekly section immediately after each Good/Better/Best
+triple is always the real, unambiguous month it belongs to.
+`extract_monthly_targets_v2.py`'s `find_month_columns()` scans forward
+from each triple for the first real date rather than trusting the
+adjacent label.
+
+**A month is only extracted if it has real data.** Both scorecards are
+live trackers that show 0/blank for any month not yet reached — a month
+gated out this way is correctly left with no `targets_monthly/<month>.json`
+file at all, so it falls through to the quarterly-estimate layer below
+instead of being overwritten with zeros.
+
+**Real bug, found and fixed**: Launch Manager's previously-extracted
+July/August targets were stale — sourced from an older version of the BM
+Scorecard before its figures were revised. Brand Manager and R&D's
+extracted figures were unaffected (verified they already matched the
+newer file exactly), so this was isolated to Launch Manager specifically.
+Rewrote the extraction as `extract_monthly_targets_v2.py` to read the
+current two-separate-files format directly (the previous script assumed
+one combined workbook named `BM Scorecard 3` / `Leadership Scorecard 3`,
+which no longer matches what's actually provided) — see that script's
+docstring; `extract_monthly_targets.py` is kept only for reference.
+
+Verified directly against three real user-provided figures spanning all
+three tracks, not just re-running the old logic and assuming it's right:
+Germany May 2026 revenue (€205,282 / €216,086), Pan-EU May 2026 revenue
+(€27,859 / €29,325), and R&D's Solar cover (SLP) May 2026 revenue
+(€69,974 / €73,656) — all three matched exactly against what the script
+extracted. Then confirmed the fix actually reaches real bonus
+calculations: loaded a real August Sellerboard export and confirmed
+Launch Manager Germany's tier/bonus computation now uses the corrected
+target (€158,497 / €166,839) instead of the old stale one
+(€181,289 / €190,831).
 
 **Mapping note:** the source sheets use a 3-tier Good/Better/Best scale;
 the dashboard's bonus logic (and Config's rates) only has two tiers. The
@@ -510,11 +565,13 @@ extracted but not currently used for tiering). This was an inference, not
 an explicit instruction — if that's wrong, it's a one-line change in
 `applyTargetsAndTiers()` in `app.js`.
 
-Extract a month with:
+Extract all months with real data in one pass:
 ```bash
-python3 scripts/extract_monthly_targets.py path/to/calculator.xlsx --month 2026-08 \
-  --out mapping/targets_monthly/2026-08.json
-cp mapping/targets_monthly/2026-08.json public/targets_monthly/2026-08.json
+python3 scripts/extract_monthly_targets_v2.py \
+  --bm path/to/BM_Scorecard.xlsx \
+  --leadership path/to/Leadership_Scorecard.xlsx \
+  --out-dir mapping/targets_monthly
+cp mapping/targets_monthly/*.json public/targets_monthly/
 ```
 Commit and push. The dashboard picks up `targets_monthly/<month>.json`
 automatically for any month that has one — including **previously saved**

@@ -1,6 +1,6 @@
 {
  "month": "2026-08",
- "note": "Real per-month Good/Better/Best targets, sourced directly from BM Scorecard 3 (Launch Mgr, Brand Mgr) and Leadership Scorecard 3 (R&D, revenue only). Replaces the earlier quarterly/3 estimate for this month.",
+ "note": "Real per-month Good/Better/Best targets, sourced directly from the BM Scorecard (Brands sheet: Launch Mgr, Brand Mgr) and the Leadership Scorecard (Leadership sheet: R&D, revenue only).",
  "rd_team": {
   "GWK": {
    "label": "Mulled wine kettle - GWK",
@@ -25,7 +25,7 @@
    "revenue": {
     "good": 0,
     "better": 0,
-    "best": 0
+    "best": 0.0
    },
    "profit_margin": null
   },
@@ -34,7 +34,7 @@
    "revenue": {
     "good": 7581.6,
     "better": 8529.3,
-    "best": 9477
+    "best": 9477.0
    },
    "profit_margin": null
   },
@@ -52,7 +52,7 @@
    "revenue": {
     "good": 30615.2,
     "better": 34442.1,
-    "best": 38269
+    "best": 38269.0
    },
    "profit_margin": null
   },
@@ -61,7 +61,7 @@
    "revenue": {
     "good": 48828,
     "better": 54931.5,
-    "best": 61035
+    "best": 61035.0
    },
    "profit_margin": null
   },
@@ -79,7 +79,7 @@
    "revenue": {
     "good": 0,
     "better": 0,
-    "best": 0
+    "best": 0.0
    },
    "profit_margin": null
   },
@@ -97,7 +97,7 @@
    "revenue": {
     "good": 8952,
     "better": 10071,
-    "best": 11190
+    "best": 11190.0
    },
    "profit_margin": null
   },
@@ -115,7 +115,7 @@
    "revenue": {
     "good": 54742.4,
     "better": 61585.2,
-    "best": 68428
+    "best": 68428.0
    },
    "profit_margin": null
   },
@@ -132,9 +132,9 @@
  "launch_manager": {
   "germany": {
    "revenue": {
-    "good": 171747.9,
-    "better": 181289.45,
-    "best": 190831
+    "good": 150155.1,
+    "better": 158497.05,
+    "best": 166839.0
    },
    "profit_margin": {
     "good": 0.123,
@@ -144,9 +144,9 @@
   },
   "pan_eu": {
    "revenue": {
-    "good": 6102,
-    "better": 6441,
-    "best": 6780
+    "good": 17384.4,
+    "better": 18350.2,
+    "best": 19316.0
    },
    "profit_margin": {
     "good": 0.123,
@@ -161,7 +161,7 @@
     "revenue": {
      "good": 328787.1,
      "better": 347053.05,
-     "best": 365319
+     "best": 365319.0
     },
     "profit_margin": {
      "good": 0.2242,
@@ -185,10 +185,10 @@
     "revenue": {
      "good": 16245.9,
      "better": 17148.45,
-     "best": 18051
+     "best": 18051.0
     },
     "profit_margin": {
-     "good": 0,
+     "good": 0.0,
      "better": 0.05,
      "best": 0.1
     }
@@ -213,7 +213,7 @@
     "revenue": {
      "good": 159363,
      "better": 168216.5,
-     "best": 177070
+     "best": 177070.0
     },
     "profit_margin": {
      "good": 0.1657,
@@ -225,7 +225,7 @@
     "revenue": {
      "good": 35491.5,
      "better": 37463.25,
-     "best": 39435
+     "best": 39435.0
     },
     "profit_margin": {
      "good": 0.162,
@@ -238,7 +238,7 @@
    "PY1": {
     "revenue": {
      "good": 426845.45,
-     "better": 449311,
+     "better": 449311.0,
      "best": 471776.55
     },
     "profit_margin": {
@@ -251,7 +251,7 @@
     "revenue": {
      "good": 566754.3,
      "better": 598240.65,
-     "best": 629727
+     "best": 629727.0
     },
     "profit_margin": {
      "good": 0.162,
@@ -263,10 +263,10 @@
     "revenue": {
      "good": 41163.3,
      "better": 43450.15,
-     "best": 45737
+     "best": 45737.0
     },
     "profit_margin": {
-     "good": 0,
+     "good": 0.0,
      "better": 0.05,
      "best": 0.1
     }
@@ -304,7 +304,7 @@
    "PY1": {
     "revenue": {
      "good": 205078.4,
-     "better": 215872,
+     "better": 215872.0,
      "best": 226665.6
     },
     "profit_margin": {
@@ -317,7 +317,7 @@
     "revenue": {
      "good": 34983,
      "better": 36926.5,
-     "best": 38870
+     "best": 38870.0
     },
     "profit_margin": {
      "good": 0.162,
@@ -329,10 +329,10 @@
     "revenue": {
      "good": 10232.1,
      "better": 10800.55,
-     "best": 11369
+     "best": 11369.0
     },
     "profit_margin": {
-     "good": 0,
+     "good": 0.0,
      "better": 0.05,
      "best": 0.1
     }
@@ -342,7 +342,7 @@
    "PY1": {
     "revenue": {
      "good": 67063.35,
-     "better": 70593,
+     "better": 70593.0,
      "best": 74122.65
     },
     "profit_margin": {
@@ -355,7 +355,7 @@
     "revenue": {
      "good": 2796.3,
      "better": 2951.65,
-     "best": 3107
+     "best": 3107.0
     },
     "profit_margin": {
      "good": 0.162,
@@ -367,10 +367,10 @@
     "revenue": {
      "good": 11655.9,
      "better": 12303.45,
-     "best": 12951
+     "best": 12951.0
     },
     "profit_margin": {
-     "good": 0,
+     "good": 0.0,
      "better": 0.05,
      "best": 0.1
     }

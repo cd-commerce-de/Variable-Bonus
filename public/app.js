@@ -962,7 +962,7 @@ async function renderStageHistoryInner() {
 
   // ---- Reverse-lookup mode: a specific stage AND month picked -> list every matching ASIN ----
   if (stageFilter && monthFilter) {
-    const showCountry = stageFilter === 'F3M'; // Germany/Pan-EU only means anything for F3M-stage products
+    const showCountry = stageFilter === 'F3M' || stageFilter === 'F3M_PANEU'; // Germany/Pan-EU only means anything for F3M-stage products, either variant
     tableEl.className = 'stage-history-table list-mode';
     headerRow.innerHTML = '<th>ASIN</th><th>Product</th><th>Brand</th><th>Source</th><th>Launch Date</th><th>Stage</th>' + (showCountry ? '<th>Country</th>' : '');
 
@@ -983,6 +983,18 @@ async function renderStageHistoryInner() {
       return '<span class="tier-tag pending">not in either upload</span>';
     }
 
+    // F3M splits by source: "F3M (Launch)" means the main TOC's own F3M
+    // window (no Pan-EU tag); "F3M (PanEU)" means a Pan-EU TOC entry's OWN
+    // F3M window instead (any marketplace) -- these are mutually
+    // exclusive views into the same underlying stage. Every other stage
+    // filter is unchanged and matches regardless of source, since only
+    // F3M was asked to be split this way.
+    function matchesStageFilter(stage, tag) {
+      if (stageFilter === 'F3M') return stage === 'F3M' && !tag;
+      if (stageFilter === 'F3M_PANEU') return stage === 'F3M' && !!tag && tag.startsWith('Pan-EU:');
+      return stage === stageFilter;
+    }
+
     const CAP = 300;
     const matches = [];
     for (const { asin, info, tag } of allEntries) {
@@ -992,7 +1004,7 @@ async function renderStageHistoryInner() {
         if (!hay.includes(filter)) continue;
       }
       const stage = computeStageForMonth(info, monthFilter);
-      if (stage === stageFilter) matches.push([asin, info, stage, tag]);
+      if (matchesStageFilter(stage, tag)) matches.push([asin, info, stage, tag]);
     }
     bodyEl.innerHTML = matches.slice(0, CAP).map(([asin, info, stage, tag]) => `
       <tr>
@@ -1004,7 +1016,8 @@ async function renderStageHistoryInner() {
         <td>${stageBadge(stage)}</td>
         ${showCountry ? `<td>${countryCell(asin)}</td>` : ''}
       </tr>`).join('');
-    const stageLabel = displayStageLabel(STAGE_LABELS[stageFilter] || stageFilter);
+    const stageLabelMap = { F3M: 'F3M (Launch)', F3M_PANEU: 'F3M (PanEU)' };
+    const stageLabel = stageLabelMap[stageFilter] || displayStageLabel(STAGE_LABELS[stageFilter] || stageFilter);
     const qualifiers = [brandFilter ? `brand "${brandFilter}"` : null, filter ? 'matching your search' : null].filter(Boolean).join(' and ');
     let footerMsg = matches.length > CAP
       ? `Showing first ${CAP} of ${matches.length}+ ASINs that were ${stageLabel} in ${formatMonthLabel(monthFilter)}${qualifiers ? ` (${qualifiers})` : ''}.`

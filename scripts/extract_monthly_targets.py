@@ -1,4 +1,12 @@
 """
+DEPRECATED -- see extract_monthly_targets_v2.py instead. This script
+assumed both scorecards lived as sheets inside one combined workbook
+('BM Scorecard 3' / 'Leadership Scorecard 3'). That's no longer how the
+source data is provided (two separate files, sheets named 'Brands' and
+'Leadership') -- v2 handles that format and is what actually produced
+the current targets_monthly/*.json files. Kept here only in case an
+older combined-workbook export is ever provided again.
+
 Extracts real per-month Good/Better/Best (Green/Gold-equivalent... here
 3-tier) revenue + profit-margin targets, sourced directly from:
 
