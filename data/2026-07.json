@@ -315,10 +315,10 @@
    "sku_count": 19
   },
   "actual_pan_eu": {
-   "sales": 24469.010000000002,
-   "units": 202,
-   "net_profit": 6582.9400000000005,
-   "sku_count": 3
+   "sales": 63088.56,
+   "units": 677,
+   "net_profit": 11274.07,
+   "sku_count": 9
   },
   "germany_source": "dedicated_upload",
   "pan_eu_source": "dedicated_upload",
@@ -342,10 +342,10 @@
   },
   "pan_eu": {
    "actual": {
-    "sales": 24469.010000000002,
-    "units": 202,
-    "net_profit": 6582.9400000000005,
-    "sku_count": 3
+    "sales": 63088.56,
+    "units": 677,
+    "net_profit": 11274.07,
+    "sku_count": 9
    },
    "target": {
     "green": 18350.2,
@@ -354,9 +354,9 @@
     "gold_margin": 0.143,
     "source": "real"
    },
-   "actual_margin_pct": 0.26903172625292154,
+   "actual_margin_pct": 0.17870228770477564,
    "tier": "🥇 GOLD",
-   "bonus_eur": 15.459030000000006
+   "bonus_eur": 131.31768
   },
   "germany_target": {
    "green": 254624.7,
@@ -372,7 +372,7 @@
    "gold_margin": 0.143,
    "source": "real"
   },
-  "combined_bonus_eur": 15.459030000000006,
+  "combined_bonus_eur": 131.31768,
   "germany_asins": [
    "B0H5VM13XG",
    "B0H5VMXPJY",
@@ -397,7 +397,13 @@
   "pan_eu_asins": [
    "B0GYB6HPGD",
    "B0GY9R4MRZ",
-   "B0GY9QP54T"
+   "B0GY9QP54T",
+   "B0FT122NYW",
+   "B0FT1BDLJN",
+   "B0FT1GD4GF",
+   "B0FT1BCWYG",
+   "B0FT1892KP",
+   "B0FT1CLYGX"
   ],
   "pan_eu_contributions": {
    "Italy::CD_Commerce_Dashboard_Products_Group_by_ASIN_01_07_2026-31_07_2026_(2026_09_10_13_24_34_218)_sellerboard.com-Italy.csv": {
@@ -421,6 +427,23 @@
      "B0GY9R4MRZ"
     ],
     "marketplace": "France"
+   },
+   "Spain::CD_Commerce_Dashboard_Products_Group_by_ASIN_01_07_2026-31_07_2026_(2026_09_10_13_24_10_725)_sellerboard.com-Spain.csv": {
+    "sales": 38619.549999999996,
+    "units": 475,
+    "net_profit": 4691.13,
+    "asins": [
+     "B0FT122NYW",
+     "B0FT1BDLJN",
+     "B0FT1GD4GF",
+     "B0FT1BCWYG",
+     "B0GYB6HPGD",
+     "B0FT1892KP",
+     "B0GY9QP54T",
+     "B0FT1CLYGX",
+     "B0GY9R4MRZ"
+    ],
+    "marketplace": "Spain"
    }
   },
   "germany_contributions": {
