@@ -304,10 +304,10 @@
    "sku_count": 38
   },
   "actual_pan_eu": {
-   "sales": 0,
-   "units": 0,
-   "net_profit": 0,
-   "sku_count": 0
+   "sales": 8098.9,
+   "units": 68,
+   "net_profit": 1538.69,
+   "sku_count": 3
   },
   "unmapped_marketplace_asins": [],
   "germany": {
@@ -330,10 +330,10 @@
   },
   "pan_eu": {
    "actual": {
-    "sales": 0,
-    "units": 0,
-    "net_profit": 0,
-    "sku_count": 0
+    "sales": 8098.9,
+    "units": 68,
+    "net_profit": 1538.69,
+    "sku_count": 3
    },
    "target": {
     "green": 8263.733333333334,
@@ -342,8 +342,8 @@
     "gold_margin": 0.143,
     "source": "estimated"
    },
-   "actual_margin_pct": null,
-   "tier": "-",
+   "actual_margin_pct": 0.18998752917062814,
+   "tier": "❌ MISS",
    "bonus_eur": 0
   },
   "germany_target": {
@@ -405,7 +405,11 @@
    "B0GXLKWSZQ",
    "B0GTRDGF13"
   ],
-  "pan_eu_asins": [],
+  "pan_eu_asins": [
+   "B0GYB6HPGD",
+   "B0GY9R4MRZ",
+   "B0GY9QP54T"
+  ],
   "pan_eu_contributions": {
    "Italy::CD_Commerce_Dashboard_Products_Group_by_ASIN_01_05_2026-31_05_2026_(2026_09_10_13_26_14_613)_sellerboard.com-Italy.csv": {
     "sales": 0,
@@ -413,6 +417,17 @@
     "net_profit": 0,
     "asins": [],
     "marketplace": "Italy"
+   },
+   "France::CD_Commerce_Dashboard_Products_Group_by_ASIN_01_05_2026-31_05_2026_(2026_09_10_13_26_42_008)_sellerboard.com-France.csv": {
+    "sales": 8098.9,
+    "units": 68,
+    "net_profit": 1538.69,
+    "asins": [
+     "B0GYB6HPGD",
+     "B0GY9R4MRZ",
+     "B0GY9QP54T"
+    ],
+    "marketplace": "France"
    }
   },
   "germany_contributions": {
