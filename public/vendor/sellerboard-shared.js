@@ -1,5 +1,25 @@
 // Shared helpers for api/sellerboard-sync.js. Kept separate from that
 // file so the parsing/aggregation logic can be unit-tested on its own.
+//
+// Wrapped in an IIFE deliberately: this file is loaded TWO ways --
+// required as a Node module (api/sellerboard-sync.js, which gets its own
+// isolated module scope automatically) AND loaded as a plain <script> in
+// the browser (public/vendor/sellerboard-shared.js, a byte-for-byte copy
+// of this file), where it shares the SAME global scope as app.js. This
+// was a real bug, found live: several names here (STAGE_LABELS,
+// BM_GROUPS, cleanNumber, normBrand, and others) are also declared at
+// the top level of app.js -- with no wrapper, loading both scripts on
+// the same page threw "Identifier 'STAGE_LABELS' has already been
+// declared", a SyntaxError that broke the ENTIRE app.js parse (not just
+// a runtime warning), taking down every function in it -- including
+// tryLogin, hence the passcode screen doing nothing at all when clicked.
+// Node's `require()` never caught this because each required module
+// already has its own isolated scope; the collision only exists in a
+// real browser loading both as sibling <script> tags, which is exactly
+// what none of the earlier Node-based tests exercised. The IIFE ensures
+// nothing inside leaks into the global scope except the one intended
+// export.
+(function () {
 
 function parseSemicolonCSV(text) {
   const clean = text.replace(/^\uFEFF/, ''); // strip BOM if present
@@ -321,3 +341,5 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
   window.SellerboardShared = SellerboardShared;
 }
+
+})();

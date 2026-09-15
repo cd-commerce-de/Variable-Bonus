@@ -784,6 +784,57 @@ even if you're not touching targets.
   are manual inputs that aren't currently saved with the rest of the
   month's data, so there's nothing to compute from yet.
 
+## Critical bug, found and fixed: the passcode screen did nothing at all
+
+**Symptom reported**: entering the correct passcode and clicking Unlock
+did nothing — no error, no unlock, completely unresponsive.
+
+**Root cause, found from the actual browser console, not guessed at**:
+`Uncaught SyntaxError: Identifier 'STAGE_LABELS' has already been
+declared`. `public/vendor/sellerboard-shared.js` (added for the
+Sellerboard sync's file-upload path) declared several top-level
+`const`s and `function`s — `STAGE_LABELS`, `BM_GROUPS`,
+`OFFICIAL_BM_BRANDS`, `cleanNumber`, `normBrand`, `computeStageForMonth`,
+`matchRdCode`, `officialBrandGroup`, `monthIndex`, `sumContributions` —
+that **also already exist at the top level of `app.js`**. Both load as
+separate `<script>` tags on the same page, sharing one global scope —
+unlike Node's `require()`, which gives each module its own isolated
+scope automatically. The redeclaration is a `SyntaxError`, which fails
+to parse the **entire** `app.js` file, not just a warning — nothing in
+it gets defined, including `tryLogin`, which is exactly why clicking
+Unlock produced `tryLogin is not defined` and did nothing at all.
+
+**Why none of the earlier tests caught this**: every test up to this
+point either used Node's `require()` (which hides this class of bug
+entirely, since each `require`d module is automatically scoped) or
+loaded `app.js` in isolation via `window.eval()` without also loading
+`sellerboard-shared.js` alongside it. None of them reproduced what a
+real browser actually does: load every `<script>` tag, in order, into
+one shared global scope.
+
+**Fix**: wrapped the entire contents of `api/_sellerboard.js` (and its
+byte-for-byte browser copy, `public/vendor/sellerboard-shared.js`) in an
+IIFE, so nothing inside it leaks into the global scope except the one
+intended export (`module.exports` in Node, `window.SellerboardShared` in
+the browser). This is the standard pattern for exactly this situation,
+and is what should have been done from the start when this file was
+made loadable both ways.
+
+Verified by reproducing the actual failure first, not just applying a
+fix and hoping: loaded every script tag in the exact order and manner a
+real browser does (`papaparse.min.js` → `chart.umd.min.js` →
+`sellerboard-shared.js` → `app.js`, all via `window.eval()` into one
+shared jsdom `window`) — confirmed this exact sequence threw the same
+`SyntaxError` before the fix. After the fix: all four scripts load with
+no error, `typeof window.tryLogin` is `"function"`, a full login attempt
+correctly unlocks the dashboard, `window.SellerboardShared` still works
+correctly for the file-upload sync path, and `window.STAGE_LABELS` is
+correctly `undefined` (confirming nothing leaks into the global scope
+anymore). Also re-ran the actual sync endpoint end-to-end afterward to
+confirm the IIFE wrapping didn't break the Node.js side of this same
+file — same real August report in, same correct saved totals out
+(Tarpofix PY1, Germany F3M, R&D product count all unchanged).
+
 ## Auth gate actually blocks content now
 
 **Real bug, found and fixed**: the passcode overlay showed correctly, but
