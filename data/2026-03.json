@@ -3,116 +3,104 @@
  "rd_team": {
   "label": "R&D Team — Y1 products (per product)",
   "by_product": {
-   "TSE": {
-    "sales": 41030.42,
-    "units": 1286,
-    "net_profit": 5592.67,
-    "sku_count": 3
-   },
-   "WHS": {
-    "sales": 30392.79,
-    "units": 391,
-    "net_profit": 9713.340000000002,
-    "sku_count": 11
-   },
-   "FRM02": {
-    "sales": 12005.91,
-    "units": 299,
-    "net_profit": 772.47,
-    "sku_count": 3
+   "KMS": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 87
    },
    "DSD": {
-    "sales": 13594.419999999998,
-    "units": 273,
-    "net_profit": 2788.81,
-    "sku_count": 3
-   },
-   "KMS": {
-    "sales": 12093.43,
-    "units": 168,
-    "net_profit": 1889.73,
-    "sku_count": 3
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 61
    },
    "FES": {
-    "sales": 15069.3,
-    "units": 115,
-    "net_profit": 3317.43,
-    "sku_count": 2
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 41
    },
-   "GWK": {
-    "sales": 5613.85,
-    "units": 96,
-    "net_profit": 682.6199999999999,
-    "sku_count": 12
+   "FRM02": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 93
    },
    "VZW": {
-    "sales": 6375.23,
-    "units": 47,
-    "net_profit": 2366.09,
-    "sku_count": 2
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 62
    },
-   "AKS": {
-    "sales": 2314.84,
-    "units": 33,
-    "net_profit": -1006.85,
-    "sku_count": 2
+   "GWK": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 194
    },
    "SLP": {
-    "sales": 1143,
-    "units": 22,
-    "net_profit": 244.13999999999993,
-    "sku_count": 20
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 95
+   },
+   "AKS": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 41
    }
   },
   "rows": {
    "GWK": {
     "label": "Mulled wine kettle - GWK",
     "actual": {
-     "sales": 5613.85,
-     "units": 96,
-     "net_profit": 682.6199999999999,
-     "sku_count": 12
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 194
     },
-    "green_target": 681.24,
-    "gold_target": 756.9333333333334,
-    "tier": "🥇 GOLD",
-    "bonus_eur": 48.56916666666667,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.12159569635811428,
+    "green_target": 5145.288,
+    "gold_target": 6431.61,
+    "tier": "-",
+    "bonus_eur": 0,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
    "DSD": {
     "label": "Dartstand - DSD",
     "actual": {
-     "sales": 13594.419999999998,
-     "units": 273,
-     "net_profit": 2788.81,
-     "sku_count": 3
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 61
     },
-    "green_target": 0,
-    "gold_target": 0,
+    "green_target": 6317.12,
+    "gold_target": 7896.4,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.2051437280884363,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
    "TSE": {
     "label": "Toilet seat - TSE",
     "actual": {
-     "sales": 41030.42,
-     "units": 1286,
-     "net_profit": 5592.67,
-     "sku_count": 3
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
     },
-    "green_target": 0,
-    "gold_target": 0,
+    "green_target": 25270.68,
+    "gold_target": 31588.35,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.13630545336850075,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
@@ -124,11 +112,11 @@
      "net_profit": 0,
      "sku_count": 0
     },
-    "green_target": 5686.2,
-    "gold_target": 6318,
+    "green_target": 12636,
+    "gold_target": 15795,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
+    "target_source": "real",
     "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
@@ -136,119 +124,119 @@
    "KMS": {
     "label": "Fireplace guard - KMS",
     "actual": {
-     "sales": 12093.43,
-     "units": 168,
-     "net_profit": 1889.73,
-     "sku_count": 3
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 87
     },
-    "green_target": 6232.05,
-    "gold_target": 6924.5,
-    "tier": "🥇 GOLD",
-    "bonus_eur": 51.6893,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.15626087884082515,
+    "green_target": 21050.48,
+    "gold_target": 26313.1,
+    "tier": "-",
+    "bonus_eur": 0,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
    "FES": {
     "label": "Fire Bowl - FES",
     "actual": {
-     "sales": 15069.3,
-     "units": 115,
-     "net_profit": 3317.43,
-     "sku_count": 2
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 41
     },
-    "green_target": 15133.65,
-    "gold_target": 16815.166666666668,
-    "tier": "❌ MISS",
+    "green_target": 9741.2,
+    "gold_target": 12176.5,
+    "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.2201449304214529,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
    "FRM02": {
     "label": "Bicycle mounting stand - FRM02",
     "actual": {
-     "sales": 12005.91,
-     "units": 299,
-     "net_profit": 772.47,
-     "sku_count": 3
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 93
     },
-    "green_target": 36621,
-    "gold_target": 40690,
-    "tier": "❌ MISS",
+    "green_target": 37560,
+    "gold_target": 46950,
+    "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.06434081215001612,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
    "WHS": {
     "label": "Waders - WHS",
     "actual": {
-     "sales": 30392.79,
-     "units": 391,
-     "net_profit": 9713.340000000002,
-     "sku_count": 11
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
     },
-    "green_target": 0,
-    "gold_target": 0,
+    "green_target": 17397.68,
+    "gold_target": 21747.1,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.31959356149928986,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
    "SLP": {
     "label": "Solar cover - SLP",
     "actual": {
-     "sales": 1143,
-     "units": 22,
-     "net_profit": 244.13999999999993,
-     "sku_count": 20
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 95
     },
-    "green_target": 27424.197,
-    "gold_target": 30471.33,
-    "tier": "❌ MISS",
+    "green_target": 0,
+    "gold_target": 0,
+    "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.21359580052493432,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
    "VZW": {
     "label": "Awning caravan - VZW",
     "actual": {
-     "sales": 6375.23,
-     "units": 47,
-     "net_profit": 2366.09,
-     "sku_count": 2
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 62
     },
     "green_target": 0,
     "gold_target": 0,
     "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
-    "actual_margin_pct": 0.3711379824727893,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
    "AKS": {
     "label": "Cordless screwdriver - AKS",
     "actual": {
-     "sales": 2314.84,
-     "units": 33,
-     "net_profit": -1006.85,
-     "sku_count": 2
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 41
     },
-    "green_target": 6714,
-    "gold_target": 7460,
-    "tier": "❌ MISS",
+    "green_target": 1790.4,
+    "gold_target": 2238,
+    "tier": "-",
     "bonus_eur": 0,
-    "target_source": "estimated",
-    "actual_margin_pct": -0.4349544676953915,
+    "target_source": "real",
+    "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
    },
@@ -285,9 +273,26 @@
     "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
+   },
+   "SUP": {
+    "label": "SUP - Stand Up Paddling Board",
+    "actual": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "green_target": null,
+    "gold_target": null,
+    "tier": "AWAITING TARGET",
+    "bonus_eur": 0,
+    "target_source": "estimated",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
    }
   },
-  "total_bonus": 100.25846666666666
+  "total_bonus": 0
  },
  "launch_manager": {
   "label": "Launch Manager — F3M",
@@ -295,7 +300,7 @@
    "sales": 0,
    "units": 0,
    "net_profit": 0,
-   "sku_count": 0
+   "sku_count": 259
   },
   "actual_germany": {
    "sales": 8738.940000000002,
@@ -309,7 +314,8 @@
    "net_profit": 0,
    "sku_count": 0
   },
-  "unmapped_marketplace_asins": [],
+  "germany_source": "dedicated_upload",
+  "pan_eu_source": "dedicated_upload",
   "germany": {
    "actual": {
     "sales": 8738.940000000002,
@@ -318,11 +324,11 @@
     "sku_count": 25
    },
    "target": {
-    "green": 145304.71666666667,
-    "gold": 152952.33333333334,
+    "green": 12616,
+    "gold": 13280,
     "green_margin": 0.133,
     "gold_margin": 0.143,
-    "source": "estimated"
+    "source": "real"
    },
    "actual_margin_pct": 0.08872471947398654,
    "tier": "❌ MISS",
@@ -336,72 +342,280 @@
     "sku_count": 0
    },
    "target": {
-    "green": 8263.733333333334,
-    "gold": 8698.666666666666,
-    "green_margin": 0.13,
+    "green": 16418.85,
+    "gold": 17283,
+    "green_margin": 0.133,
     "gold_margin": 0.143,
-    "source": "estimated"
+    "source": "real"
    },
    "actual_margin_pct": null,
    "tier": "-",
    "bonus_eur": 0
   },
   "germany_target": {
-   "green": 145304.71666666667,
-   "gold": 152952.33333333334,
+   "green": 12616,
+   "gold": 13280,
    "green_margin": 0.133,
    "gold_margin": 0.143,
-   "source": "estimated"
+   "source": "real"
   },
   "pan_eu_target": {
-   "green": 8263.733333333334,
-   "gold": 8698.666666666666,
-   "green_margin": 0.13,
+   "green": 16418.85,
+   "gold": 17283,
+   "green_margin": 0.133,
    "gold_margin": 0.143,
-   "source": "estimated"
+   "source": "real"
   },
-  "combined_bonus_eur": 0,
-  "pan_eu_override_applied": true,
-  "pan_eu_reconciliation_issues": [],
-  "germany_source": "dedicated_upload",
-  "germany_asins": [
-   "B0GFWRXLLJ",
-   "B0GFX7ZK5R",
-   "B0GFXDNX2N",
-   "B0GFXHQD77",
-   "B0GFWR5GQC",
-   "B0GS68XNC3",
-   "B0FHHZQXTT",
-   "B0FHHWRWCG",
-   "B0GTRHV3D8",
-   "B0GTR67F7R",
-   "B0GTRFF1R7",
-   "B0GTRLQFKK",
-   "B0FHHYRSVK",
-   "B0GTRDGNXH",
-   "B0GTRHTZFX",
-   "B0GTRCQ1LB",
-   "B0GTRCKSFT",
-   "B0GTRG3V76",
-   "B0GTRG8LHK",
-   "B0GTRB7MW3",
-   "B0GTR8MVVC",
-   "B0GTRFRWNY",
-   "B0GTRD9L8Q",
-   "B0GTRDGF13",
-   "B0GGCD5L8W"
-  ],
-  "pan_eu_source": "dedicated_upload",
-  "pan_eu_asins": []
+  "combined_bonus_eur": 0
  },
  "brand_manager": {
-  "PD": {
+  "Heimfleiss": {
    "stages": {
     "PY1": {
-     "sales": 272279.20999999996,
-     "units": 24882,
-     "net_profit": 67232.15000000001,
-     "sku_count": 1754
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 7326
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 383
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 7709
+   },
+   "bm_group": "BM2",
+   "stage_detail": {
+    "PY1": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 7326
+     },
+     "green_target": 388561,
+     "gold_target": 407989.05,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.19393,
+     "gold_margin_pct": 0.21156
+    },
+    "Y1 (F4-12)": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 383
+     },
+     "green_target": 100468.2,
+     "gold_target": 105756,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
+    },
+    "Discontinued": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 0
+     },
+     "green_target": 48005.4,
+     "gold_target": 50532,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
+    }
+   },
+   "total_bonus": 0
+  },
+  "Tarpofix": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 14053
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 155
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 725
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 14933
+   },
+   "bm_group": "BM1",
+   "stage_detail": {
+    "PY1": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 14053
+     },
+     "green_target": 448227.1,
+     "gold_target": 471818,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.25851,
+     "gold_margin_pct": 0.27082
+    },
+    "Y1 (F4-12)": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 155
+     },
+     "green_target": 13380.75,
+     "gold_target": 14085,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
+    },
+    "Discontinued": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 725
+     },
+     "green_target": 15636.05,
+     "gold_target": 16459,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
+    }
+   },
+   "total_bonus": 0
+  },
+  "Nasswerk": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 228
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 180
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 96
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 504
+   },
+   "bm_group": "BM4",
+   "stage_detail": {
+    "PY1": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 228
+     },
+     "green_target": 11021,
+     "gold_target": 11572.05,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.23541,
+     "gold_margin_pct": 0.24662
+    },
+    "Y1 (F4-12)": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 180
+     },
+     "green_target": 5692.4,
+     "gold_target": 5992,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.171,
+     "gold_margin_pct": 0.18
+    },
+    "Discontinued": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 96
+     },
+     "green_target": 853.1,
+     "gold_target": 898,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
+    }
+   },
+   "total_bonus": 0
+  },
+  "Mattenheld": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 31
     },
     "Y1 (F4-12)": {
      "sales": 0,
@@ -410,33 +624,113 @@
      "sku_count": 0
     },
     "Discontinued": {
-     "sales": 5645.999999999997,
-     "units": 522,
-     "net_profit": -1511.8800000000003,
-     "sku_count": 376
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
     }
    },
    "combined_actual": {
-    "sales": 277925.20999999996,
-    "units": 25404,
-    "net_profit": 65720.27,
-    "sku_count": 2130
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 31
+   },
+   "bm_group": "BM2",
+   "stage_detail": {
+    "PY1": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 31
+     },
+     "green_target": 15243.940666666667,
+     "gold_target": 16046.253333333334,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.118,
+     "gold_margin_pct": 0.225
+    },
+    "Y1 (F4-12)": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 0
+     },
+     "green_target": null,
+     "gold_target": null,
+     "tier": "AWAITING TARGET",
+     "bonus_eur": 0,
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
+    },
+    "Discontinued": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 0
+     },
+     "green_target": null,
+     "gold_target": null,
+     "tier": "AWAITING TARGET",
+     "bonus_eur": 0,
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
+    }
+   },
+   "total_bonus": 0
+  },
+  "PD": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 66164
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 66164
    },
    "bm_group": "BM3",
    "stage_detail": {
     "PY1": {
      "actual": {
-      "sales": 272279.20999999996,
-      "units": 24882,
-      "net_profit": 67232.15000000001,
-      "sku_count": 1754
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 66164
      },
      "green_target": 206505.33333333334,
      "gold_target": 216830.6,
-     "tier": "🥇 GOLD",
-     "bonus_eur": 998.0749799999992,
+     "tier": "-",
+     "bonus_eur": 0,
      "target_source": "estimated",
-     "actual_margin_pct": 0.24692355321583317,
+     "actual_margin_pct": null,
      "green_margin_pct": 0.224,
      "gold_margin_pct": 0.244
     },
@@ -458,246 +752,6 @@
     },
     "Discontinued": {
      "actual": {
-      "sales": 5645.999999999997,
-      "units": 522,
-      "net_profit": -1511.8800000000003,
-      "sku_count": 376
-     },
-     "green_target": null,
-     "gold_target": null,
-     "tier": "AWAITING TARGET",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": -0.2677789585547292,
-     "green_margin_pct": null,
-     "gold_margin_pct": null
-    }
-   },
-   "total_bonus": 998.0749799999992
-  },
-  "Heimfleiss": {
-   "stages": {
-    "PY1": {
-     "sales": 479484.86000000034,
-     "units": 9307,
-     "net_profit": 103433.18000000007,
-     "sku_count": 227
-    },
-    "Y1 (F4-12)": {
-     "sales": 46370.99999999999,
-     "units": 652,
-     "net_profit": 8678.590000000002,
-     "sku_count": 20
-    },
-    "Discontinued": {
-     "sales": 9425.95,
-     "units": 415,
-     "net_profit": -1594.65,
-     "sku_count": 15
-    }
-   },
-   "combined_actual": {
-    "sales": 535281.8100000003,
-    "units": 10374,
-    "net_profit": 110517.12000000007,
-    "sku_count": 262
-   },
-   "bm_group": "BM2",
-   "stage_detail": {
-    "PY1": {
-     "actual": {
-      "sales": 479484.86000000034,
-      "units": 9307,
-      "net_profit": 103433.18000000007,
-      "sku_count": 227
-     },
-     "green_target": 465673.3333333333,
-     "gold_target": 488957,
-     "tier": "🟢 GREEN",
-     "bonus_eur": 124.30374000000319,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.21571730127203598,
-     "green_margin_pct": 0.1937816667,
-     "gold_margin_pct": 0.2081966667
-    },
-    "Y1 (F4-12)": {
-     "actual": {
-      "sales": 46370.99999999999,
-      "units": 652,
-      "net_profit": 8678.590000000002,
-      "sku_count": 20
-     },
-     "green_target": 365478.6166666667,
-     "gold_target": 552404.6666666666,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.18715554980483498,
-     "green_margin_pct": 0.171,
-     "gold_margin_pct": 0.18
-    },
-    "Discontinued": {
-     "actual": {
-      "sales": 9425.95,
-      "units": 415,
-      "net_profit": -1594.65,
-      "sku_count": 15
-     },
-     "green_target": 40220.15,
-     "gold_target": 42337,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": -0.169176581670813,
-     "green_margin_pct": 0.05,
-     "gold_margin_pct": 0.1
-    }
-   },
-   "total_bonus": 124.30374000000319
-  },
-  "Tarpofix": {
-   "stages": {
-    "PY1": {
-     "sales": 376668.5300000002,
-     "units": 8446,
-     "net_profit": 94221.87000000002,
-     "sku_count": 588
-    },
-    "Y1 (F4-12)": {
-     "sales": 12005.91,
-     "units": 299,
-     "net_profit": 772.47,
-     "sku_count": 3
-    },
-    "Discontinued": {
-     "sales": 15610.770000000002,
-     "units": 714,
-     "net_profit": 2545.0699999999993,
-     "sku_count": 24
-    }
-   },
-   "combined_actual": {
-    "sales": 404285.2100000002,
-    "units": 9459,
-    "net_profit": 97539.41000000002,
-    "sku_count": 615
-   },
-   "bm_group": "BM1",
-   "stage_detail": {
-    "PY1": {
-     "actual": {
-      "sales": 376668.5300000002,
-      "units": 8446,
-      "net_profit": 94221.87000000002,
-      "sku_count": 588
-     },
-     "green_target": 390293.62066666665,
-     "gold_target": 410835.38999999996,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.25014532007757584,
-     "green_margin_pct": 0.23541,
-     "gold_margin_pct": 0.24662
-    },
-    "Y1 (F4-12)": {
-     "actual": {
-      "sales": 12005.91,
-      "units": 299,
-      "net_profit": 772.47,
-      "sku_count": 3
-     },
-     "green_target": 38374.642,
-     "gold_target": 40394.36,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.06434081215001612,
-     "green_margin_pct": 0.171,
-     "gold_margin_pct": 0.18
-    },
-    "Discontinued": {
-     "actual": {
-      "sales": 15610.770000000002,
-      "units": 714,
-      "net_profit": 2545.0699999999993,
-      "sku_count": 24
-     },
-     "green_target": 13933.65,
-     "gold_target": 14667,
-     "tier": "🥇 GOLD",
-     "bonus_eur": 2.831310000000007,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.16303295737494045,
-     "green_margin_pct": 0.05,
-     "gold_margin_pct": 0.1
-    }
-   },
-   "total_bonus": 2.831310000000007
-  },
-  "Mattenheld": {
-   "stages": {
-    "PY1": {
-     "sales": 8524.7,
-     "units": 602,
-     "net_profit": -139.09,
-     "sku_count": 1
-    },
-    "Y1 (F4-12)": {
-     "sales": 5703.749999999999,
-     "units": 143,
-     "net_profit": 1667.91,
-     "sku_count": 5
-    },
-    "Discontinued": {
-     "sales": 0,
-     "units": 0,
-     "net_profit": 0,
-     "sku_count": 0
-    }
-   },
-   "combined_actual": {
-    "sales": 14228.45,
-    "units": 745,
-    "net_profit": 1528.8200000000002,
-    "sku_count": 6
-   },
-   "bm_group": "BM2",
-   "stage_detail": {
-    "PY1": {
-     "actual": {
-      "sales": 8524.7,
-      "units": 602,
-      "net_profit": -139.09,
-      "sku_count": 1
-     },
-     "green_target": 15243.940666666667,
-     "gold_target": 16046.253333333334,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": -0.01631611669618872,
-     "green_margin_pct": 0.118,
-     "gold_margin_pct": 0.225
-    },
-    "Y1 (F4-12)": {
-     "actual": {
-      "sales": 5703.749999999999,
-      "units": 143,
-      "net_profit": 1667.91,
-      "sku_count": 5
-     },
-     "green_target": null,
-     "gold_target": null,
-     "tier": "AWAITING TARGET",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.29242340565417496,
-     "green_margin_pct": null,
-     "gold_margin_pct": null
-    },
-    "Discontinued": {
-     "actual": {
       "sales": 0,
       "units": 0,
       "net_profit": 0,
@@ -715,242 +769,82 @@
    },
    "total_bonus": 0
   },
-  "Nasswerk": {
+  "PoolLöwe": {
    "stages": {
     "PY1": {
-     "sales": 11210.64,
-     "units": 388,
-     "net_profit": 2243.0400000000004,
-     "sku_count": 21
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 82
     },
     "Y1 (F4-12)": {
      "sales": 0,
      "units": 0,
      "net_profit": 0,
-     "sku_count": 0
+     "sku_count": 20
     },
     "Discontinued": {
-     "sales": 975.8399999999999,
-     "units": 23,
-     "net_profit": 178.18,
-     "sku_count": 5
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 44
     }
    },
    "combined_actual": {
-    "sales": 12186.48,
-    "units": 411,
-    "net_profit": 2421.2200000000003,
-    "sku_count": 26
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 146
    },
    "bm_group": "BM4",
    "stage_detail": {
     "PY1": {
      "actual": {
-      "sales": 11210.64,
-      "units": 388,
-      "net_profit": 2243.0400000000004,
-      "sku_count": 21
-     },
-     "green_target": 203487,
-     "gold_target": 213661.35,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.2000813512877053,
-     "green_margin_pct": 0.1684333333,
-     "gold_margin_pct": 0.1876666667
-    },
-    "Y1 (F4-12)": {
-     "actual": {
       "sales": 0,
       "units": 0,
       "net_profit": 0,
-      "sku_count": 0
+      "sku_count": 82
      },
-     "green_target": 28593.733333333334,
-     "gold_target": 30098.666666666668,
+     "green_target": 3575,
+     "gold_target": 3753.75,
      "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated",
+     "target_source": "real",
      "actual_margin_pct": null,
-     "green_margin_pct": 0.171,
-     "gold_margin_pct": 0.18
-    },
-    "Discontinued": {
-     "actual": {
-      "sales": 975.8399999999999,
-      "units": 23,
-      "net_profit": 178.18,
-      "sku_count": 5
-     },
-     "green_target": 9691.266666666666,
-     "gold_target": 10201.333333333334,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.1825914084276111,
-     "green_margin_pct": 0.05,
-     "gold_margin_pct": 0.1
-    }
-   },
-   "total_bonus": 0
-  },
-  "Darwin": {
-   "stages": {
-    "PY1": {
-     "sales": 6905.820000000001,
-     "units": 236,
-     "net_profit": 1832.69,
-     "sku_count": 3
-    },
-    "Y1 (F4-12)": {
-     "sales": 0,
-     "units": 0,
-     "net_profit": 0,
-     "sku_count": 0
-    },
-    "Discontinued": {
-     "sales": 0,
-     "units": 0,
-     "net_profit": -0.01,
-     "sku_count": 1
-    }
-   },
-   "combined_actual": {
-    "sales": 6905.820000000001,
-    "units": 236,
-    "net_profit": 1832.68,
-    "sku_count": 4
-   },
-   "bm_group": "BM1",
-   "stage_detail": {
-    "PY1": {
-     "actual": {
-      "sales": 6905.820000000001,
-      "units": 236,
-      "net_profit": 1832.69,
-      "sku_count": 3
-     },
-     "green_target": 6047.963333333333,
-     "gold_target": 6350.3615,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.26538340124706405,
-     "green_margin_pct": 0.2822166667,
-     "gold_margin_pct": 0.2891
+     "green_margin_pct": 0.18469,
+     "gold_margin_pct": 0.20148
     },
     "Y1 (F4-12)": {
      "actual": {
       "sales": 0,
       "units": 0,
       "net_profit": 0,
-      "sku_count": 0
+      "sku_count": 20
      },
-     "green_target": null,
-     "gold_target": null,
-     "tier": "AWAITING TARGET",
+     "green_target": 0,
+     "gold_target": 0,
+     "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated",
+     "target_source": "real",
      "actual_margin_pct": null,
-     "green_margin_pct": null,
-     "gold_margin_pct": null
-    },
-    "Discontinued": {
-     "actual": {
-      "sales": 0,
-      "units": 0,
-      "net_profit": -0.01,
-      "sku_count": 1
-     },
-     "green_target": null,
-     "gold_target": null,
-     "tier": "AWAITING TARGET",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": null,
-     "green_margin_pct": null,
-     "gold_margin_pct": null
-    }
-   },
-   "total_bonus": 0
-  },
-  "Planenfux": {
-   "stages": {
-    "PY1": {
-     "sales": 14704.249999999998,
-     "units": 226,
-     "net_profit": 4039.130000000001,
-     "sku_count": 93
-    },
-    "Y1 (F4-12)": {
-     "sales": 720.3500000000001,
-     "units": 13,
-     "net_profit": 114.29999999999998,
-     "sku_count": 18
-    },
-    "Discontinued": {
-     "sales": 210.45999999999998,
-     "units": 15,
-     "net_profit": -29.929999999999996,
-     "sku_count": 4
-    }
-   },
-   "combined_actual": {
-    "sales": 15635.059999999998,
-    "units": 254,
-    "net_profit": 4123.500000000001,
-    "sku_count": 115
-   },
-   "bm_group": "BM1",
-   "stage_detail": {
-    "PY1": {
-     "actual": {
-      "sales": 14704.249999999998,
-      "units": 226,
-      "net_profit": 4039.130000000001,
-      "sku_count": 93
-     },
-     "green_target": 256866.06666666665,
-     "gold_target": 270385.3333333333,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.274691330737712,
-     "green_margin_pct": 0.19546,
-     "gold_margin_pct": 0.2117533333
-    },
-    "Y1 (F4-12)": {
-     "actual": {
-      "sales": 720.3500000000001,
-      "units": 13,
-      "net_profit": 114.29999999999998,
-      "sku_count": 18
-     },
-     "green_target": 48121.299999999996,
-     "gold_target": 50654,
-     "tier": "❌ MISS",
-     "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": 0.15867286735614627,
      "green_margin_pct": 0.171,
      "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
-      "sales": 210.45999999999998,
-      "units": 15,
-      "net_profit": -29.929999999999996,
-      "sku_count": 4
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 44
      },
-     "green_target": null,
-     "gold_target": null,
-     "tier": "AWAITING TARGET",
+     "green_target": 1954.15,
+     "gold_target": 2057,
+     "tier": "-",
      "bonus_eur": 0,
-     "target_source": "estimated",
-     "actual_margin_pct": -0.14221229687351516,
-     "green_margin_pct": null,
-     "gold_margin_pct": null
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.05,
+     "gold_margin_pct": 0.1
     }
    },
    "total_bonus": 0
@@ -958,10 +852,10 @@
   "TeichHeld": {
    "stages": {
     "PY1": {
-     "sales": 7304.829999999999,
-     "units": 128,
-     "net_profit": 1462.4599999999998,
-     "sku_count": 4
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 119
     },
     "Y1 (F4-12)": {
      "sales": 0,
@@ -977,26 +871,26 @@
     }
    },
    "combined_actual": {
-    "sales": 7304.829999999999,
-    "units": 128,
-    "net_profit": 1462.4599999999998,
-    "sku_count": 4
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 119
    },
    "bm_group": "BM4",
    "stage_detail": {
     "PY1": {
      "actual": {
-      "sales": 7304.829999999999,
-      "units": 128,
-      "net_profit": 1462.4599999999998,
-      "sku_count": 4
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 119
      },
      "green_target": 13768.666666666666,
      "gold_target": 14457.1,
-     "tier": "❌ MISS",
+     "tier": "-",
      "bonus_eur": 0,
      "target_source": "estimated",
-     "actual_margin_pct": 0.20020452221338483,
+     "actual_margin_pct": null,
      "green_margin_pct": 0.1363333333,
      "gold_margin_pct": 0.1563333333
     },
@@ -1035,13 +929,13 @@
    },
    "total_bonus": 0
   },
-  "PoolLöwe": {
+  "Darwin": {
    "stages": {
     "PY1": {
-     "sales": 5160.24,
-     "units": 128,
-     "net_profit": 1769.96,
-     "sku_count": 7
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 76
     },
     "Y1 (F4-12)": {
      "sales": 0,
@@ -1050,35 +944,35 @@
      "sku_count": 0
     },
     "Discontinued": {
-     "sales": 1828.95,
-     "units": 36,
-     "net_profit": 593.3000000000001,
-     "sku_count": 2
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 1
     }
    },
    "combined_actual": {
-    "sales": 6989.19,
-    "units": 164,
-    "net_profit": 2363.26,
-    "sku_count": 9
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 77
    },
-   "bm_group": "BM4",
+   "bm_group": "BM1",
    "stage_detail": {
     "PY1": {
      "actual": {
-      "sales": 5160.24,
-      "units": 128,
-      "net_profit": 1769.96,
-      "sku_count": 7
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 76
      },
-     "green_target": 68853.33333333333,
-     "gold_target": 72296,
-     "tier": "❌ MISS",
+     "green_target": 6047.963333333333,
+     "gold_target": 6350.3615,
+     "tier": "-",
      "bonus_eur": 0,
      "target_source": "estimated",
-     "actual_margin_pct": 0.34299955040850816,
-     "green_margin_pct": 0.198395,
-     "gold_margin_pct": 0.2186233333
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.2822166667,
+     "gold_margin_pct": 0.2891
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -1087,30 +981,110 @@
       "net_profit": 0,
       "sku_count": 0
      },
-     "green_target": 1066.5333333333333,
-     "gold_target": 1122.6666666666667,
-     "tier": "-",
+     "green_target": null,
+     "gold_target": null,
+     "tier": "AWAITING TARGET",
      "bonus_eur": 0,
      "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
+    },
+    "Discontinued": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 1
+     },
+     "green_target": null,
+     "gold_target": null,
+     "tier": "AWAITING TARGET",
+     "bonus_eur": 0,
+     "target_source": "estimated",
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
+    }
+   },
+   "total_bonus": 0
+  },
+  "Planenfux": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 2877
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 8
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 145
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 3030
+   },
+   "bm_group": "BM1",
+   "stage_detail": {
+    "PY1": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 2877
+     },
+     "green_target": 27500.6,
+     "gold_target": 28948,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
+     "actual_margin_pct": null,
+     "green_margin_pct": 0.19536,
+     "gold_margin_pct": 0.21312
+    },
+    "Y1 (F4-12)": {
+     "actual": {
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 8
+     },
+     "green_target": 0,
+     "gold_target": 0,
+     "tier": "-",
+     "bonus_eur": 0,
+     "target_source": "real",
      "actual_margin_pct": null,
      "green_margin_pct": 0.171,
      "gold_margin_pct": 0.18
     },
     "Discontinued": {
      "actual": {
-      "sales": 1828.95,
-      "units": 36,
-      "net_profit": 593.3000000000001,
-      "sku_count": 2
+      "sales": 0,
+      "units": 0,
+      "net_profit": 0,
+      "sku_count": 145
      },
-     "green_target": 12227.133333333333,
-     "gold_target": 12870.666666666666,
-     "tier": "❌ MISS",
+     "green_target": null,
+     "gold_target": null,
+     "tier": "AWAITING TARGET",
      "bonus_eur": 0,
      "target_source": "estimated",
-     "actual_margin_pct": 0.32439377785067935,
-     "green_margin_pct": 0.05,
-     "gold_margin_pct": 0.1
+     "actual_margin_pct": null,
+     "green_margin_pct": null,
+     "gold_margin_pct": null
     }
    },
    "total_bonus": 0
@@ -1118,54 +1092,63 @@
  },
  "other_brands_unassigned": {
   "Van De Boos": {
-   "sales": 6619.76,
-   "units": 360,
-   "net_profit": 1613.3700000000001,
-   "sku_count": 5
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 131
   },
   "stopnow": {
-   "sales": 3318.439999999999,
-   "units": 295,
-   "net_profit": 377.83000000000004,
-   "sku_count": 6
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 134
   },
   "Arganoel Zauber": {
-   "sales": 223.39999999999998,
-   "units": 12,
-   "net_profit": 49.160000000000004,
-   "sku_count": 4
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 44
   },
   "MESSEREI": {
-   "sales": 67.85,
-   "units": 3,
-   "net_profit": 13.309999999999999,
-   "sku_count": 4
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 31
   }
  },
  "marketplace": {
-  "label": "Marketplace — manually entered"
+  "label": "Marketplace — manually entered",
+  "entered": false,
+  "actual_sales": null,
+  "green_target": null,
+  "gold_target": null,
+  "actual_margin_pct": null,
+  "green_margin_pct": null,
+  "gold_margin_pct": null,
+  "tier": "-",
+  "bonus_eur": 0
  },
  "quality_issue_unassigned": {
-  "sales": 41030.42,
-  "units": 1286,
-  "net_profit": 5592.67,
-  "sku_count": 3
+  "sales": 0,
+  "units": 0,
+  "net_profit": 0,
+  "sku_count": 64
  },
  "meta": {
-  "total_rows_processed": 3209,
-  "mapped_rows": 3193,
+  "total_rows_processed": 93392,
+  "mapped_rows": 93376,
   "unmapped_rows": 16,
   "unmapped_asins": [
-   "B077ZH2W5C",
-   "B08VDD358M",
-   "B08W297HZQ",
-   "B08WBQ184L",
-   "B08ZYJQKNT",
-   "B09KLYJZPK",
-   "B09QM8SF6F",
-   "B09QWY2FLM",
-   "B09TKN1KMC"
-  ]
+   "B077ZH2W5C"
+  ],
+  "unmapped_details": [
+   {
+    "asin": "B077ZH2W5C",
+    "product": ""
+   }
+  ],
+  "future_launch_rows": 0,
+  "future_launch_asins": []
  },
  "bm_groups": {
   "BM1": {
@@ -1174,23 +1157,23 @@
     "Darwin",
     "Planenfux"
    ],
-   "total_bonus": 2.831310000000007,
-   "total_sales": 426826.0900000002
+   "total_bonus": 0,
+   "total_sales": 0
   },
   "BM2": {
    "brands": [
     "Heimfleiss",
     "Mattenheld"
    ],
-   "total_bonus": 124.30374000000319,
-   "total_sales": 549510.2600000002
+   "total_bonus": 0,
+   "total_sales": 0
   },
   "BM3": {
    "brands": [
     "PD"
    ],
-   "total_bonus": 998.0749799999992,
-   "total_sales": 277925.20999999996
+   "total_bonus": 0,
+   "total_sales": 0
   },
   "BM4": {
    "brands": [
@@ -1199,13 +1182,13 @@
     "TeichHeld"
    ],
    "total_bonus": 0,
-   "total_sales": 26480.499999999996
+   "total_sales": 0
   }
  },
- "bm_grand_total_bonus": 1125.2100300000025,
+ "bm_grand_total_bonus": 0,
  "_targets_meta": {
   "quarter": "Q3",
   "is_quarterly_view": false,
-  "used_real_monthly": false
+  "used_real_monthly": true
  }
 }
