@@ -486,6 +486,7 @@ function onMarketplaceInputChange() {
 
 async function onMonthChange() {
   const month = document.getElementById('monthSelect').value;
+  updateSellerboardSyncMonthLabel();
   const data = await loadMonth(month);
   if (data) {
     // Always re-apply the LATEST targets on load (not whatever was baked
@@ -1523,6 +1524,70 @@ async function handleCountryFiles(fileList, country) {
     console.error('refreshMonthList failed after upload:', err);
   }
   statusEl.innerHTML = log.map(l => `<div class="banner ${l.ok ? 'info' : 'error'}" style="margin-top:6px;"><b>${l.file}:</b> ${l.msg}</div>`).join('');
+}
+
+// ---------- Sellerboard auto-sync (Launch Manager) ----------
+function updateSellerboardSyncMonthLabel() {
+  const el = document.getElementById('sellerboardSyncMonth');
+  if (!el) return;
+  const month = document.getElementById('monthSelect').value;
+  el.textContent = month ? `Will sync: ${formatMonthLabel(month)}` : '';
+}
+async function renderSellerboardSyncResult(res, statusEl, month) {
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    statusEl.innerHTML = `<div class="banner error"><b>Sync failed:</b> ${body.error || `HTTP ${res.status}`}</div>`;
+    return;
+  }
+  const paneuLines = Object.entries(body.pan_eu.by_marketplace || {}).map(([mp, v]) => `${mp}: €${v.sales.toFixed(2)} (${v.asin_count} ASINs)`).join(', ') || 'none';
+  const unmappedPanEu = Object.entries(body.unmapped_pan_eu_by_marketplace || {}).filter(([, n]) => n > 0).map(([mp, n]) => `${mp}: ${n}`).join(', ');
+  let msg = `<div class="banner info">
+    <b>${formatMonthLabel(month)} synced.</b> ${body.report_rows_matched_month.toLocaleString('en-US')} of ${body.report_rows_total.toLocaleString('en-US')} report rows matched this month.<br>
+    Germany (DE+UK): €${body.germany.sales.toFixed(2)} across ${body.germany.asin_count} F3M ASIN(s).<br>
+    Pan-EU by marketplace: ${paneuLines}.
+  </div>`;
+  if (body.unmapped_germany_asins || unmappedPanEu) {
+    msg += `<div class="banner warn" style="margin-top:6px;">${body.unmapped_germany_asins ? `${body.unmapped_germany_asins} Germany ASIN(s) not in the main TOC. ` : ''}${unmappedPanEu ? `Pan-EU ASINs not yet in the Pan-EU TOC — ${unmappedPanEu}. Add them in the Pan-EU TOC tab (they'll show up there as Pending next time it's opened).` : ''}</div>`;
+  }
+  statusEl.innerHTML = msg;
+  if (CURRENT && CURRENT.month === month) { CURRENT = await loadMonth(month); CURRENT = applyTargetsAndTiers(CURRENT, false, await loadMonthlyTargets(month)); render(CURRENT, 'monthly'); }
+}
+
+async function runSellerboardSync() {
+  const statusEl = document.getElementById('sellerboardSyncStatus');
+  const month = document.getElementById('monthSelect').value;
+  if (!month) { statusEl.innerHTML = `<div class="banner error">Pick a month first (top of the page).</div>`; return; }
+  statusEl.innerHTML = `<div class="banner info">Fetching the Sellerboard report and updating ${formatMonthLabel(month)}…</div>`;
+  try {
+    const res = await fetchWithTimeout(`/api/sellerboard-sync?month=${month}`, { method: 'POST' }, 45000); // a full report fetch + GitHub read/write can genuinely take longer than the default API timeout
+    await renderSellerboardSyncResult(res, statusEl, month);
+  } catch (err) {
+    statusEl.innerHTML = `<div class="banner error"><b>Sync failed:</b> ${err.message || err}. If this is a timeout, the report may be large — try again, or check Vercel's function logs.</div>`;
+  }
+}
+
+async function runSellerboardSyncFromFile(file) {
+  const statusEl = document.getElementById('sellerboardSyncStatus');
+  const month = document.getElementById('monthSelect').value;
+  if (!file) return;
+  if (!month) { statusEl.innerHTML = `<div class="banner error">Pick a month first (top of the page).</div>`; return; }
+  if (!window.SellerboardShared) { statusEl.innerHTML = `<div class="banner error">Internal error: the shared Sellerboard parsing module didn't load. Refresh and try again.</div>`; return; }
+  statusEl.innerHTML = `<div class="banner info">Reading and aggregating ${file.name}${file.size > 1e6 ? ` (${(file.size/1e6).toFixed(1)} MB)` : ''} in your browser…</div>`;
+  try {
+    const text = await file.text();
+    const rows = window.SellerboardShared.parseSemicolonCSV(text);
+    const [year, monthNum] = month.split('-').map(Number);
+    const { entries, matchedRows, totalRows } = window.SellerboardShared.aggregateByAsinMarketplace(rows, year, monthNum);
+    statusEl.innerHTML = `<div class="banner info">Aggregated ${totalRows.toLocaleString('en-US')} rows (${matchedRows.toLocaleString('en-US')} matched ${formatMonthLabel(month)}) — sending to the server…</div>`;
+    const res = await fetchWithTimeout(`/api/sellerboard-sync?month=${month}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aggregatedEntries: entries, reportMeta: { matchedRows, totalRows } }),
+    }, 45000);
+    await renderSellerboardSyncResult(res, statusEl, month);
+  } catch (err) {
+    statusEl.innerHTML = `<div class="banner error"><b>Sync failed:</b> ${err.message || err}.</div>`;
+  }
+  document.getElementById('sellerboardFileInput').value = ''; // allow re-selecting the same file (e.g. after fixing something and re-uploading)
 }
 
 // Product-code matching: TOC codes like SLP120/SLP400 should both roll up

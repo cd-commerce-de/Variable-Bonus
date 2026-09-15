@@ -9,5 +9,8 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
+  ],
+  "crons": [
+    { "path": "/api/sellerboard-sync", "schedule": "0 6 * * *" }
   ]
 }

@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="vendor/papaparse.min.js"></script>
 <script src="vendor/chart.umd.min.js"></script>
+<script src="vendor/sellerboard-shared.js"></script>
 <style>
   :root{
     --ink:#0F172A; --ink-2:#1E293B; --ember:#D97757; --ember-light:#E8956F;
@@ -305,6 +306,25 @@
       <input type="file" id="panEuFileInput" accept=".csv" multiple>
     </div>
     <div id="panEuUploadStatus" style="margin-top:14px;"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Sellerboard Auto-Sync (Launch Manager)</h2>
+      <span class="section-note">Pulls the daily Sellerboard report automatically and updates Germany + Pan-EU F3M data — runs once a day; use the button below to update immediately instead of waiting</span>
+    </div>
+    <div class="banner info" style="margin-bottom:14px;">
+      <span>ℹ</span>
+      <span><b>Germany = Amazon.de + Amazon.co.uk combined.</b> Every other Amazon marketplace in the report counts as Pan-EU, matched against its own entry in the Pan-EU TOC tab (not the main TOC, and not another marketplace's entry for the same ASIN) — same rule as manually uploading a Pan-EU file per marketplace. That month's main export (R&D/Brand Manager) must already be saved before syncing, since this only updates the Launch Manager section.</span>
+    </div>
+    <button class="btn primary" onclick="runSellerboardSync()">Force update now</button>
+    <span id="sellerboardSyncMonth" style="margin-left:10px; font-size:12.5px; color:var(--line-500);"></span>
+    <div id="sellerboardSyncStatus" style="margin-top:14px;"></div>
+
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--line-200);">
+      <p class="section-note" style="margin-bottom:8px;">Or upload a Sellerboard "by product" daily report file directly — for backfilling a past month, or for using this before the live report link is configured. Files can be 50+ MB; they're aggregated in your browser before anything is sent, so this works regardless of upload size limits.</p>
+      <input type="file" id="sellerboardFileInput" accept=".csv" onchange="runSellerboardSyncFromFile(this.files[0])">
+    </div>
   </section>
 
   <section id="dataQualitySection" style="display:none;">
