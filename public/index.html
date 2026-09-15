@@ -310,24 +310,35 @@
 
   <section>
     <div class="section-head">
-      <h2>Sellerboard Auto-Sync (R&amp;D, Brand Manager &amp; Launch Manager)</h2>
-      <span class="section-note">Pulls the daily Sellerboard report and updates R&D, Brand Manager, and Launch Manager (Germany + Pan-EU) for the target month, all from this one report — runs once a day; use the button below to update immediately instead of waiting</span>
+      <h2>Sellerboard Sync (R&amp;D, Brand Manager &amp; Launch Manager)</h2>
+      <span class="section-note">Updates R&D, Brand Manager, and Launch Manager (Germany + Pan-EU) from a Sellerboard "by product" report, all in one go</span>
     </div>
     <div class="banner info" style="margin-bottom:14px;">
       <span>ℹ</span>
-      <span>This one sync replaces the main monthly upload entirely — R&amp;D and Brand Manager are computed from every marketplace combined, exactly like a manual main-file upload. <b>Germany = Amazon.de + Amazon.co.uk combined.</b> Every other Amazon marketplace in the report counts as Pan-EU, matched against its own entry in the Pan-EU TOC tab (not the main TOC, and not another marketplace's entry for the same ASIN). Can create a month from scratch — no need to upload anything else first. Marketplace (fully manual) is never touched by this sync.</span>
+      <span>This replaces the main monthly upload entirely — R&amp;D and Brand Manager are computed from every marketplace combined, exactly like a manual main-file upload. <b>Germany = Amazon.de + Amazon.co.uk combined.</b> Every other Amazon marketplace in the report counts as Pan-EU, matched against its own entry in the Pan-EU TOC tab (not the main TOC, and not another marketplace's entry for the same ASIN). Can create a month from scratch — no need to upload anything else first. Marketplace (fully manual) is never touched.</span>
     </div>
-    <div style="margin-bottom:12px;">
-      <label style="display:block; font-size:11.5px; color:var(--line-500); margin-bottom:4px;">Month to sync (can be a month that doesn't exist yet)</label>
-      <input type="month" id="sellerboardSyncMonthInput" style="padding:8px 10px; border:1px solid var(--line-300); border-radius:8px; font-size:13px;" oninput="this.dataset.userEdited='1'">
-    </div>
-    <button class="btn primary" onclick="runSellerboardSync()">Force update now</button>
-    <div id="sellerboardSyncStatus" style="margin-top:14px;"></div>
 
-    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--line-200);">
-      <p class="section-note" style="margin-bottom:8px;">Or upload a Sellerboard "by product" daily report file directly — for backfilling a past month, or for using this before the live report link is configured. Files can be 50+ MB; they're aggregated in your browser before anything is sent, so this works regardless of upload size limits.</p>
+    <div style="margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--line-200);">
+      <h3 style="font-size:13.5px; margin-bottom:6px;">Automatic — current month only</h3>
+      <p class="section-note" style="margin-bottom:8px;">Runs daily on its own. Deliberately restricted to whichever month is currently in progress, and can't touch a month that's already closed — see why below. Use the button for an on-demand update right now instead of waiting for the daily run.</p>
+      <div class="banner warn" style="margin-bottom:10px;">
+        <span>⚠</span>
+        <span>Sellerboard's live report is a rolling 30-day window, not aligned to calendar months — a 30-day window can never fully contain a 31-day month, and as days roll off the window, a <i>closed</i> month would start losing data over time rather than gaining it. The current, still-in-progress month doesn't have this problem (it can only gain days as the month goes on), so that's the only one this automatic path is ever allowed to touch.</span>
+      </div>
+      <button class="btn primary" onclick="runSellerboardSyncCurrentMonth()">Sync current month now</button>
+    </div>
+
+    <div>
+      <h3 style="font-size:13.5px; margin-bottom:6px;">Manual upload — any month, including closed ones</h3>
+      <p class="section-note" style="margin-bottom:8px;">Upload a real Sellerboard report file for backfilling a closed month, or for a month the automatic sync hasn't reached yet. <b>The file itself can span two calendar months</b> (e.g. late August + early September) — that's handled automatically: rows are grouped by their own date and each month is saved using only its own rows. Files can be 50+ MB; they're aggregated in your browser before anything is sent.</p>
+      <div style="margin-bottom:10px;">
+        <label style="display:block; font-size:11.5px; color:var(--line-500); margin-bottom:4px;">Restrict to one month (optional — leave blank to process every month found in the file)</label>
+        <input type="month" id="sellerboardSyncMonthInput" style="padding:8px 10px; border:1px solid var(--line-300); border-radius:8px; font-size:13px;">
+      </div>
       <input type="file" id="sellerboardFileInput" accept=".csv" onchange="runSellerboardSyncFromFile(this.files[0])">
     </div>
+
+    <div id="sellerboardSyncStatus" style="margin-top:14px;"></div>
   </section>
 
   <section id="dataQualitySection" style="display:none;">

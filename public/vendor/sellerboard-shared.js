@@ -71,6 +71,21 @@ function parseSbDate(d) {
 // each kept separate by marketplace name for its own Pan-EU TOC lookup.
 const GERMANY_MARKETPLACES = new Set(['Amazon.de', 'Amazon.co.uk']);
 
+// The live automatic report is a ROLLING 30-day window, not aligned to
+// calendar months -- on any given day it can span the tail end of one
+// month and the start of the next. detectMonthsInRows finds every
+// distinct "YYYY-MM" actually present so the caller can process each one
+// (rather than assuming "the current month" and silently dropping
+// whatever rows belong to the other month).
+function detectMonthsInRows(rows) {
+  const months = new Set();
+  for (const r of rows) {
+    const d = parseSbDate(r.Date);
+    if (d) months.add(`${d.year}-${String(d.month).padStart(2, '0')}`);
+  }
+  return Array.from(months).sort();
+}
+
 // Aggregates the raw daily rows to {asin, marketplace} -> {sales, units,
 // net_profit}, filtered to one target month. Sellerboard's "by product"
 // format has no single combined Sales/Units column -- the real total is
@@ -127,6 +142,23 @@ function sumEntriesByAsin(entries) {
     if (!byAsin[e.asin].product && e.product) byAsin[e.asin].product = e.product;
   }
   return Object.values(byAsin);
+}
+
+// Splits a raw report into one aggregation per calendar month actually
+// present -- the live report is a rolling 30-day window, not aligned to
+// month boundaries, so a single upload can genuinely span parts of two
+// months. Returns { monthBreakdown: { "YYYY-MM": {entries, matchedRows,
+// totalRows} }, totalRows }, ready to send to the sync endpoint, which
+// then processes and saves each month using ONLY that month's own rows.
+function aggregateByMonthAndMarketplace(rows) {
+  const months = detectMonthsInRows(rows);
+  const monthBreakdown = {};
+  for (const month of months) {
+    const [year, monthNum] = month.split('-').map(Number);
+    const { entries, matchedRows } = aggregateByAsinMarketplace(rows, year, monthNum);
+    monthBreakdown[month] = { entries, matchedRows, totalRows: rows.length };
+  }
+  return { monthBreakdown, totalRows: rows.length, monthsFound: months };
 }
 
 function monthIndex(dateStr) {
@@ -326,7 +358,7 @@ const SellerboardShared = {
   parseSemicolonCSV, cleanNumber, parseSbDate, GERMANY_MARKETPLACES,
   aggregateByAsinMarketplace, sumEntriesByAsin, computeStageForMonth, splitIntoF3MContributions,
   sumContributions, computeRdAndBrandManager, BM_GROUPS, OFFICIAL_BM_BRANDS, STAGE_LABELS,
-  normBrand, officialBrandGroup, matchRdCode,
+  normBrand, officialBrandGroup, matchRdCode, detectMonthsInRows, aggregateByMonthAndMarketplace,
 };
 // Universal export: Node (api/sellerboard-sync.js requires this file
 // directly) and browser (public/vendor/sellerboard-shared.js is a

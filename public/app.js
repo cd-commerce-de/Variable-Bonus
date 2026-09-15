@@ -486,7 +486,6 @@ function onMarketplaceInputChange() {
 
 async function onMonthChange() {
   const month = document.getElementById('monthSelect').value;
-  updateSellerboardSyncMonthLabel();
   const data = await loadMonth(month);
   if (data) {
     // Always re-apply the LATEST targets on load (not whatever was baked
@@ -1526,80 +1525,93 @@ async function handleCountryFiles(fileList, country) {
   statusEl.innerHTML = log.map(l => `<div class="banner ${l.ok ? 'info' : 'error'}" style="margin-top:6px;"><b>${l.file}:</b> ${l.msg}</div>`).join('');
 }
 
-// ---------- Sellerboard auto-sync (R&D, Brand Manager & Launch Manager) ----------
-function updateSellerboardSyncMonthLabel() {
-  // Keeps the sync's own month input in step with the main month picker
-  // by default (convenient when syncing whatever month is already being
-  // viewed), but never overwrites a value the person has already typed
-  // in themselves -- this input needs to accept months that don't exist
-  // yet at all (the sync can create one from scratch), which the main
-  // picker can never offer since it only lists months already saved.
-  const input = document.getElementById('sellerboardSyncMonthInput');
-  if (!input) return;
-  const month = document.getElementById('monthSelect').value;
-  if (month && !input.dataset.userEdited) input.value = month;
-}
-async function renderSellerboardSyncResult(res, statusEl, month) {
+// ---------- Sellerboard report upload (R&D, Brand Manager & Launch Manager) ----------
+// Renders one summary block per month the uploaded file actually covered
+// -- a single upload can span two calendar months (the live report is a
+// rolling 30-day window), so the response from the server is always an
+// array of per-month results, even when there's only one.
+async function renderSellerboardSyncResult(res, statusEl) {
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    statusEl.innerHTML = `<div class="banner error"><b>Sync failed:</b> ${body.error || `HTTP ${res.status}`}</div>`;
+    statusEl.innerHTML = `<div class="banner error"><b>Upload failed:</b> ${body.error || `HTTP ${res.status}`}</div>`;
     return;
   }
-  const paneuLines = Object.entries(body.pan_eu.by_marketplace || {}).map(([mp, v]) => `${mp}: €${v.sales.toFixed(2)} (${v.asin_count} ASINs)`).join(', ') || 'none';
-  const unmappedPanEu = Object.entries(body.unmapped_pan_eu_by_marketplace || {}).filter(([, n]) => n > 0).map(([mp, n]) => `${mp}: ${n}`).join(', ');
-  let msg = `<div class="banner info">
-    <b>${formatMonthLabel(month)} synced${body.was_new_month ? ' (created new)' : ''}.</b> ${body.report_rows_matched_month.toLocaleString('en-US')} of ${body.report_rows_total.toLocaleString('en-US')} report rows matched this month, ${body.mapped_asins.toLocaleString('en-US')} ASINs mapped.<br>
-    R&amp;D: ${body.rd_products_found} product(s) with Y1 revenue. Brand Manager: ${body.brand_manager_brands_found} brand(s).<br>
-    Germany (DE+UK): €${body.germany.sales.toFixed(2)} across ${body.germany.asin_count} F3M ASIN(s).<br>
-    Pan-EU by marketplace: ${paneuLines}.
-  </div>`;
-  if (body.unmapped_asins || body.unmapped_germany_asins || unmappedPanEu) {
-    msg += `<div class="banner warn" style="margin-top:6px;">${body.unmapped_asins ? `${body.unmapped_asins} ASIN(s) not in the main TOC at all (excluded from R&D/Brand Manager too) — see the Unmapped ASINs tab. ` : ''}${unmappedPanEu ? `Pan-EU ASINs not yet in the Pan-EU TOC — ${unmappedPanEu}. Add them in the Pan-EU TOC tab (they'll show up there as Pending next time it's opened).` : ''}</div>`;
+  if (!body.months || !body.months.length) {
+    statusEl.innerHTML = `<div class="banner error">No months were found to process.</div>`;
+    return;
   }
-  statusEl.innerHTML = msg;
+  const sourceLabel = body.source === 'automatic_current_month' ? ' (automatic, current month)' : '';
+  let anyNewMonth = false;
+  let lastGoodMonth = null;
+  const blocks = body.months.map(m => {
+    if (!m.ok) {
+      return `<div class="banner error" style="margin-top:6px;"><b>${formatMonthLabel(m.month)} failed:</b> ${m.error}</div>`;
+    }
+    if (m.was_new_month) anyNewMonth = true;
+    lastGoodMonth = m.month;
+    const paneuLines = Object.entries(m.pan_eu.by_marketplace || {}).map(([mp, v]) => `${mp}: €${v.sales.toFixed(2)} (${v.asin_count} ASINs)`).join(', ') || 'none';
+    const unmappedPanEu = Object.entries(m.unmapped_pan_eu_by_marketplace || {}).filter(([, n]) => n > 0).map(([mp, n]) => `${mp}: ${n}`).join(', ');
+    let msg = `<div class="banner info" style="margin-top:6px;">
+      <b>${formatMonthLabel(m.month)} synced${sourceLabel}${m.was_new_month ? ' (created new)' : ''}.</b> ${m.report_rows_matched_month.toLocaleString('en-US')} report rows matched this month, ${m.mapped_asins.toLocaleString('en-US')} ASINs mapped.<br>
+      R&amp;D: ${m.rd_products_found} product(s) with Y1 revenue. Brand Manager: ${m.brand_manager_brands_found} brand(s).<br>
+      Germany (DE+UK): €${m.germany.sales.toFixed(2)} across ${m.germany.asin_count} F3M ASIN(s).<br>
+      Pan-EU by marketplace: ${paneuLines}.
+    </div>`;
+    if (m.unmapped_asins || m.unmapped_germany_asins || unmappedPanEu) {
+      msg += `<div class="banner warn" style="margin-top:4px;">${m.unmapped_asins ? `${m.unmapped_asins} ASIN(s) not in the main TOC at all (excluded from R&D/Brand Manager too) — see the Unmapped ASINs tab. ` : ''}${unmappedPanEu ? `Pan-EU ASINs not yet in the Pan-EU TOC — ${unmappedPanEu}. Add them in the Pan-EU TOC tab (they'll show up there as Pending next time it's opened).` : ''}</div>`;
+    }
+    return msg;
+  });
+  statusEl.innerHTML = blocks.join('');
   // Only refresh the month list (which jumps the view to the newest
-  // month) when this sync actually created one that wasn't there before
-  // -- for the far more common case of updating an existing month, that
-  // jump would be a disruptive surprise for no reason.
-  if (body.was_new_month) await refreshMonthList();
-  if (CURRENT && CURRENT.month === month) { CURRENT = await loadMonth(month); CURRENT = applyTargetsAndTiers(CURRENT, false, await loadMonthlyTargets(month)); render(CURRENT, 'monthly'); }
-}
-
-async function runSellerboardSync() {
-  const statusEl = document.getElementById('sellerboardSyncStatus');
-  const month = document.getElementById('sellerboardSyncMonthInput').value;
-  if (!month) { statusEl.innerHTML = `<div class="banner error">Pick a month to sync (above the button).</div>`; return; }
-  statusEl.innerHTML = `<div class="banner info">Fetching the Sellerboard report and updating ${formatMonthLabel(month)}…</div>`;
-  try {
-    const res = await fetchWithTimeout(`/api/sellerboard-sync?month=${month}`, { method: 'POST' }, 45000); // a full report fetch + GitHub read/write can genuinely take longer than the default API timeout
-    await renderSellerboardSyncResult(res, statusEl, month);
-  } catch (err) {
-    statusEl.innerHTML = `<div class="banner error"><b>Sync failed:</b> ${err.message || err}. If this is a timeout, the report may be large — try again, or check Vercel's function logs.</div>`;
+  // month) when this actually created one that wasn't there before --
+  // for the far more common case of updating existing months, that jump
+  // would be a disruptive surprise for no reason.
+  if (anyNewMonth) await refreshMonthList();
+  if (CURRENT && lastGoodMonth && CURRENT.month === lastGoodMonth) {
+    CURRENT = await loadMonth(lastGoodMonth);
+    CURRENT = applyTargetsAndTiers(CURRENT, false, await loadMonthlyTargets(lastGoodMonth));
+    render(CURRENT, 'monthly');
   }
 }
 
 async function runSellerboardSyncFromFile(file) {
   const statusEl = document.getElementById('sellerboardSyncStatus');
-  const month = document.getElementById('sellerboardSyncMonthInput').value;
   if (!file) return;
-  if (!month) { statusEl.innerHTML = `<div class="banner error">Pick a month to sync (above the button) first.</div>`; return; }
   if (!window.SellerboardShared) { statusEl.innerHTML = `<div class="banner error">Internal error: the shared Sellerboard parsing module didn't load. Refresh and try again.</div>`; return; }
+  const restrictToMonth = document.getElementById('sellerboardSyncMonthInput').value || null;
   statusEl.innerHTML = `<div class="banner info">Reading and aggregating ${file.name}${file.size > 1e6 ? ` (${(file.size/1e6).toFixed(1)} MB)` : ''} in your browser…</div>`;
   try {
     const text = await file.text();
     const rows = window.SellerboardShared.parseSemicolonCSV(text);
-    const [year, monthNum] = month.split('-').map(Number);
-    const { entries, matchedRows, totalRows } = window.SellerboardShared.aggregateByAsinMarketplace(rows, year, monthNum);
-    statusEl.innerHTML = `<div class="banner info">Aggregated ${totalRows.toLocaleString('en-US')} rows (${matchedRows.toLocaleString('en-US')} matched ${formatMonthLabel(month)}) — sending to the server…</div>`;
-    const res = await fetchWithTimeout(`/api/sellerboard-sync?month=${month}`, {
+    const { monthBreakdown, totalRows, monthsFound } = window.SellerboardShared.aggregateByMonthAndMarketplace(rows);
+    if (!monthsFound.length) { statusEl.innerHTML = `<div class="banner error">No valid dates found in this file — is it the right report?</div>`; return; }
+    statusEl.innerHTML = `<div class="banner info">Found ${monthsFound.map(formatMonthLabel).join(' and ')} in ${totalRows.toLocaleString('en-US')} rows — sending to the server…</div>`;
+    const url = restrictToMonth ? `/api/sellerboard-sync?month=${restrictToMonth}` : '/api/sellerboard-sync';
+    const res = await fetchWithTimeout(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ aggregatedEntries: entries, reportMeta: { matchedRows, totalRows } }),
+      body: JSON.stringify({ reportMeta: { monthBreakdown } }),
     }, 45000);
-    await renderSellerboardSyncResult(res, statusEl, month);
+    await renderSellerboardSyncResult(res, statusEl);
   } catch (err) {
-    statusEl.innerHTML = `<div class="banner error"><b>Sync failed:</b> ${err.message || err}.</div>`;
+    statusEl.innerHTML = `<div class="banner error"><b>Upload failed:</b> ${err.message || err}.</div>`;
   }
   document.getElementById('sellerboardFileInput').value = ''; // allow re-selecting the same file (e.g. after fixing something and re-uploading)
+}
+
+async function runSellerboardSyncCurrentMonth() {
+  const statusEl = document.getElementById('sellerboardSyncStatus');
+  // No body at all -- an empty/no reportMeta.monthBreakdown is exactly
+  // what tells the endpoint to take the automatic (current-month-only)
+  // path rather than the manual-upload path. See api/sellerboard-sync.js
+  // for why ?month= can't be used to redirect this to a different month.
+  statusEl.innerHTML = `<div class="banner info">Fetching the live Sellerboard report and updating the current month…</div>`;
+  try {
+    const res = await fetchWithTimeout('/api/sellerboard-sync', { method: 'POST' }, 45000); // a full report fetch + GitHub read/write can genuinely take longer than the default API timeout
+    await renderSellerboardSyncResult(res, statusEl);
+  } catch (err) {
+    statusEl.innerHTML = `<div class="banner error"><b>Sync failed:</b> ${err.message || err}. If this is a timeout, the report may be large — try again, or check Vercel's function logs.</div>`;
+  }
 }
 
 // Product-code matching: TOC codes like SLP120/SLP400 should both roll up
