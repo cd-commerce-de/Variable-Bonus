@@ -310,15 +310,18 @@
 
   <section>
     <div class="section-head">
-      <h2>Sellerboard Auto-Sync (Launch Manager)</h2>
-      <span class="section-note">Pulls the daily Sellerboard report automatically and updates Germany + Pan-EU F3M data — runs once a day; use the button below to update immediately instead of waiting</span>
+      <h2>Sellerboard Auto-Sync (R&amp;D, Brand Manager &amp; Launch Manager)</h2>
+      <span class="section-note">Pulls the daily Sellerboard report and updates R&D, Brand Manager, and Launch Manager (Germany + Pan-EU) for the target month, all from this one report — runs once a day; use the button below to update immediately instead of waiting</span>
     </div>
     <div class="banner info" style="margin-bottom:14px;">
       <span>ℹ</span>
-      <span><b>Germany = Amazon.de + Amazon.co.uk combined.</b> Every other Amazon marketplace in the report counts as Pan-EU, matched against its own entry in the Pan-EU TOC tab (not the main TOC, and not another marketplace's entry for the same ASIN) — same rule as manually uploading a Pan-EU file per marketplace. That month's main export (R&D/Brand Manager) must already be saved before syncing, since this only updates the Launch Manager section.</span>
+      <span>This one sync replaces the main monthly upload entirely — R&amp;D and Brand Manager are computed from every marketplace combined, exactly like a manual main-file upload. <b>Germany = Amazon.de + Amazon.co.uk combined.</b> Every other Amazon marketplace in the report counts as Pan-EU, matched against its own entry in the Pan-EU TOC tab (not the main TOC, and not another marketplace's entry for the same ASIN). Can create a month from scratch — no need to upload anything else first. Marketplace (fully manual) is never touched by this sync.</span>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block; font-size:11.5px; color:var(--line-500); margin-bottom:4px;">Month to sync (can be a month that doesn't exist yet)</label>
+      <input type="month" id="sellerboardSyncMonthInput" style="padding:8px 10px; border:1px solid var(--line-300); border-radius:8px; font-size:13px;" oninput="this.dataset.userEdited='1'">
     </div>
     <button class="btn primary" onclick="runSellerboardSync()">Force update now</button>
-    <span id="sellerboardSyncMonth" style="margin-left:10px; font-size:12.5px; color:var(--line-500);"></span>
     <div id="sellerboardSyncStatus" style="margin-top:14px;"></div>
 
     <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--line-200);">

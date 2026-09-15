@@ -22,27 +22,28 @@ there to overwrite anything. If you ever *do* see a `data/` folder in a
 package from here on, that means it was intentional and worth asking
 about before overwriting.
 
-## Sellerboard Auto-Sync (Launch Manager)
+## Sellerboard Auto-Sync (R&D, Brand Manager & Launch Manager)
 
-Automates what the manual Germany/Pan-EU uploads do, pulling directly
-from Sellerboard's own daily report link instead of a manual CSV export
-each time.
+Automates the ENTIRE main monthly upload, not just Launch Manager --
+R&D, Brand Manager, AND Launch Manager (Germany + Pan-EU) are all
+updated from ONE Sellerboard report, pulled directly from Sellerboard's
+own daily report link instead of three separate manual CSV exports.
 
-**Source format is completely different from the manual uploads** — this
-is Sellerboard's "by product" daily export: one row per (ASIN,
+**Source format is completely different from the manual uploads** --
+this is Sellerboard's "by product" daily export: one row per (ASIN,
 Marketplace, Date), no month-level aggregation at all (a real August
-file for this business runs ~91,000 rows), and **no single combined
-Sales/Units column** — all of that is handled by `api/_sellerboard.js`,
+file for this business runs ~91,000 rows), and no single combined
+Sales/Units column. All of that is handled by `api/_sellerboard.js`,
 kept separate from the endpoint itself so the parsing/aggregation logic
-could be unit-tested directly against a real report file before being
+could be unit-tested directly against real report files before being
 wired into anything live.
 
 **Real bug, found and fixed**: the total is `SalesOrganic + SalesPPC`
-**only** — `SalesPPC` is the parent total for all paid traffic, and
+**only** -- `SalesPPC` is the parent total for all paid traffic, and
 already equals `SalesSponsoredProducts + SalesSponsoredDisplay`, not a
 third and fourth category alongside it. An earlier version of this file
 summed all four columns, double-counting every Sponsored Products/
-Display sale — confirmed directly against real data: across 91,802 real
+Display sale -- confirmed directly against real data: across 91,802 real
 rows, `SalesPPC` differs from `SalesSponsoredProducts` in exactly the
 rows where `SalesSponsoredDisplay` is non-zero, i.e. PPC = SP + SD,
 always. The bug inflated totals by ~16% wherever paid advertising drove
@@ -51,82 +52,126 @@ export (a different report type that reports the combined figure
 natively, with no PPC/SP split to double-count): matched within 0.007%
 after the fix, versus ~16% too high before it.
 
-**Germany = Amazon.de + Amazon.co.uk, combined into one bucket** — per
+### How R&D and Brand Manager get computed from this report
+
+`computeRdAndBrandManager()` in `api/_sellerboard.js` is a line-for-line
+port of `computeFromRows()` in `public/app.js` -- same grouping rules,
+same F3M/M4-12/PY1/Discontinued stage exclusions, same "other brands"
+and "unmapped ASIN" handling, same R&D product-code matching (including
+the SLP120/SLP400-style prefix rollup) -- kept in exact lockstep
+deliberately, so a Sellerboard-synced month and a manually-uploaded month
+are computed identically. Only the INPUT differs: `computeFromRows` reads
+one row per ASIN from a monthly aggregate file; this reads the daily
+report's rows summed to one total per ASIN across every marketplace
+(`sumEntriesByAsin`, reusing the same per-(ASIN,marketplace) entries the
+Launch Manager split already computes -- no second pass over the raw
+rows needed). Deliberately does NOT apply targets/tiers here -- exactly
+like a manually-saved month, that happens fresh on every load
+(`applyTargetsAndTiers` in app.js), never baked in at save time.
+
+Verified directly against real data, not just re-run logic: fed a real
+August report through this function and got brand-level PY1/Y1/
+Discontinued totals for Tarpofix, Heimfleiss, Nasswerk, and every other
+Brand Manager brand that matched EXACTLY the figures independently
+verified earlier in this project's own reconciliation work (a completely
+separate Python analysis, built for a different purpose) -- down to the
+cent, e.g. Tarpofix PY1 = EUR 383,304.46 in both.
+
+**This sync can create a month from scratch** -- it no longer requires a
+manual main-file upload to exist first. If the month isn't there yet,
+a sensible empty skeleton is created and populated fresh (Marketplace,
+which is fully manual, defaults to "not entered" in that case, same as
+a genuinely new month always starts).
+
+**Germany = Amazon.de + Amazon.co.uk, combined into one bucket** -- per
 direct instruction. Looked up against the main TOC, same as a manual
-Germany upload. **Every other Amazon.\* marketplace found in the report
+Germany upload. **Every other Amazon.* marketplace found in the report
 counts as Pan-EU**, each kept separate and matched against **its own**
 entry in the Pan-EU TOC (never the main TOC, never another marketplace's
-entry for the same ASIN) — identical rule to uploading a Pan-EU file per
+entry for the same ASIN) -- identical rule to uploading a Pan-EU file per
 marketplace by hand. Only F3M-stage revenue counts, same as everywhere
 else in Launch Manager.
 
-**How it connects, mechanically**: `api/sellerboard-sync.js` gets its
-data one of two ways (see below), aggregates and splits it as above,
-loads that month's already-saved data from the repo, merges the result
-in as a dedicated contribution (keyed `sellerboard-sync::germany` and
-`sellerboard-sync::<marketplace>` per Pan-EU marketplace — see "Multiple
-files combine, not overwrite" above for how contribution keying works
-generally), and saves back through the same GitHub commit path every
-other save already uses. **That month's main export (R&D/Brand Manager)
-must already be saved first** — the sync only updates the Launch Manager
-section of an existing month, it can't create one from scratch.
+**What this sync deliberately never touches**: Marketplace (fully
+manual entry) is always carried forward untouched, and any Germany/
+Pan-EU contribution from a DIFFERENT source (e.g. a manually-uploaded
+Pan-EU file for a marketplace this report doesn't cover) keeps adding
+independently rather than being overwritten -- same contribution-based
+rule as everywhere else in this app (see "Multiple files combine, not
+overwrite" below). Re-running the sync for a month it already updated
+gives the same answer, not a growing one -- R&D and Brand Manager are
+replaced wholesale each run (they ARE the source of truth for those
+sections now), not merged/accumulated.
 
 ### Two ways to feed it data
 
-**1. The live report link** (`SELLERBOARD_REPORT_URL`) — runs
+**1. The live report link** (`SELLERBOARD_REPORT_URL`) -- runs
 automatically once a day via a Vercel Cron job (`vercel.json`, `0 6 * * *`
-= 06:00 UTC daily — adjust the schedule there if a different time is
+= 06:00 UTC daily -- adjust the schedule there if a different time is
 wanted), targeting the current calendar month. The **"Force update now"**
 button (Upload tab) calls the same endpoint immediately for whichever
-month is currently selected, for whenever a person doesn't want to wait
-for the schedule.
+month is entered in the sync section's own month picker.
 
 **2. Uploading a report file directly** (same section, "Or upload a
-Sellerboard report file directly") — for backfilling a past month (the
+Sellerboard report file directly") -- for backfilling a past month (the
 live link only ever returns the current month), or for using this before
 the live link is configured at all. **Real reports run 60+ MB, well over
-Vercel's ~4.5 MB serverless request-body limit** — sending the raw file
+Vercel's ~4.5 MB serverless request-body limit** -- sending the raw file
 to the server would simply fail. Instead, the file is parsed and
 aggregated **in the browser** (`public/vendor/sellerboard-shared.js`, a
-byte-for-byte copy of `api/_sellerboard.js` — identical logic runs
+byte-for-byte copy of `api/_sellerboard.js` -- identical logic runs
 client-side and server-side, kept in sync deliberately rather than
 reimplemented twice), and only the much smaller aggregated result
 (`{asin, marketplace, sales, units, net_profit}` per row, not 90,000+
 raw rows) is sent to the endpoint.
 
+**The sync section has its own month picker**, independent from the main
+one at the top of the page -- it needs to accept a month that doesn't
+exist yet at all (since the sync can create one from scratch), which the
+main picker can never offer since it only lists months already saved. It
+defaults to whatever month the main picker is currently showing, but
+never overwrites a value typed in by hand.
+
 **Auth accepts either of two things**, so the same endpoint works for
 both the scheduled job and the manual paths: Vercel's own
 `Authorization: Bearer $CRON_SECRET` header, which it sends automatically
 to any endpoint when `CRON_SECRET` is set as an env var (Vercel's
-documented convention for securing cron endpoints) — or a valid logged-in
+documented convention for securing cron endpoints) -- or a valid logged-in
 session cookie, exactly like every other authenticated endpoint.
 
 **Environment variables needed** (Vercel project settings, alongside the
 existing `GITHUB_OWNER`/`GITHUB_REPO`/`GITHUB_TOKEN`/`DASHBOARD_PASSCODE`/
 `COOKIE_SECRET`):
-- `SELLERBOARD_REPORT_URL` — the report link from Sellerboard. Only
+- `SELLERBOARD_REPORT_URL` -- the report link from Sellerboard. Only
   required for the automatic/scheduled path; the file-upload path works
-  without it.
-- `CRON_SECRET` — any random string; only needs to match between this
+  without it. Treated as a live credential -- never written into any
+  file in this codebase, set directly in Vercel's environment variables
+  instead.
+- `CRON_SECRET` -- any random string; only needs to match between this
   and what Vercel sends, never typed in manually anywhere.
 
-Verified end-to-end with real data, not just mocked logic: fed a real
-~91,000-row August report through the exact same client-side
-aggregation → server endpoint path a real browser upload would use
-(mocking only the network layer — GitHub reads/writes — not the
-aggregation itself), and confirmed the saved Germany F3M total lands
-within a few euros of both the original "Group by Parent" export and the
-independently-corrected Sept 8 figure, all three now agreeing once the
-double-counting bug was fixed. Also verified July the same way, and
-confirmed both authorized paths (matching cron secret, valid session)
-work while both unauthorized paths (no credentials, wrong secret) are
-correctly rejected with 401.
+Verified end-to-end with real data, not just mocked logic: fed real
+~91,000-row August and July reports through the exact same client-side
+aggregation -> server endpoint path a real browser upload would use
+(mocking only the network layer -- GitHub reads/writes -- not the
+aggregation or computation itself), for two months in the same run, and
+confirmed: both months were created from scratch correctly, R&D and
+Brand Manager came out fully populated for both with correct
+brand-level figures, Launch Manager's Germany F3M total landed within a
+few euros of independently-verified figures from earlier reconciliation
+work, and the two months' saved data stayed completely independent of
+each other (no cross-contamination). Also verified that a month with
+Marketplace already manually entered keeps that data untouched across a
+re-sync, and that both authorized paths (matching cron secret, valid
+session) work while both unauthorized paths (no credentials, wrong
+secret) are correctly rejected with 401.
 
 **Still not verified**: the actual live connection to `sellerboard.com`
-and a real GitHub repo — I don't have network access to either from this
-environment. The first real run (cron, the button, or a file upload)
-will be the actual live-connectivity test; check Vercel's function logs
-if it doesn't behave as expected.
+and a real GitHub repo -- I don't have network access to either from
+this environment. The first real run (cron, the button, or a file
+upload) will be the actual live-connectivity test; check Vercel's
+function logs if it doesn't behave as expected.
+
 
 ## Launch Manager: two independent uploads, no computed subtraction
 

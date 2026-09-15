@@ -83,12 +83,30 @@ function aggregateByAsinMarketplace(rows, targetYear, targetMonth) {
     const units = cleanNumber(r.UnitsOrganic) + cleanNumber(r.UnitsPPC);
     const netProfit = cleanNumber(r.NetProfit);
     const key = `${asin}||${mp}`;
-    if (!byKey[key]) byKey[key] = { asin, marketplace: mp, sales: 0, units: 0, net_profit: 0 };
+    if (!byKey[key]) byKey[key] = { asin, marketplace: mp, product: r.Name || '', sales: 0, units: 0, net_profit: 0 };
     byKey[key].sales += sales;
     byKey[key].units += units;
     byKey[key].net_profit += netProfit;
   }
   return { entries: Object.values(byKey), matchedRows, totalRows: rows.length };
+}
+
+// Re-groups the (asin, marketplace) entries above into one row per ASIN,
+// summed across every marketplace -- this is what feeds R&D and Brand
+// Manager, which don't care which marketplace a sale happened on, only
+// the combined total (unlike Launch Manager, which needs the split).
+// Reuses the exact same entries the marketplace-level aggregation already
+// produced rather than re-scanning the raw rows a second time.
+function sumEntriesByAsin(entries) {
+  const byAsin = {};
+  for (const e of entries) {
+    if (!byAsin[e.asin]) byAsin[e.asin] = { asin: e.asin, product: e.product || '', sales: 0, units: 0, net_profit: 0 };
+    byAsin[e.asin].sales += e.sales;
+    byAsin[e.asin].units += e.units;
+    byAsin[e.asin].net_profit += e.net_profit;
+    if (!byAsin[e.asin].product && e.product) byAsin[e.asin].product = e.product;
+  }
+  return Object.values(byAsin);
 }
 
 function monthIndex(dateStr) {
@@ -160,10 +178,135 @@ function sumContributions(contributions) {
   return { totals: out, asins: Array.from(allAsins) };
 }
 
+// ---------- R&D / Brand Manager computation, ported from computeFromRows
+// in public/app.js -- kept in exact lockstep with that function's logic
+// (same grouping rules, same stage exclusions, same "other brands" and
+// "unmapped" handling) so a Sellerboard-sync-computed month and a
+// manually-uploaded month are computed identically, just from a
+// different raw source format. Only the INPUT differs: computeFromRows
+// reads one row per ASIN from a monthly aggregate file; this reads
+// already-summed {asin, product, sales, units, net_profit} entries
+// (see sumEntriesByAsin above) derived from the daily per-marketplace
+// report. Deliberately does NOT apply targets/tiers -- exactly like a
+// manually-saved month, that happens fresh on every load
+// (applyTargetsAndTiers in app.js), not baked in at save time. ----------
+const BM_GROUPS = {
+  'BM1': ['Tarpofix', 'Darwin', 'Planenfux'],
+  'BM2': ['Heimfleiss', 'Mattenheld'],
+  'BM3': ['PD'],
+  'BM4': ['Nasswerk', 'PoolLöwe', 'TeichHeld'],
+};
+const OFFICIAL_BM_BRANDS = Object.values(BM_GROUPS).flat();
+const STAGE_LABELS = { 'PY1': 'PY1', 'M4-12': 'Y1 (F4-12)', 'Discontinued': 'Discontinued', 'F3M': 'F3M', 'Quality Issue': 'Quality Issue (unassigned)' };
+
+function normBrand(b) { return (b || '').trim().toLowerCase(); }
+function officialBrandGroup(brandName) {
+  const nb = normBrand(brandName);
+  for (const [group, brands] of Object.entries(BM_GROUPS)) {
+    if (brands.some(b => normBrand(b) === nb)) return group;
+  }
+  return null;
+}
+function matchRdCode(tocCode, rdTeamTargets) {
+  if (!tocCode) return null;
+  if (rdTeamTargets[tocCode]) return tocCode;
+  for (const targetCode of Object.keys(rdTeamTargets)) {
+    if (tocCode.startsWith(targetCode)) return targetCode;
+  }
+  return null;
+}
+
+function computeRdAndBrandManager(monthlyAsinEntries, month, mainToc, rdTeamTargets, brandManagerTargetBrands) {
+  const byAsin = [];
+  const unmapped = [];
+
+  monthlyAsinEntries.forEach(rec0 => {
+    const asin = rec0.asin;
+    const info = mainToc[asin];
+    const rec = { asin, product: rec0.product, units: rec0.units, sales: rec0.sales, net_profit: rec0.net_profit };
+    if (!info) { unmapped.push(rec); return; }
+    const stage = computeStageForMonth(info, month);
+    if (!stage) { rec.reason = 'future_launch_or_unknown'; unmapped.push(rec); return; }
+    rec.brand = info.brand; rec.stage = stage; rec.status = info.status; rec.product_code = info.product_code;
+    byAsin.push(rec);
+  });
+
+  const empty = () => ({ sales: 0, units: 0, net_profit: 0, sku_count: 0 });
+  const bump = (obj, key, rec) => {
+    if (!obj[key]) obj[key] = empty();
+    obj[key].sales += rec.sales; obj[key].units += rec.units;
+    obj[key].net_profit += rec.net_profit; obj[key].sku_count += 1;
+  };
+
+  const stageTotals = {};
+  const brandStage = {};
+  const byProduct = {}; // R&D: Y1 ONLY (F3M + M4-12), never PY1/Discontinued/Quality Issue
+  byAsin.forEach(rec => {
+    bump(stageTotals, rec.stage, rec);
+    bump(brandStage, `${rec.brand}||${rec.stage}`, rec);
+    const rdCode = matchRdCode(rec.product_code, rdTeamTargets);
+    if (rdCode && (rec.stage === 'F3M' || rec.stage === 'M4-12')) bump(byProduct, rdCode, rec);
+  });
+
+  const launchPoolCombined = stageTotals['F3M'] || empty();
+  const qualityIssue = stageTotals['Quality Issue'] || empty();
+
+  const brandsSeen = new Set(byAsin.map(r => normBrand(r.brand)));
+  const brandDisplay = {};
+  byAsin.forEach(r => { brandDisplay[normBrand(r.brand)] = r.brand; });
+  brandManagerTargetBrands.forEach(b => brandsSeen.add(normBrand(b)));
+
+  const brandManager = {};
+  const otherBrandsSeen = {};
+  brandsSeen.forEach(nb => {
+    const displayName = OFFICIAL_BM_BRANDS.find(b => normBrand(b) === nb) || brandDisplay[nb] || nb;
+    if (!officialBrandGroup(displayName)) {
+      if (brandDisplay[nb]) {
+        const total = empty();
+        ['PY1', 'M4-12', 'Discontinued'].forEach(stageKey => {
+          const d = brandStage[`${brandDisplay[nb]}||${stageKey}`];
+          if (d) { total.sales += d.sales; total.units += d.units; total.net_profit += d.net_profit; total.sku_count += d.sku_count; }
+        });
+        if (total.sku_count > 0) otherBrandsSeen[displayName] = total;
+      }
+      return;
+    }
+    const stages = {};
+    const combined = empty();
+    ['PY1', 'M4-12', 'Discontinued'].forEach(stageKey => {
+      const tocBrandName = brandDisplay[nb] || displayName;
+      const d = brandStage[`${tocBrandName}||${stageKey}`] || empty();
+      stages[STAGE_LABELS[stageKey]] = d;
+      combined.sales += d.sales; combined.units += d.units; combined.net_profit += d.net_profit; combined.sku_count += d.sku_count;
+    });
+    brandManager[displayName] = { stages, combined_actual: combined, bm_group: officialBrandGroup(displayName) };
+  });
+
+  return {
+    rd_team: { label: 'R&D Team — Y1 products (per product)', by_product: byProduct },
+    launch_manager_combined: launchPoolCombined,
+    brand_manager: brandManager,
+    other_brands_unassigned: otherBrandsSeen,
+    quality_issue_unassigned: qualityIssue,
+    meta: {
+      total_asins_processed: monthlyAsinEntries.length,
+      mapped_asins: byAsin.length,
+      unmapped_rows: unmapped.filter(u => u.reason !== 'future_launch_or_unknown').length,
+      unmapped_asins: Array.from(new Set(unmapped.filter(u => u.reason !== 'future_launch_or_unknown').map(u => u.asin))).filter(Boolean).sort(),
+      unmapped_details: Object.values(Object.fromEntries(
+        unmapped.filter(u => u.reason !== 'future_launch_or_unknown' && u.asin).map(u => [u.asin, { asin: u.asin, product: u.product || '' }])
+      )),
+      future_launch_rows: unmapped.filter(u => u.reason === 'future_launch_or_unknown').length,
+      future_launch_asins: Array.from(new Set(unmapped.filter(u => u.reason === 'future_launch_or_unknown').map(u => u.asin))).filter(Boolean).sort(),
+    },
+  };
+}
+
 const SellerboardShared = {
   parseSemicolonCSV, cleanNumber, parseSbDate, GERMANY_MARKETPLACES,
-  aggregateByAsinMarketplace, computeStageForMonth, splitIntoF3MContributions,
-  sumContributions,
+  aggregateByAsinMarketplace, sumEntriesByAsin, computeStageForMonth, splitIntoF3MContributions,
+  sumContributions, computeRdAndBrandManager, BM_GROUPS, OFFICIAL_BM_BRANDS, STAGE_LABELS,
+  normBrand, officialBrandGroup, matchRdCode,
 };
 // Universal export: Node (api/sellerboard-sync.js requires this file
 // directly) and browser (public/vendor/sellerboard-shared.js is a

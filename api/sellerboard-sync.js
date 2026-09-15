@@ -3,16 +3,31 @@
 //
 // Pulls the Sellerboard "by product" daily export (SELLERBOARD_REPORT_URL,
 // a stable report link from Sellerboard's automatic-upload/report-link
-// feature), aggregates it to Launch Manager's F3M revenue for the target
-// month, and updates that month's saved data -- same effect as manually
-// uploading a Germany file + one Pan-EU file per marketplace, but done
-// directly from the live report.
+// feature) and updates R&D, Brand Manager, AND Launch Manager for the
+// target month from that ONE report -- not just Launch Manager. Same
+// effect as manually uploading the main monthly export (for R&D/Brand
+// Manager) plus a Germany file plus one Pan-EU file per marketplace (for
+// Launch Manager), all from a single source. Can create a month from
+// scratch if it doesn't exist yet -- it no longer requires a manual main
+// upload first.
 //
 // Germany/Launch = Amazon.de + Amazon.co.uk combined, looked up against
 // the main TOC. Every other Amazon.* marketplace present in the report
 // counts as Pan-EU, each looked up against ITS OWN entry in the Pan-EU
 // TOC (never the main TOC, never another marketplace's entry for the
-// same ASIN) -- identical rule to the manual Pan-EU upload flow.
+// same ASIN) -- identical rule to the manual Pan-EU upload flow. R&D and
+// Brand Manager are computed from the SAME report, summed across every
+// marketplace (they don't care which marketplace a sale happened on),
+// using the exact same grouping logic as a manual main-file upload (see
+// computeRdAndBrandManager in _sellerboard.js, ported line-for-line from
+// computeFromRows in app.js) -- just fed a different raw source format.
+//
+// Deliberately does NOT touch: Marketplace (manually entered, carried
+// forward untouched), or any Germany/Pan-EU contribution from a
+// DIFFERENT source (e.g. a manually-uploaded Pan-EU file for a
+// marketplace this report doesn't cover) -- those keep adding
+// independently, same contribution-based rule as everywhere else in this
+// app (see "Multiple files combine, not overwrite").
 //
 // Callable two ways:
 //  - By Vercel Cron on a schedule (see vercel.json) -- Vercel sends
@@ -24,7 +39,8 @@
 // Only ONE of these needs to succeed for the request to be authorized.
 const { isValidSession } = require('./_auth');
 const {
-  parseSemicolonCSV, aggregateByAsinMarketplace, splitIntoF3MContributions, sumContributions,
+  parseSemicolonCSV, aggregateByAsinMarketplace, sumEntriesByAsin, splitIntoF3MContributions,
+  sumContributions, computeRdAndBrandManager,
 } = require('./_sellerboard');
 
 const OWNER = process.env.GITHUB_OWNER;
@@ -85,6 +101,8 @@ function migrateLegacyIfNeeded(launchManager, key) {
   }
 }
 
+function emptyTotals() { return { sales: 0, units: 0, net_profit: 0, sku_count: 0 }; }
+
 module.exports = async (req, res) => {
   const authorized = isAuthorizedCron(req) || isValidSession(req);
   if (!authorized) return res.status(401).json({ error: 'Not authenticated' });
@@ -135,20 +153,34 @@ module.exports = async (req, res) => {
     ({ entries, matchedRows, totalRows } = aggregateByAsinMarketplace(rows, targetYear, targetMonthNum));
   }
 
-  const [mainToc, panEuTocFile, existingMonth] = await Promise.all([
+  const [mainToc, targets, panEuTocFile, existingMonth] = await Promise.all([
     ghFetchJson('public/toc_mapping.json'),
+    ghFetchJson('public/targets.json'),
     ghFetchJson('data/_pan_eu_toc.json'),
     ghFetchJson(`data/${month}.json`),
   ]);
   if (!mainToc) return res.status(502).json({ error: 'Could not load the main TOC (public/toc_mapping.json) from the repo.' });
-  if (!existingMonth) {
-    return res.status(404).json({ error: `No saved data for ${month} yet -- upload and save that month's main export first (R&D/Brand Manager still need it), then re-run the sync.` });
-  }
+  if (!targets) return res.status(502).json({ error: 'Could not load targets (public/targets.json) from the repo -- needed to match R&D product codes and know which brands to include even at zero.' });
   const panEuToc = (panEuTocFile && panEuTocFile.entries) ? panEuTocFile.entries : {};
 
+  // ---- Launch Manager: Germany (DE+UK) / Pan-EU (per marketplace) ----
   const split = splitIntoF3MContributions(entries, month, mainToc, panEuToc);
 
-  const data = JSON.parse(JSON.stringify(existingMonth));
+  // ---- R&D + Brand Manager: summed across every marketplace ----
+  const monthlyEntries = sumEntriesByAsin(entries);
+  const rdBm = computeRdAndBrandManager(monthlyEntries, month, mainToc, targets.rd_team || {}, Object.keys(targets.brand_manager || {}));
+
+  // Start from the existing month if there is one (preserves anything
+  // sync doesn't touch: Marketplace manual entries, any independently
+  // manually-uploaded Germany/Pan-EU contributions from a source this
+  // report doesn't cover); otherwise start fresh -- this sync no longer
+  // requires a manual main-file upload to have happened first.
+  const data = existingMonth ? JSON.parse(JSON.stringify(existingMonth)) : {
+    month,
+    launch_manager: { label: 'Launch Manager — F3M', germany_source: 'pending', pan_eu_source: 'pending', actual_germany: emptyTotals(), actual_pan_eu: emptyTotals() },
+    marketplace: { label: 'Marketplace — manually entered', entered: false, actual_sales: null, green_target: null, gold_target: null, actual_margin_pct: null, green_margin_pct: null, gold_margin_pct: null, tier: '-', bonus_eur: 0 },
+  };
+  data.month = month;
   data.launch_manager = data.launch_manager || {};
   const lm = data.launch_manager;
 
@@ -177,6 +209,26 @@ module.exports = async (req, res) => {
   lm.pan_eu_asins = panEuSum.asins;
   if (Object.keys(lm.pan_eu_contributions).length) lm.pan_eu_source = 'dedicated_upload';
 
+  // "Combined" reference row -- the whole F3M pool from this report,
+  // before any per-country split, same as computeFromRows produces from
+  // a manual main-file upload.
+  lm.actual_combined = rdBm.launch_manager_combined;
+
+  // R&D + Brand Manager sections: this sync IS the source of truth for
+  // these now, same as a manual main-file upload would be -- replaced
+  // wholesale each run, not merged/accumulated (re-running the sync for
+  // the same month should give the same answer, not a growing one).
+  data.rd_team = rdBm.rd_team;
+  data.brand_manager = rdBm.brand_manager;
+  data.other_brands_unassigned = rdBm.other_brands_unassigned;
+  data.quality_issue_unassigned = rdBm.quality_issue_unassigned;
+  data.meta = rdBm.meta;
+
+  // Marketplace (fully manual) is never touched by this sync -- carried
+  // forward exactly as-is, same rule computeFromRows already follows for
+  // a manual main-file re-upload.
+  data.marketplace = data.marketplace || { label: 'Marketplace — manually entered', entered: false, actual_sales: null, green_target: null, gold_target: null, actual_margin_pct: null, green_margin_pct: null, gold_margin_pct: null, tier: '-', bonus_eur: 0 };
+
   data._sellerboard_sync = {
     last_synced_at: new Date().toISOString(),
     report_rows_total: totalRows,
@@ -186,7 +238,7 @@ module.exports = async (req, res) => {
   };
 
   try {
-    await ghSaveJson(`data/${month}.json`, data, `Sellerboard sync: update Launch Manager for ${month}`);
+    await ghSaveJson(`data/${month}.json`, data, `Sellerboard sync: update R&D, Brand Manager, and Launch Manager for ${month}`);
   } catch (err) {
     return res.status(502).json({ error: err.message });
   }
@@ -194,10 +246,15 @@ module.exports = async (req, res) => {
   res.status(200).json({
     ok: true,
     month,
+    was_new_month: !existingMonth,
     germany: { sales: germanySum.totals.sales, asin_count: germanySum.asins.length },
     pan_eu: { sales: panEuSum.totals.sales, asin_count: panEuSum.asins.length, by_marketplace: Object.fromEntries(Object.entries(split.panEu).map(([mp, v]) => [mp, { sales: v.sales, asin_count: v.asins.length }])) },
+    rd_products_found: Object.keys(rdBm.rd_team.by_product).length,
+    brand_manager_brands_found: Object.keys(rdBm.brand_manager).length,
     report_rows_total: totalRows,
     report_rows_matched_month: matchedRows,
+    mapped_asins: rdBm.meta.mapped_asins,
+    unmapped_asins: rdBm.meta.unmapped_asins.length,
     unmapped_germany_asins: split.skippedUnmapped.germany.length,
     unmapped_pan_eu_by_marketplace: Object.fromEntries(Object.entries(split.skippedUnmapped.byMarketplace).map(([mp, a]) => [mp, a.length])),
   });
