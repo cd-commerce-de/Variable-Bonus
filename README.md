@@ -30,6 +30,45 @@ effect as manually uploading the main monthly export (for R&D/Brand
 Manager) plus a Germany file plus one Pan-EU file per marketplace (for
 Launch Manager), all from a single source.
 
+**Real bug, found and fixed while cleaning up the now-redundant manual
+upload sections**: the saved `meta` object was missing a `mapped_rows`
+field. `renderInner()` in app.js reads that exact field name for every
+saved month's "Data quality" summary, regardless of how the month was
+produced -- but `computeRdAndBrandManager()` only ever produced
+`mapped_asins`, a differently-named field. This wasn't caused by the
+cleanup itself (the field name mismatch predates it), but it was only
+caught because removing the old manual-upload code path prompted an
+actual full render test end-to-end, which no earlier test had done --
+every previous test checked the computed totals directly rather than
+feeding a saved month back through app.js's own rendering. Fixed by
+adding `mapped_rows` alongside `mapped_asins` (kept both -- the sync
+endpoint's own response payload reads `mapped_asins` separately from
+what gets saved into the month's data). Verified by running a real
+report through the actual endpoint, then rendering the real saved
+result through the actual `onMonthChange()` -> `render()` ->
+`renderInner()` path with no mocked business logic: completed with no
+error, "Data quality — 1,415 SKUs mapped, 17 unmapped" displayed
+correctly.
+
+**The old manual upload sections have been removed** -- "Upload this
+month's Sellerboard export" (main CSV), "Launch Manager — Germany
+(F3M)", and "Launch Manager — Pan-EU (F3M)" are gone, along with their
+underlying code (`computeFromRows`, `handleCountryFiles`,
+`applyCountryUpload`, `parseCountryF3MFile`, `wireDropZone`,
+`guessMonthFromFilename`, and app.js's own now-duplicate copies of
+`matchRdCode`/`sumContributions`) -- all superseded since this one
+Sellerboard report now computes everything those three sections used to
+handle separately. Verified nothing else depended on any of it: searched
+for every reference to each removed function and DOM element first: a
+couple of things were incidentally still needed and were kept working
+rather than removed along with everything else -- `targetsNote` (a
+render-time note about which targets are in use, unrelated to any one
+upload method) was moved to the top of the Monthly tab instead of
+deleted, and `refreshPanEuMarketplaceDropdown()` (which also feeds the
+Pan-EU TOC tab's own marketplace datalist, still very much in use) had
+only its now-orphaned upload-dropdown-specific lines removed, not the
+whole function.
+
 **Source format is completely different from the manual uploads** --
 one row per (ASIN, Marketplace, Date), no month-level aggregation at all
 (a real month's file for this business runs ~90,000 rows), and no single
@@ -114,17 +153,20 @@ bleed between the two.
 
 ### How R&D and Brand Manager get computed from this report
 
-`computeRdAndBrandManager()` in `api/_sellerboard.js` is a line-for-line
-port of `computeFromRows()` in `public/app.js` -- same grouping rules,
-same F3M/M4-12/PY1/Discontinued stage exclusions, same "other brands"
-and "unmapped ASIN" handling, same R&D product-code matching (including
-the SLP120/SLP400-style prefix rollup) -- kept in exact lockstep
-deliberately, so a synced month and a manually-uploaded month are
-computed identically. Only the INPUT differs: `computeFromRows` reads
-one row per ASIN from a monthly aggregate file; this reads the daily
-report's rows summed to one total per ASIN across every marketplace
-(`sumEntriesByAsin`, reusing the same per-(ASIN,marketplace) entries the
-Launch Manager split already computes). Deliberately does NOT apply
+`computeRdAndBrandManager()` in `api/_sellerboard.js` was originally
+written as a line-for-line port of `computeFromRows()` in
+`public/app.js` -- same grouping rules, same F3M/M4-12/PY1/Discontinued
+stage exclusions, same "other brands" and "unmapped ASIN" handling, same
+R&D product-code matching (including the SLP120/SLP400-style prefix
+rollup). `computeFromRows()` itself has since been removed (it only
+ever fed the manual main-file upload, which this Sellerboard Sync has
+fully superseded -- see below), but the logic it was ported from is
+preserved here. The input differs from what that removed function used
+to read: `computeFromRows()` read one row per ASIN from a monthly
+aggregate file; this reads the daily report's rows summed to one total
+per ASIN across every marketplace (`sumEntriesByAsin`, reusing the same
+per-(ASIN,marketplace) entries the Launch Manager split already
+computes). Deliberately does NOT apply
 targets/tiers here -- exactly like a manually-saved month, that happens
 fresh on every load (`applyTargetsAndTiers` in app.js), never baked in
 at save time.
@@ -141,11 +183,13 @@ a manual main-file upload to exist first. Marketplace (fully manual) is
 always carried forward untouched by both paths. Any Germany/Pan-EU
 contribution from a source neither path covers (e.g. a manually-uploaded
 Pan-EU file for a marketplace this report doesn't include) keeps adding
-independently rather than being overwritten -- same contribution-based
-rule as everywhere else in this app (see "Multiple files combine, not
-overwrite" below). Re-syncing a month already updated gives the same
-answer, not a growing one -- R&D and Brand Manager are replaced wholesale
-each time, not merged/accumulated.
+independently rather than being overwritten -- each contribution is
+tracked by its own key (filename, or `sellerboard-sync::<marketplace>`
+for the sync), and a country's total is always recomputed fresh by
+summing every tracked contribution, never overwritten by "whichever ran
+last." Re-syncing a month already updated gives the same answer, not a
+growing one -- R&D and Brand Manager are replaced wholesale each time,
+not merged/accumulated.
 
 **Environment variables** (Vercel project settings, alongside the
 existing `GITHUB_OWNER`/`GITHUB_REPO`/`GITHUB_TOKEN`/`DASHBOARD_PASSCODE`/
@@ -162,307 +206,55 @@ upload) will be the actual live-connectivity test; check Vercel's
 function logs if it doesn't behave as expected.
 
 
-## Launch Manager: two independent uploads, no computed subtraction
-
-Germany and Pan-EU each come from their **own dedicated F3M export**,
-uploaded separately (Upload tab):
-- **"Launch Manager — Germany (F3M)"** — same columns as the main export,
-  filtered to Germany only.
-- **"Launch Manager — Pan-EU (F3M)"** — same columns, filtered to Pan-EU
-  marketplaces only.
-
-Each upload sets that country's actual **directly** — no subtraction, no
-residual math, no ASIN->marketplace guessing. Upload either one, both, or
-neither; they're completely independent. Neither is derived from the main
-export at all (the main export still drives R&D and Brand Manager, and
-its F3M total is still shown as "Combined" for reference, but Combined is
-never split or computed from — it's just the full F3M pool from all
-marketplaces together).
-
-**Filenames need the same date-range pattern as the main export** (e.g.
-`01_08_2026-31_08_2026…`) so the month can be detected — same convention
-as every other upload in this dashboard. Both file inputs accept multiple
-files at once, so several months can be done in one go. Each upload:
-- Works against the **currently-loaded month in this session** if it
-  matches, or **loads and updates an already-saved month** otherwise (no
-  need to re-upload the main file just to add Launch Manager data) —
-  saves immediately either way.
-
-### Country uploads filter rows by ASIN, not SKU (real bug, found and fixed)
-
-**Symptom reported**: uploading a Pan-EU file (Spain) using a newer
-Sellerboard export format ("Group by ASIN" rather than the original
-"Group by Parent") showed no F3M data at all.
-
-**Cause, confirmed against the actual uploaded file**: `parseCountryF3MFile`
-was filtering to "real product rows" by checking for a non-empty SKU
-column — correct for the original "Group by Parent" format, where blank
-SKU meant a parent/summary row to skip. But the newer "Group by ASIN"
-format reports at the ASIN level directly and leaves SKU blank on every
-single row — checked the real uploaded file directly: all 9 rows had a
-real ASIN and real sales data, but a completely blank SKU column. The
-old filter was silently excluding all 9 rows before they ever reached
-the TOC lookup step.
-
-**Fix**: this filter now checks ASIN instead of SKU — which is also more
-correct in general, since every lookup this function does (`MAPPING`,
-`PAN_EU_TOC`) is keyed by ASIN anyway, never SKU.
-
-Verified directly against the real Spain file, not a synthetic one:
-registered 3 of its real ASINs in the Pan-EU TOC with a Spain launch
-date that makes them F3M by August 2026, uploaded the actual file, and
-confirmed it correctly contributed €7,710.99 to Pan-EU's F3M total — the
-other 6 real ASINs from the same file correctly appeared in the Pending
-section (see "Pending ASINs" above), ready for a Launch Date. This
-fix is scoped to the country-specific uploads (Germany/Pan-EU) only —
-the main file's own row-filtering is unaffected.
-
-### Multiple files for the same country+month: combine, not overwrite
-
-**Real bug, found and fixed**: if you have to export a separate report
-per marketplace (e.g. France, Italy, Spain each as their own file, all
-rolling up into "Pan-EU"), uploading a second file for the same
-country+month used to silently **overwrite** the first — the second
-upload's numbers replaced the first's entirely, with no warning. Multiple
-distinct files for the same country+month now correctly **add together**.
-
-Fixed via per-file contribution tracking, keyed by filename
-(`pan_eu_contributions` / `germany_contributions` on the saved month) —
-the country's total is always recomputed fresh by summing every tracked
-file's own contribution, never overwritten by "whichever file was
-uploaded last." This also handles the natural follow-up case correctly:
-**re-uploading the exact same filename** (e.g. a corrected version of a
-file you already uploaded) **replaces only that file's own contribution**
-instead of double-counting it — new distinct filenames add, matching
-filenames replace. The UK-marketplace redirect (see below) follows the
-same per-file rule, so re-uploading a Pan-EU file that had UK ASINs
-doesn't duplicate its Germany redirect either.
-
-Verified directly, not just reasoned about: uploaded a France file
-(€5,000) then an Italy file (€3,000) for the same month — correctly
-combined to €8,000 across 2 files. Then re-uploaded a corrected version
-of the France file under the identical filename (now €6,000) — correctly
-came out to €9,000 total (the corrected France + the original Italy),
-not €14,000, confirming the replace-on-same-filename rule actually works
-and doesn't silently double-count.
-
-**Follow-up regression from this same fix, found and fixed**: uploading
-*only* Pan-EU (Germany untouched) was wiping Germany's data to zero for
-any month whose Germany total had been set before per-file contribution
-tracking existed (no matching entry in `germany_contributions`) — the
-code recomputed Germany's total from its (empty) contributions
-unconditionally on every upload, regardless of which country was
-actually being uploaded. Fixed by migrating any such "legacy" total into
-the contributions system (as a `__legacy__` entry) the first time either
-country is touched again, before summing — so it's preserved rather than
-clobbered. Verified directly: simulated a month with Germany set the old
-way (€12,000, no contributions entry), uploaded only a Pan-EU file, and
-confirmed Germany's €12,000 survived completely untouched while Pan-EU
-picked up the new €3,000. Confirmed symmetric the other direction too
-(Pan-EU survives a Germany-only upload) with the same test in reverse.
-
-**A third bug, found while confirming a real workflow change (a combined
-Germany+UK export uploaded through the Germany zone, not Pan-EU)**:
-`parseCountryF3MFile` always splits UK-listed ASINs into their own bucket
-regardless of which zone the file lands in — correct when the file came
-in through Pan-EU (that bucket then gets redirected into Germany), but
-the code that puts that bucket back only ran for `country === 'pan_eu'`.
-Uploading a combined DE+UK file *into the Germany zone itself* was
-silently dropping the UK-listed ASINs' revenue — split out, then never
-added back anywhere, since there was nothing to "redirect" it to (it was
-already the destination). Fixed: for a Germany upload, the split-out UK
-bucket is merged straight back into that file's own contribution instead
-of being treated as a redirect candidate. Verified directly: a 3-ASIN
-file (€4,000 Germany-only + €3,000 + €2,000 UK-listed = €9,000) uploaded
-into the Germany zone now correctly totals €9,000 (previously came back
-as €4,000, silently missing both UK-listed ASINs) — and confirmed the
-original Pan-EU-upload redirect behavior is completely unaffected by
-this fix, re-tested with the identical file uploaded into the Pan-EU zone
-instead (€4,000 Pan-EU / €5,000 correctly redirected to Germany, exactly
-as before).
-
-- **Survives a main-file re-upload.** If the main export for a month is
-  re-uploaded later (e.g. to fix an incomplete/filtered export), any
-  already-uploaded Germany/Pan-EU data for that month is carried forward,
-  not reset to "awaiting upload" — they're tracked as genuinely separate
-  uploads (`germany_source` / `pan_eu_source` = `'dedicated_upload'` vs.
-  `'pending'` on the saved data).
-- Before either file is uploaded for a month, the Monthly tab shows
-  "awaiting dedicated upload" for that country rather than a guessed
-  number or a silent zero.
-
-### UK marketplace policy: always Germany, never Pan-EU
-
-**Permanent rule, confirmed directly**: any ASIN also listed on
-Amazon.co.uk has its revenue counted as Germany, even when it arrives in
-a Pan-EU upload. A handful of ASINs are dual-listed on both Amazon.de and
-Amazon.co.uk (found via the Products export's Marketplace field, from
-earlier in this project — `mapping/marketplace_mapping.json`'s
-`ambiguous_asins`, filtered to those that include `"Amazon.co.uk"`) —
-`UK_ASINS` in `app.js`, loaded once at boot.
-
-When a Pan-EU file is processed, any matched F3M ASIN in that set is
-**redirected**: its revenue is added to Germany's actual (on top of
-whatever Germany already has that month, not overwriting it) instead of
-counting toward Pan-EU, and it moves into `germany_asins` instead of
-`pan_eu_asins` — so Stage History's Country column reflects the redirect
-too. The upload status message says explicitly how many ASINs were
-redirected and for how much, rather than silently changing the number.
-
-Verified directly: uploaded a synthetic Pan-EU file with 2 known
-UK-listed ASINs (€7,000 combined) and 1 genuine Pan-EU ASIN (€2,000)
-against a real August month — Germany correctly received exactly
-€7,000.00, Pan-EU correctly kept only €2,000.00, and both ASIN lists
-(`germany_asins`/`pan_eu_asins`) came out correctly split.
-
-**This only applies going forward** — any month already saved before this
-fix was deployed still has the old (incorrect) attribution baked in.
-Re-upload that month's Pan-EU file once this version is live to apply the
-redirect retroactively to already-saved data.
-
-Verified directly: uploaded synthetic Germany (€32,000.00) and Pan-EU
-(€5,500.00) files against a real August month — each country showed
-exactly its own file's total, Combined stayed completely unrelated
-(unchanged throughout), and re-uploading the main file afterward correctly
-preserved both country uploads instead of resetting them to pending.
-
-**If a country upload comes back with 0 matched products**, the status
-message says exactly why instead of leaving it a silent €0.00:
-- The file had zero child rows at all (every SKU was blank) — usually
-  means a parent-only export, or the wrong file.
-- Or: N row(s) were in the file, but none matched — broken down into how
-  many ASINs aren't in the TOC mapping at all vs. how many ARE in the TOC
-  but weren't computed as F3M for that specific month (a different stage,
-  or not launched yet). Verified directly with both cases against real
-  data before shipping.
-
-The earlier ASIN→marketplace mapping approach (`build_marketplace_mapping.py`,
-subtraction-based Pan-EU override) has been fully retired in favor of this
-— it was always going to be approximate at best, since that export's
-Marketplace field records where an ASIN's cost settings live, not which
-marketplace each sale happened on.
-
-### Pan-EU TOC tab: a completely separate product database, keyed by (ASIN, Marketplace)
+## Pan-EU TOC tab: a separate product database, keyed by (ASIN, Marketplace)
 
 A product can launch in Germany first and only expand into Pan-EU
-marketplaces months later — its F3M window for the **Pan-EU bonus**
+marketplaces months later -- its F3M window for the **Pan-EU bonus**
 should be based on its own Pan-EU launch date, not the main TOC's German
 one. **The same ASIN is also often sold in multiple Pan-EU marketplaces**
-(France, Italy, Spain, ...), each potentially with its own launch date —
+(France, Italy, Spain, ...), each potentially with its own launch date --
 so this is keyed by `(ASIN, Marketplace)`, not just ASIN:
-`PAN_EU_TOC[asin][marketplace] = { launch_date }`. Persisted the same
-reused-pseudo-month way as the manual ASIN additions above (key
-`_pan_eu_toc`).
+`PAN_EU_TOC[asin][marketplace] = { launch_date }`. Persisted as its own
+reused-pseudo-month (`_pan_eu_toc`).
 
-**Uploading now requires picking which marketplace the file is for** — a
-dropdown above the Pan-EU drop zone (Upload tab), populated from every
-marketplace already registered in the Pan-EU TOC tab. Stage is looked up
-for that ONE marketplace's entry only — never any other marketplace's
-entry for the same ASIN, and never the main TOC. An ASIN not registered
-for that specific marketplace is excluded and flagged, not silently
-guessed from a different marketplace's date or the main TOC's German
-date. **Germany uploads are completely unaffected** — they keep using the
-main TOC exactly as before, regardless of what's in the Pan-EU TOC.
+Stage is looked up per (ASIN, marketplace) pair -- never any other
+marketplace's entry for the same ASIN, and never the main TOC. An ASIN
+not registered for a specific marketplace is excluded and flagged, not
+silently guessed from a different marketplace's date or the main TOC's
+German date.
 
-**Multiple marketplace files combine, never override** — contributions
-are tracked per `(marketplace, filename)`, so France's file and Italy's
-file both add into the Pan-EU total independently, even if the SAME ASIN
-appears in both (each marketplace's own launch date decides whether that
-ASIN counts as F3M for that marketplace specifically). Re-uploading the
-identical marketplace + filename (a correction) replaces only that one
-contribution, never duplicates it — same rule as the original
-multi-file-combining fix earlier in this document, extended to be
-marketplace-aware so two marketplaces' files named identically can never
-collide with each other.
+**Pending ASINs surface automatically from the Sellerboard Sync** -- any
+Pan-EU ASIN the sync finds that isn't yet registered for that specific
+marketplace shows up in the Pan-EU TOC tab's "Pending" section, no need
+to know or type ASINs by hand. Each pending row shows the ASIN and
+marketplace it came from, with just a Launch Date field to fill in and a
+Save button; saving moves it straight into the confirmed list below.
+Persisted the same way as confirmed entries (same `_pan_eu_toc`
+pseudo-month, storing both `entries` and `pending`).
 
-Verified directly with the exact scenario this was built for, not just
-reasoned about: the same real ASIN, registered with a France launch date
-that makes it F3M by August 2026 and a separate Italy launch date that
-makes it PY1 by the same month. Uploaded a France file — correctly
-counted (€4,000). Uploaded an Italy file for the identical ASIN —
-correctly excluded (€0, flagged as not-F3M for Italy specifically),
-confirmed Pan-EU's total stayed exactly €4,000 (France only), not €0 and
-not €7,000. Then re-uploaded a corrected France file under the identical
-marketplace + filename — correctly replaced the total to reflect only
-the new number, not duplicated. Also confirmed the marketplace dropdown
-correctly populates from real TOC entries.
-
-Also caught and fixed a real bug while first building this tab's add/
-delete buttons: both were missing an `await` before their re-render
-call, so the underlying data updated correctly but the visible table
-briefly lagged a step behind (an add could show one entry short, a
-delete could still show the just-removed row). Fixed by awaiting the
-re-render properly in both places; re-verified add and delete each land
-on the DOM immediately, matching the data every time.
-
-### Pending ASINs come from your uploads, not typed from memory
-
-Any ASIN found in a Pan-EU upload that isn't yet registered for that
-specific marketplace is automatically surfaced in the Pan-EU TOC tab's
-"Pending" section — no need to know or type ASINs by hand. Each pending
-row shows the ASIN and marketplace it came from, with just a Launch Date
-field to fill in and a Save button; saving moves it straight into the
-confirmed list below (and out of pending). A Dismiss button is also
-available if an ASIN genuinely doesn't need tracking.
-
-Persisted the same way as the confirmed entries (same `_pan_eu_toc`
-pseudo-month, now storing both `entries` and `pending`), so the list
-survives across sessions rather than needing to be re-uploaded to see it
-again.
-
-Verified directly: uploaded a real Pan-EU file (France) with 2 ASINs not
-yet in the Pan-EU TOC — both correctly appeared in the Pending section
-with the right marketplace. Filled in a Launch Date for one and saved —
-it correctly moved into the confirmed entries list, and only the other
-ASIN remained pending. Dismissed that second one — confirmed it was
-removed from pending without accidentally creating a confirmed entry for
-it (dismissing and saving are genuinely different actions with different
-outcomes).
-
-### Pan-EU TOC entries are also visible in Stage History
-
-Both Stage History modes (matrix and reverse-lookup) draw from
-`buildStageHistoryEntries()`, which combines the main TOC *and* every
-Pan-EU TOC entry into one list — not just the main TOC. A new **Source**
+**Also visible in Stage History**: both modes (matrix and
+reverse-lookup) draw from `buildStageHistoryEntries()`, which combines
+the main TOC *and* every Pan-EU TOC entry into one list. A **Source**
 column tags each row: `Main TOC` for a regular entry, or `Pan-EU:
-<Marketplace>` (e.g. `Pan-EU: Spain`) for a Pan-EU TOC entry, using that
-marketplace's own Launch Date for its own stage computation across every
-month — never the main TOC's date, and never another marketplace's date
-for the same ASIN.
+<Marketplace>` for a Pan-EU TOC entry, using that marketplace's own
+Launch Date for its own stage computation -- never the main TOC's date,
+and never another marketplace's date for the same ASIN. The same ASIN
+can appear as multiple separate rows this way -- one for the main TOC
+(if it has an entry there) plus one per Pan-EU marketplace it's
+registered for. **The Stage dropdown's F3M option is split into two** in
+reverse-lookup mode: "F3M (Launch)" matches only main-TOC entries,
+"F3M (PanEU)" matches only Pan-EU TOC entries (any marketplace) that are
+F3M per their own Launch Date -- mutually exclusive, every other stage
+filter is unchanged.
 
-This means the **same ASIN can appear as multiple separate rows** — one
-for the main TOC (if it has an entry there) plus one per Pan-EU
-marketplace it's registered for — each showing its own Launch Date and
-its own independently-computed stage per month. Brand and Product are
-borrowed from the main TOC for display only when the ASIN happens to
-exist there too (a Pan-EU-only ASIN with no main TOC entry just shows
-without them) — never its Launch Date, which always comes from that
-row's own source.
+## UK marketplace policy: always Germany, never Pan-EU
 
-Verified directly: registered a real ASIN's Pan-EU TOC entry for Spain,
-searched for it in matrix mode, and got exactly 2 rows — the main TOC
-entry and the Pan-EU: Spain entry, each with a different Launch Date and
-its own month-by-month stage progression. Same ASIN, in reverse-lookup
-mode (Stage=F3M, a month where only the Spain entry qualifies) — correctly
-surfaced just the Pan-EU: Spain row, tagged accordingly.
+**Permanent rule**: any ASIN also listed on Amazon.co.uk has its revenue
+counted as Germany, never Pan-EU -- handled directly by the Sellerboard
+Sync (`GERMANY_MARKETPLACES = new Set(['Amazon.de', 'Amazon.co.uk'])` in
+`_sellerboard.js`), which reads the report's own Marketplace column per
+row rather than relying on a separate ASIN-to-marketplace lookup table.
 
-**The Stage dropdown's F3M option is split into two, in reverse-lookup
-mode**: "F3M (Launch)" matches only main-TOC entries (no Pan-EU tag) —
-this is the original F3M, just relabeled for clarity now that a second
-kind exists. "F3M (PanEU)" matches only Pan-EU TOC entries (any
-marketplace) that are F3M per their own Launch Date. The two are
-mutually exclusive — an ASIN registered in the Pan-EU TOC never appears
-under "F3M (Launch)" even if its main-TOC entry also happens to be F3M
-that month, and vice versa. Every other stage filter (Y1/PY1/
-Discontinued/Quality Issue) is unchanged and still matches either source,
-since only F3M was asked to be split this way.
-
-Verified directly: registered a real ASIN in the Pan-EU TOC (Spain,
-F3M-eligible for August) while a *different* real ASIN was independently
-F3M per the main TOC for the same month. Filtered to "F3M (Launch)" —
-got the main-TOC ASIN, correctly excluding the Pan-EU one. Filtered to
-"F3M (PanEU)" instead — got exactly the Pan-EU ASIN (tagged "Pan-EU:
-Spain"), correctly excluding the main-TOC one.
 
 ## Unmapped ASINs tab
 
@@ -597,11 +389,11 @@ needing to type anything in the search box first.
 Germany or Pan-EU only means anything for F3M-stage products (that's the
 only track with a per-country split), so the column only appears then,
 not for PY1/M4-12/Discontinued/Quality Issue. It shows which of the two
-dedicated per-country uploads (see "Launch Manager: two independent
-uploads" above) an ASIN's revenue actually came from that month — "not in
-either upload" if it's genuinely F3M but wasn't in either file yet (a real
+(Germany or Pan-EU contributions, both populated by the Sellerboard
+Sync) an ASIN's revenue actually came from that month — "not in
+either upload" if it's genuinely F3M but wasn't in either yet (a real
 signal, not an error), or "no upload yet" for the whole column if neither
-file has been uploaded for that month at all. This required capturing the
+has been synced for that month at all. This required capturing the
 matched-ASIN list from each country upload (previously only the aggregate
 total was kept) — `germany_asins` / `pan_eu_asins` on the saved month's
 data. Verified directly: uploaded a synthetic Germany file (2 ASINs) and
@@ -923,7 +715,11 @@ Fixed in three places, each independently useful:
    and wrapped both the per-file loop and the post-loop
    `refreshMonthList()` call in `handleCountryFiles` so any unexpected
    failure anywhere in the chain always ends in a visible error message
-   rather than a silently stuck status line.
+   rather than a silently stuck status line. (`parseCountryF3MFile` and
+   `handleCountryFiles` were later removed along with the rest of the
+   manual per-country upload path -- see "Pan-EU TOC tab" above -- but
+   the same defensive patterns, `fetchWithTimeout` included, are reused
+   throughout the Sellerboard Sync code that replaced it.)
 
 Verified directly by reproducing the exact trigger condition, not just
 applying a fix and hoping: added a real Pan-EU TOC entry (creating the
@@ -1272,7 +1068,7 @@ public/index.html, app.js     the dashboard itself (static, client-side compute 
 public/favicon.ico, assets/*  CD Commerce icon mark (icon only, no wordmark) -- favicon + header/login branding
 public/toc_mapping.json       ASIN → brand/stage/product code (regenerate via build_mapping.py)
 public/targets.json           Q3 targets + rates/weights (regenerate via extract_targets.py)
-public/marketplace_mapping.json  DEPRECATED (see "Launch Manager: two independent uploads" above) -- no longer read by app.js, kept only for reference
+public/marketplace_mapping.json  DEPRECATED -- no longer read by app.js at all (the UK=Germany policy is now handled directly by the Sellerboard Sync's own Marketplace-column check); kept only for reference
 public/targets_monthly/*.json real per-month Good/Better/Best targets (regenerate via extract_monthly_targets.py)
 public/data/2026-08.json      seeded August data (real Aug 2026 numbers, computed against Q3÷3 targets)
 api/login.js, session.js,     real server-side passcode check + persistent session

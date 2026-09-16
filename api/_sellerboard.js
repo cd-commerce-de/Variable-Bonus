@@ -343,6 +343,12 @@ function computeRdAndBrandManager(monthlyAsinEntries, month, mainToc, rdTeamTarg
     meta: {
       total_asins_processed: monthlyAsinEntries.length,
       mapped_asins: byAsin.length,
+      // mapped_rows: renderInner() in app.js reads this exact field name
+      // for every saved month regardless of how it was produced -- kept
+      // as an explicit second field (not a rename) since mapped_asins is
+      // also read directly by the sync endpoint's own response payload,
+      // a different context than the saved month data renderInner reads.
+      mapped_rows: byAsin.length,
       unmapped_rows: unmapped.filter(u => u.reason !== 'future_launch_or_unknown').length,
       unmapped_asins: Array.from(new Set(unmapped.filter(u => u.reason !== 'future_launch_or_unknown').map(u => u.asin))).filter(Boolean).sort(),
       unmapped_details: Object.values(Object.fromEntries(
