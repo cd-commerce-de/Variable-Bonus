@@ -1,0 +1,340 @@
+{
+ "month": "2026-09",
+ "launch_manager": {
+  "label": "Launch Manager — F3M",
+  "germany_source": "dedicated_upload",
+  "pan_eu_source": "pending",
+  "actual_germany": {
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
+  },
+  "actual_pan_eu": {
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
+  },
+  "germany_contributions": {
+   "sellerboard-sync::germany": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "asins": []
+   }
+  },
+  "pan_eu_contributions": {},
+  "germany_asins": [],
+  "pan_eu_asins": [],
+  "actual_combined": {
+   "sales": 0,
+   "units": 0,
+   "net_profit": 0,
+   "sku_count": 0
+  }
+ },
+ "marketplace": {
+  "label": "Marketplace — manually entered",
+  "entered": false,
+  "actual_sales": null,
+  "green_target": null,
+  "gold_target": null,
+  "actual_margin_pct": null,
+  "green_margin_pct": null,
+  "gold_margin_pct": null,
+  "tier": "-",
+  "bonus_eur": 0
+ },
+ "rd_team": {
+  "label": "R&D Team — Y1 products (per product)",
+  "by_product": {}
+ },
+ "brand_manager": {
+  "Tarpofix": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM1"
+  },
+  "Darwin": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM1"
+  },
+  "Planenfux": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM1"
+  },
+  "Heimfleiss": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM2"
+  },
+  "Mattenheld": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM2"
+  },
+  "PD": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM3"
+  },
+  "Nasswerk": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM4"
+  },
+  "PoolLöwe": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM4"
+  },
+  "TeichHeld": {
+   "stages": {
+    "PY1": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Y1 (F4-12)": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "Discontinued": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    }
+   },
+   "combined_actual": {
+    "sales": 0,
+    "units": 0,
+    "net_profit": 0,
+    "sku_count": 0
+   },
+   "bm_group": "BM4"
+  }
+ },
+ "other_brands_unassigned": {},
+ "quality_issue_unassigned": {
+  "sales": 0,
+  "units": 0,
+  "net_profit": 0,
+  "sku_count": 0
+ },
+ "meta": {
+  "total_asins_processed": 0,
+  "mapped_asins": 0,
+  "mapped_rows": 0,
+  "unmapped_rows": 0,
+  "unmapped_asins": [],
+  "unmapped_details": [],
+  "future_launch_rows": 0,
+  "future_launch_asins": []
+ },
+ "_sellerboard_sync": {
+  "last_synced_at": "2026-09-17T06:46:35.492Z",
+  "report_rows_total": 90204,
+  "report_rows_matched_month": 0,
+  "unmapped_germany_asins": 0,
+  "unmapped_pan_eu_by_marketplace": {}
+ }
+}
