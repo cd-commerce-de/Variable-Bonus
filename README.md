@@ -30,6 +30,32 @@ effect as manually uploading the main monthly export (for R&D/Brand
 Manager) plus a Germany file plus one Pan-EU file per marketplace (for
 Launch Manager), all from a single source.
 
+**Critical bug, found and fixed: syncing crashed with a bare "HTTP 500"
+and no explanation.** Root cause: `toc_mapping.json` in this repo is
+~1.16 MB -- over GitHub's Contents API 1 MB limit for inlining a file's
+content in the response. Above that limit GitHub omits the `content`
+field entirely, and the code was unconditionally trying to base64-decode
+it regardless, with no error handling anywhere in that path -- an
+uncaught throw all the way up through an unguarded `Promise.all()`
+crashes the entire serverless function, and Vercel's own generic crash
+page carries no JSON body, so the frontend had nothing to show but a
+bare, undiagnosable "HTTP 500". Fixed two ways: `ghFetchJson` now falls
+back to the response's own `download_url` (always present, no separate
+auth needed -- GitHub signs a short-lived token into the URL itself for
+a private repo) when `content` is missing, and the entire handler is now
+wrapped in a top-level try/catch so no future unanticipated throw can
+ever produce that same bare, unexplained 500 again -- every failure path
+now returns a real JSON body with a specific message.
+
+Verified by reproducing the actual failure first, not just applying a
+fix and hoping: mocked GitHub's Contents API to return exactly what it
+returns for a file this size (no `content` field, only `download_url`)
+and confirmed the sync completed successfully end-to-end with correct,
+verified totals (Germany F3M and Tarpofix PY1 both matched previously-
+confirmed figures exactly). Separately verified a genuine GitHub auth
+failure (401) now returns a clear 502 with a specific message instead of
+a crash.
+
 **Real bug, found and fixed while cleaning up the now-redundant manual
 upload sections**: the saved `meta` object was missing a `mapped_rows`
 field. `renderInner()` in app.js reads that exact field name for every

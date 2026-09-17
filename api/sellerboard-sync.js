@@ -104,10 +104,41 @@ async function ghFetchRaw(path) {
   return fetch(url, { headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'Cache-Control': 'no-cache' } });
 }
 async function ghFetchJson(path) {
+  // GitHub's Contents API only inlines `content` for files under 1 MB --
+  // above that it's omitted entirely (this repo's toc_mapping.json is
+  // ~1.16 MB, so this isn't a hypothetical edge case, it's the normal
+  // case for that specific file). Falling back to the response's own
+  // download_url (always present, works without a separate auth header --
+  // GitHub signs a short-lived token into the URL itself for a private
+  // repo) fetches the real content directly instead. This whole function
+  // used to have no error handling at all: a large file's missing
+  // `content` field would throw trying to base64-decode `undefined`,
+  // uncaught, all the way up through the unguarded Promise.all() that
+  // calls this -- which crashes the entire serverless function with
+  // Vercel's own generic 500 page (no JSON body for the frontend to show
+  // a real message from, just a bare "HTTP 500"). Every failure path
+  // here now throws a real Error with a specific message instead, and
+  // the caller wraps the whole handler in try/catch so nothing can
+  // produce a bare, unexplained 500 again.
   const r = await ghFetchRaw(path);
-  if (!r.ok) return null;
+  if (r.status === 404) return null; // genuinely doesn't exist yet -- a normal, expected case (e.g. no Pan-EU TOC entries saved yet), not an error
+  if (!r.ok) throw new Error(`GitHub API returned HTTP ${r.status} fetching ${path} (check GITHUB_TOKEN has read access to this repo)`);
   const file = await r.json();
-  return JSON.parse(Buffer.from(file.content, 'base64').toString('utf-8'));
+  let text;
+  if (file.content) {
+    text = Buffer.from(file.content, 'base64').toString('utf-8');
+  } else if (file.download_url) {
+    const rawRes = await fetch(file.download_url);
+    if (!rawRes.ok) throw new Error(`Couldn't fetch the raw content of ${path} (large file, HTTP ${rawRes.status} from download_url)`);
+    text = await rawRes.text();
+  } else {
+    throw new Error(`GitHub API response for ${path} had neither inline content nor a download_url -- unexpected response shape`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    throw new Error(`${path} from the repo isn't valid JSON: ${err.message}`);
+  }
 }
 async function ghSaveJson(path, obj, commitMessage) {
   const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
@@ -225,6 +256,28 @@ async function syncOneMonth(month, entries, matchedRows, totalRows, mainToc, tar
 }
 
 module.exports = async (req, res) => {
+  try {
+    return await handleSync(req, res);
+  } catch (err) {
+    // Final safety net: whatever this is, it wasn't caught by any of the
+    // more specific try/catches below, which means it would otherwise
+    // crash the whole serverless function with Vercel's own generic 500
+    // page -- no JSON body, so the frontend has nothing to show but a
+    // bare "HTTP 500". This is exactly the failure mode that prompted
+    // this whole rewrite (found live: toc_mapping.json is ~1.16 MB,
+    // over GitHub's Contents API's 1 MB inline-content limit, and the
+    // unguarded JSON.parse/base64-decode of the resulting undefined
+    // content threw uncaught, all the way up through an unguarded
+    // Promise.all -- see ghFetchJson above for the actual fix to that
+    // specific cause; this wrapper is the general-purpose backstop so
+    // no OTHER unanticipated throw can ever produce that same
+    // undiagnosable symptom again).
+    console.error('sellerboard-sync unhandled error:', err);
+    return res.status(500).json({ error: `Unexpected server error: ${err.message}. Check Vercel's function logs for the full stack trace.` });
+  }
+};
+
+async function handleSync(req, res) {
   const isCron = isAuthorizedCron(req);
   const isManual = isValidSession(req);
   if (!isCron && !isManual) return res.status(401).json({ error: 'Not authenticated' });
@@ -236,7 +289,7 @@ module.exports = async (req, res) => {
   // the more deliberate, more trusted action of the two).
   const monthBreakdown = (isManual && req.body && req.body.reportMeta && req.body.reportMeta.monthBreakdown) || null;
 
-  let monthsToProcess, getMonthData, totalsForLog;
+  let monthsToProcess, getMonthData;
 
   if (monthBreakdown) {
     // ---- Manual upload path: full freedom, any month(s), closed or not ----
@@ -273,11 +326,16 @@ module.exports = async (req, res) => {
     getMonthData = () => ({ entries, matchedRows, totalRows: rows.length });
   }
 
-  const [mainToc, targets, panEuTocFile] = await Promise.all([
-    ghFetchJson('public/toc_mapping.json'),
-    ghFetchJson('public/targets.json'),
-    ghFetchJson('data/_pan_eu_toc.json'),
-  ]);
+  let mainToc, targets, panEuTocFile;
+  try {
+    [mainToc, targets, panEuTocFile] = await Promise.all([
+      ghFetchJson('public/toc_mapping.json'),
+      ghFetchJson('public/targets.json'),
+      ghFetchJson('data/_pan_eu_toc.json'),
+    ]);
+  } catch (err) {
+    return res.status(502).json({ error: `Couldn't load required data from the repo: ${err.message}` });
+  }
   if (!mainToc) return res.status(502).json({ error: 'Could not load the main TOC (public/toc_mapping.json) from the repo.' });
   if (!targets) return res.status(502).json({ error: 'Could not load targets (public/targets.json) from the repo -- needed to match R&D product codes and know which brands to include even at zero.' });
   const panEuToc = (panEuTocFile && panEuTocFile.entries) ? panEuTocFile.entries : {};
@@ -295,5 +353,5 @@ module.exports = async (req, res) => {
   }
 
   res.status(200).json({ ok: results.every(r => r.ok), source: monthBreakdown ? 'manual_upload' : 'automatic_current_month', months: results });
-};
+}
 
