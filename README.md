@@ -464,6 +464,11 @@ fix, confirming the targets.json lookup wasn't broken.
 
 ## Targets — how they get in
 
+**Oct 2026 update: R&D-only monthly target files.** `targets_monthly/2026-09.json` and `2026-10.json` were written from the new Leadership Scorecard with **only `rd_team`** -- Launch Manager and Brand Manager are deliberately omitted because the BM Scorecard has no real data for those months yet. The app already falls back per section (`applyTargetsAndTiers` treats a missing `launch_manager`/`brand_manager` as "use quarterly / 3"), verified by rendering September: TSE shows the real Green 39,718.26 / Gold 44,131.40 while Germany stays on the estimate. Re-run `extract_monthly_targets_v2.py` once the BM Scorecard has real data for those months to replace these with complete files. Jan-Aug were diffed against the new scorecard and are unchanged (only a new, target-less `ATM` row appears).
+
+**Known gap (not changed, needs a decision):** `SUP` (Stand Up Paddling Board) has real monthly targets but is not in `targets.json`'s `rd_team`, and R&D revenue is only matched for codes listed there. Its two TOC ASINs (Heimfleiss, launched 2026-06-25) therefore never count toward R&D. `ATM` (Air Track Mat) is likewise new in the scorecard but has no TOC ASINs yet.
+
+
 Targets are **not entered manually in the dashboard.** There are two layers:
 
 **1. Real per-month targets (preferred, used automatically when present).**

@@ -1,0 +1,141 @@
+{
+ "month": "2026-10",
+ "note": "R&D-only monthly targets (Good/Better/Best; Better = Green, Best = Gold), sourced from the Leadership Scorecard (Leadership sheet). Launch Manager and Brand Manager are intentionally omitted: the BM Scorecard has no real data for this month yet, so those sections keep using the quarterly-estimate fallback until it does.",
+ "rd_team": {
+  "GWK": {
+   "label": "GWK - Mulled Wine Kettle",
+   "revenue": {
+    "good": 32349.008,
+    "better": 36392.634,
+    "best": 40436.26
+   },
+   "profit_margin": null
+  },
+  "DSD": {
+   "label": "Dartstand - DSD",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "TSE": {
+   "label": "TSE - Toilet Seat",
+   "revenue": {
+    "good": 35976.32,
+    "better": 40473.36,
+    "best": 44970.4
+   },
+   "profit_margin": null
+  },
+  "TSF": {
+   "label": "TSF - Toilet Seat for Kids",
+   "revenue": {
+    "good": 3487.536,
+    "better": 3923.478,
+    "best": 4359.42
+   },
+   "profit_margin": null
+  },
+  "KMS": {
+   "label": "KMS - Fireplace Guard",
+   "revenue": {
+    "good": null,
+    "better": null,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "FES": {
+   "label": "FES - Fire Bowl",
+   "revenue": {
+    "good": 34790,
+    "better": 39138.75,
+    "best": 43487.5
+   },
+   "profit_margin": null
+  },
+  "FRM02": {
+   "label": "Bicycle mounting stand - FRM02",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "WHS": {
+   "label": "Waders - WHS",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "SLP": {
+   "label": "Solar cover - SLP",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "VZW": {
+   "label": "Awning caravan - VZW",
+   "revenue": {
+    "good": 0,
+    "better": 0,
+    "best": null
+   },
+   "profit_margin": null
+  },
+  "AKS": {
+   "label": "AKS - Cordless Screwdriver",
+   "revenue": {
+    "good": 8952,
+    "better": 10071,
+    "best": 11190.0
+   },
+   "profit_margin": null
+  },
+  "WGH25": {
+   "label": "WGH25 - Car Jack 2.5ton",
+   "revenue": {
+    "good": 70595.68,
+    "better": 79420.14,
+    "best": 88244.6
+   },
+   "profit_margin": null
+  },
+  "KMK": {
+   "label": "KMK - Clamping Awning",
+   "revenue": {
+    "good": 11587.2,
+    "better": 13035.6,
+    "best": 14484.0
+   },
+   "profit_margin": null
+  },
+  "SUP": {
+   "label": "SUP - Stand Up Paddling Board",
+   "revenue": {
+    "good": 9277.6,
+    "better": 10437.3,
+    "best": 11597.0
+   },
+   "profit_margin": null
+  },
+  "ATM": {
+   "label": "ATM - Air Track Mat",
+   "revenue": {
+    "good": 36464,
+    "better": 41022,
+    "best": 45580.0
+   },
+   "profit_margin": null
+  }
+ }
+}
