@@ -1237,6 +1237,14 @@ async function renderSellerboardSyncResult(res, statusEl) {
       Germany (DE+UK): €${m.germany.sales.toFixed(2)} across ${m.germany.asin_count} F3M ASIN(s).<br>
       Pan-EU by marketplace: ${paneuLines}.
     </div>`;
+    if ((m.replaced_contributions || []).length) {
+      const parts = m.replaced_contributions.map(c => `${c.country === 'germany' ? 'Germany' : 'Pan-EU'}: ${c.key} (€${Math.round(c.sales).toLocaleString('en-US')})`).join('; ');
+      msg += `<div class="banner warn" style="margin-top:4px;"><b>Replaced earlier Launch Manager totals</b> so revenue isn't counted twice — this report already covers Germany and every Pan-EU marketplace. Removed: ${parts}.</div>`;
+    }
+    if ((m.kept_contributions || []).length) {
+      const parts = m.kept_contributions.map(c => `${c.key} (€${Math.round(c.sales).toLocaleString('en-US')})`).join('; ');
+      msg += `<div class="banner warn" style="margin-top:4px;"><b>Pan-EU left as it was.</b> The Pan-EU TOC tab has no entries for the marketplaces in this report, so the sync couldn't recompute Pan-EU and didn't overwrite the existing total: ${parts}. Add the launch dates in the Pan-EU TOC tab and re-upload to have it recomputed from the report — and double-check that figure, since it can't be verified from here.</div>`;
+    }
     if (m.unmapped_asins || m.unmapped_germany_asins || unmappedPanEu) {
       msg += `<div class="banner warn" style="margin-top:4px;">${m.unmapped_asins ? `${m.unmapped_asins} ASIN(s) not in the main TOC at all (excluded from R&D/Brand Manager too) — see the Unmapped ASINs tab. ` : ''}${unmappedPanEu ? `Pan-EU ASINs not yet in the Pan-EU TOC — ${unmappedPanEu}. Add them in the Pan-EU TOC tab (they'll show up there as Pending next time it's opened).` : ''}</div>`;
     }

@@ -23,11 +23,14 @@
 // computeFromRows in app.js) -- just fed a different raw source format.
 //
 // Deliberately does NOT touch: Marketplace (manually entered, carried
-// forward untouched), or any Germany/Pan-EU contribution from a
-// DIFFERENT source (e.g. a manually-uploaded Pan-EU file for a
-// marketplace this report doesn't cover) -- those keep adding
-// independently, same contribution-based rule as everywhere else in this
-// app (see "Multiple files combine, not overwrite").
+// forward untouched). It REPLACES -- never adds to -- any Germany total
+// already saved for the month (an earlier manual upload or previous sync),
+// since keeping an older total next to the sync's would count the same
+// revenue twice. Pan-EU is replaced only when the sync actually produced
+// Pan-EU data (it depends on the Pan-EU TOC tab); otherwise an existing
+// Pan-EU total is left as-is and reported in `kept_contributions`. Whatever
+// was replaced is returned in `replaced_contributions` so the dashboard
+// says so rather than overwriting silently.
 //
 // ============================================================
 // WHY THE AUTOMATIC/LIVE PATH IS RESTRICTED TO THE CURRENT MONTH ONLY
@@ -155,24 +158,37 @@ async function ghSaveJson(path, obj, commitMessage) {
   if (!commitRes.ok) throw new Error(`GitHub commit failed for ${path}: ${await commitRes.text()}`);
 }
 
-// Mirrors app.js's own migrateLegacyIfNeeded -- a month whose Germany or
-// Pan-EU total was set before per-file contribution tracking existed (no
-// matching contributions entry) must have that total preserved as a
-// legacy contribution before this sync recomputes totals, or it would be
-// silently wiped to zero (this was a real bug, fixed once already for
-// the manual-upload path -- the sync path needs the identical guard).
-function migrateLegacyIfNeeded(launchManager, key) {
-  const contributions = launchManager[`${key}_contributions`];
-  const hasContributions = contributions && Object.keys(contributions).length;
-  const legacyActual = launchManager[`actual_${key}`];
-  const wasRealUpload = launchManager[`${key}_source`] === 'dedicated_upload';
-  if (!hasContributions && wasRealUpload && legacyActual && legacyActual.sales) {
-    launchManager[`${key}_contributions`] = launchManager[`${key}_contributions`] || {};
-    launchManager[`${key}_contributions`]['__legacy__'] = {
-      sales: legacyActual.sales, units: legacyActual.units, net_profit: legacyActual.net_profit,
-      asins: launchManager[`${key}_asins`] || [],
-    };
+// Lists every Launch Manager contribution (Germany or Pan-EU) already
+// saved for a month, including a pre-contribution-tracking total that only
+// exists as actual_germany/actual_pan_eu with no matching entry, so a sync
+// can report exactly what it is replacing.
+//
+// WHY A SYNC REPLACES THESE INSTEAD OF ADDING TO THEM: an earlier version
+// deliberately KEPT any existing manual Germany/Pan-EU total (as a
+// "__legacy__" contribution, plus any per-file contributions) and added the
+// sync's own figure next to it, summing both. That was wrong once the sync
+// became the single source for Launch Manager: the report already contains
+// Germany (DE+UK) and every Pan-EU marketplace, i.e. exactly the scope the
+// old manual uploads covered, so a month that had been filled by a manual
+// upload and was then synced counted the same revenue twice. Found live:
+// July showed ~EUR 500K for Germany against a correct ~EUR 253K (the same
+// report, two different Sellerboard exports, agree on 253,233), because the
+// earlier manual total (~246.7K) was still being added on top. The manual
+// upload screens no longer exist, so nothing legitimate is left to
+// preserve -- the sync is authoritative for these two buckets.
+function existingLaunchContributions(lm, country) {
+  const out = [];
+  const contribs = lm[`${country}_contributions`] || {};
+  const keys = Object.keys(contribs);
+  for (const k of keys) {
+    if (k.startsWith('sellerboard-sync::')) continue; // our own previous run -- expected, not a "replacement"
+    out.push({ country, key: k, sales: contribs[k].sales || 0 });
   }
+  const legacy = lm[`actual_${country}`];
+  if (!keys.length && lm[`${country}_source`] === 'dedicated_upload' && legacy && legacy.sales) {
+    out.push({ country, key: '(earlier manual upload, total only)', sales: legacy.sales });
+  }
+  return out;
 }
 
 function emptyTotals() { return { sales: 0, units: 0, net_profit: 0, sku_count: 0 }; }
@@ -198,16 +214,36 @@ async function syncOneMonth(month, entries, matchedRows, totalRows, mainToc, tar
   data.launch_manager = data.launch_manager || {};
   const lm = data.launch_manager;
 
-  migrateLegacyIfNeeded(lm, 'germany');
-  migrateLegacyIfNeeded(lm, 'pan_eu');
+  // Germany: the sync computes it completely (DE+UK against the main TOC,
+  // the same scope the manual Germany upload had), so anything saved from
+  // an earlier upload is replaced -- keeping it would count the revenue
+  // twice.
+  const replacedContributions = existingLaunchContributions(lm, 'germany');
+  lm.germany_contributions = {
+    'sellerboard-sync::germany': { sales: split.germany.sales, units: split.germany.units, net_profit: split.germany.net_profit, asins: split.germany.asins },
+  };
 
-  lm.germany_contributions = lm.germany_contributions || {};
-  lm.germany_contributions['sellerboard-sync::germany'] = { sales: split.germany.sales, units: split.germany.units, net_profit: split.germany.net_profit, asins: split.germany.asins };
-
-  lm.pan_eu_contributions = lm.pan_eu_contributions || {};
-  Object.keys(lm.pan_eu_contributions).forEach(k => { if (k.startsWith('sellerboard-sync::')) delete lm.pan_eu_contributions[k]; });
+  // Pan-EU: only replaced when the sync actually produced Pan-EU data.
+  // Pan-EU stage comes from the Pan-EU TOC tab (per ASIN + marketplace),
+  // which a sync can't create -- until entries exist there, every Pan-EU
+  // ASIN in the report is "unmapped" and the sync's Pan-EU is empty. In
+  // that case replacing would silently wipe a real earlier total to zero
+  // (found on July's saved data: a 63,089 total-only Pan-EU figure with
+  // nothing to recompute it from), so it is left untouched and flagged.
+  const keptContributions = [];
+  const newPanEu = {};
   for (const [mp, v] of Object.entries(split.panEu)) {
-    lm.pan_eu_contributions[`sellerboard-sync::${mp}`] = { sales: v.sales, units: v.units, net_profit: v.net_profit, asins: v.asins };
+    newPanEu[`sellerboard-sync::${mp}`] = { sales: v.sales, units: v.units, net_profit: v.net_profit, asins: v.asins };
+  }
+  if (Object.keys(newPanEu).length) {
+    replacedContributions.push(...existingLaunchContributions(lm, 'pan_eu'));
+    lm.pan_eu_contributions = newPanEu;
+  } else {
+    keptContributions.push(...existingLaunchContributions(lm, 'pan_eu'));
+    // drop only our own stale sync entries; leave everything else exactly as it was
+    const keep = {};
+    for (const [k, v] of Object.entries(lm.pan_eu_contributions || {})) if (!k.startsWith('sellerboard-sync::')) keep[k] = v;
+    lm.pan_eu_contributions = keep;
   }
 
   const germanySum = sumContributions(lm.germany_contributions);
@@ -236,6 +272,8 @@ async function syncOneMonth(month, entries, matchedRows, totalRows, mainToc, tar
     report_rows_matched_month: matchedRows,
     unmapped_germany_asins: split.skippedUnmapped.germany.length,
     unmapped_pan_eu_by_marketplace: Object.fromEntries(Object.entries(split.skippedUnmapped.byMarketplace).map(([mp, a]) => [mp, a.length])),
+    replaced_contributions: replacedContributions,
+    kept_contributions: keptContributions,
   };
 
   await ghSaveJson(`data/${month}.json`, data, `Sellerboard sync: update R&D, Brand Manager, and Launch Manager for ${month}`);
@@ -252,6 +290,8 @@ async function syncOneMonth(month, entries, matchedRows, totalRows, mainToc, tar
     unmapped_asins: rdBm.meta.unmapped_asins.length,
     unmapped_germany_asins: split.skippedUnmapped.germany.length,
     unmapped_pan_eu_by_marketplace: Object.fromEntries(Object.entries(split.skippedUnmapped.byMarketplace).map(([mp, a]) => [mp, a.length])),
+    replaced_contributions: replacedContributions,
+    kept_contributions: keptContributions,
   };
 }
 
