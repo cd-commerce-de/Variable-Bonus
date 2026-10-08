@@ -1,6 +1,6 @@
 {
  "month": "2026-09",
- "note": "R&D-only monthly targets (Good/Better/Best; Better = Green, Best = Gold), sourced from the Leadership Scorecard (Leadership sheet). Launch Manager and Brand Manager are intentionally omitted: the BM Scorecard has no real data for this month yet, so those sections keep using the quarterly-estimate fallback until it does.",
+ "note": "Real per-month Good/Better/Best targets, sourced directly from the BM Scorecard (Brands sheet: Launch Mgr, Brand Mgr) and the Leadership Scorecard (Leadership sheet: R&D, revenue only).",
  "rd_team": {
   "GWK": {
    "label": "GWK - Mulled Wine Kettle",
@@ -136,6 +136,304 @@
     "best": 8888.1
    },
    "profit_margin": null
+  }
+ },
+ "launch_manager": {
+  "germany": {
+   "revenue": {
+    "good": 128123.1,
+    "better": 135241.05,
+    "best": 142359.0
+   },
+   "profit_margin": {
+    "good": 0.123,
+    "better": 0.133,
+    "best": 0.143
+   }
+  },
+  "pan_eu": {
+   "revenue": {
+    "good": 2862,
+    "better": 3021,
+    "best": 3180.0
+   },
+   "profit_margin": {
+    "good": 0.123,
+    "better": 0.133,
+    "best": 0.143
+   }
+  }
+ },
+ "brand_manager": {
+  "Tarpofix": {
+   "PY1": {
+    "revenue": {
+     "good": 373313.7,
+     "better": 394053.35,
+     "best": 414793.0
+    },
+    "profit_margin": {
+     "good": 0.233,
+     "better": 0.24465,
+     "best": 0.2563
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 26394.3,
+     "better": 27860.65,
+     "best": 29327.0
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   },
+   "Discontinued": {
+    "revenue": {
+     "good": 9558,
+     "better": 10089,
+     "best": 10620.0
+    },
+    "profit_margin": {
+     "good": 0.0,
+     "better": 0.05,
+     "best": 0.1
+    }
+   }
+  },
+  "Darwin": {
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": null,
+     "better": null,
+     "best": null
+    },
+    "profit_margin": {
+     "good": null,
+     "better": null,
+     "best": null
+    }
+   },
+   "PY1": {
+    "revenue": {
+     "good": 5956.0155,
+     "better": 6269.49,
+     "best": 6582.9645
+    },
+    "profit_margin": {
+     "good": 0.269,
+     "better": 0.275725,
+     "best": 0.28245
+    }
+   }
+  },
+  "Planenfux": {
+   "PY1": {
+    "revenue": {
+     "good": 369410.4,
+     "better": 389933.2,
+     "best": 410456.0
+    },
+    "profit_margin": {
+     "good": 0.2346,
+     "better": 0.24633,
+     "best": 0.25806
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 0,
+     "better": 0,
+     "best": 0.0
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   }
+  },
+  "Heimfleiss": {
+   "PY1": {
+    "revenue": {
+     "good": 353724.9,
+     "better": 372342.0,
+     "best": 390959.1
+    },
+    "profit_margin": {
+     "good": 0.1713,
+     "better": 0.18843,
+     "best": 0.20556
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 452763.9,
+     "better": 477917.45,
+     "best": 503071.0
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   },
+   "Discontinued": {
+    "revenue": {
+     "good": 30024,
+     "better": 31692,
+     "best": 33360.0
+    },
+    "profit_margin": {
+     "good": 0.0,
+     "better": 0.05,
+     "best": 0.1
+    }
+   }
+  },
+  "Mattenheld": {
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": null,
+     "better": null,
+     "best": null
+    },
+    "profit_margin": {
+     "good": null,
+     "better": null,
+     "best": null
+    }
+   },
+   "PY1": {
+    "revenue": {
+     "good": 13979.601,
+     "better": 14756.2455,
+     "best": 15532.89
+    },
+    "profit_margin": {
+     "good": 0.12,
+     "better": 0.118,
+     "best": 0.14
+    }
+   }
+  },
+  "PD": {
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": null,
+     "better": null,
+     "best": null
+    },
+    "profit_margin": {
+     "good": null,
+     "better": null,
+     "best": null
+    }
+   },
+   "PY1": {
+    "revenue": {
+     "good": 191128.6,
+     "better": 201188.0,
+     "best": 211247.4
+    },
+    "profit_margin": {
+     "good": 0.204,
+     "better": 0.224,
+     "best": 0.244
+    }
+   }
+  },
+  "Nasswerk": {
+   "PY1": {
+    "revenue": {
+     "good": 99975.15,
+     "better": 105237.0,
+     "best": 110498.85
+    },
+    "profit_margin": {
+     "good": 0.1246,
+     "better": 0.14329,
+     "best": 0.16198
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 8136.9,
+     "better": 8588.95,
+     "best": 9041.0
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   },
+   "Discontinued": {
+    "revenue": {
+     "good": 2383.2,
+     "better": 2515.6,
+     "best": 2648.0
+    },
+    "profit_margin": {
+     "good": 0.0,
+     "better": 0.05,
+     "best": 0.1
+    }
+   }
+  },
+  "PoolLöwe": {
+   "PY1": {
+    "revenue": {
+     "good": 41423.8,
+     "better": 43604.0,
+     "best": 45784.2
+    },
+    "profit_margin": {
+     "good": 0.1447,
+     "better": 0.166405,
+     "best": 0.18811
+    }
+   },
+   "Y1 (F4-12)": {
+    "revenue": {
+     "good": 0,
+     "better": 0,
+     "best": 0.0
+    },
+    "profit_margin": {
+     "good": 0.162,
+     "better": 0.171,
+     "best": 0.18
+    }
+   },
+   "Discontinued": {
+    "revenue": {
+     "good": 3222,
+     "better": 3401,
+     "best": 3580.0
+    },
+    "profit_margin": {
+     "good": 0.0,
+     "better": 0.05,
+     "best": 0.1
+    }
+   }
+  },
+  "TeichHeld": {
+   "PY1": {
+    "revenue": {
+     "good": 5298.15,
+     "better": 5577.0,
+     "best": 5855.85
+    },
+    "profit_margin": {
+     "good": 0.097,
+     "better": 0.117,
+     "best": 0.137
+    }
+   }
   }
  }
 }

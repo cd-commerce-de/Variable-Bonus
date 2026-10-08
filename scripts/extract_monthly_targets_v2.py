@@ -144,6 +144,57 @@ def extract_bm_scorecard(ws, cols):
             'profit_margin': gbb(ws, margin_row, cols),
         }
 
+    # ---- Brands whose scorecard only carries a "(Total)" block --------
+    # Darwin, Mattenheld, PD and TeichHeld have no usable "(PY1)" block:
+    # their real, month-by-month targets sit in a block labelled
+    # "BMx - <Brand> (Total)" (Total Revenue / Total Brand Profit Margin),
+    # while their "(Y1)" block is blank. Skipping "(Total)" blocks (as this
+    # script used to) left those brands' PY1 with NO real target, so the
+    # app silently graded them against a flat, month-independent estimate
+    # from the old quarterly workbook for every month of the year.
+    #
+    # The rule that makes using Total as PY1 correct (and not a guess) is
+    # that a brand's Total target is the SUM of its stage targets -- true
+    # for every month checked on a brand with all three stage blocks
+    # (e.g. Tarpofix: PY1 + Y1 + Discontinued == Total, exact). So when a
+    # brand's Y1 and Discontinued targets are blank, its Total IS its PY1.
+    # The guard below only applies this when that is verifiably the case.
+    def has_real(triple):
+        return triple is not None and any(isinstance(v, (int, float)) for v in triple.values())
+
+    brand_sections = {}
+    for i, (r, brand, stage) in enumerate(sections):
+        next_row = sections[i + 1][0] if i + 1 < len(sections) else (rows_sorted[-1] + 1)
+        brand_sections.setdefault(brand, []).append((r, stage, next_row))
+
+    for brand, blocks in brand_sections.items():
+        existing = brand_manager.get(brand, {})
+        if has_real(existing.get('PY1', {}).get('revenue')):
+            continue  # has a genuine PY1 block with real targets -- nothing to do
+        other_stages_blank = all(
+            not has_real(existing.get(s, {}).get('revenue')) for s in ('Y1 (F4-12)', 'Discontinued')
+        )
+        if not other_stages_blank:
+            continue  # Total would include Y1/Discontinued targets -- can't treat it as PY1
+        for r, stage, next_row in blocks:
+            if stage != 'Total':
+                continue
+            rev_row = margin_row = None
+            for rr in rows_sorted:
+                if r < rr < next_row:
+                    lbl = labels[rr].lower()
+                    if 'revenue' in lbl and 'growth' not in lbl and rev_row is None:
+                        rev_row = rr
+                    if 'profit margin' in lbl and margin_row is None:
+                        margin_row = rr
+            rev = gbb(ws, rev_row, cols)
+            if has_real(rev):
+                brand_manager.setdefault(brand, {})['PY1'] = {
+                    'revenue': rev,
+                    'profit_margin': gbb(ws, margin_row, cols),
+                }
+                break  # first "(Total)" block with real data wins (later ones are blank footers)
+
     return launch_manager, brand_manager
 
 

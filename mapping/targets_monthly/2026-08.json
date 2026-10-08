@@ -3,7 +3,7 @@
  "note": "Real per-month Good/Better/Best targets, sourced directly from the BM Scorecard (Brands sheet: Launch Mgr, Brand Mgr) and the Leadership Scorecard (Leadership sheet: R&D, revenue only).",
  "rd_team": {
   "GWK": {
-   "label": "Mulled wine kettle - GWK",
+   "label": "GWK - Mulled Wine Kettle",
    "revenue": {
     "good": 908.32,
     "better": 1021.86,
@@ -21,7 +21,7 @@
    "profit_margin": null
   },
   "TSE": {
-   "label": "Toilet seat - TSE",
+   "label": "TSE - Toilet Seat",
    "revenue": {
     "good": 0,
     "better": 0,
@@ -30,7 +30,7 @@
    "profit_margin": null
   },
   "TSF": {
-   "label": "Toilet seat kids - TSF",
+   "label": "TSF - Toilet Seat for Kids",
    "revenue": {
     "good": 7581.6,
     "better": 8529.3,
@@ -39,7 +39,7 @@
    "profit_margin": null
   },
   "KMS": {
-   "label": "Fireplace guard - KMS",
+   "label": "KMS - Fireplace Guard",
    "revenue": {
     "good": 16618.8,
     "better": 18696.15,
@@ -48,7 +48,7 @@
    "profit_margin": null
   },
   "FES": {
-   "label": "Fire Bowl - FES",
+   "label": "FES - Fire Bowl",
    "revenue": {
     "good": 30615.2,
     "better": 34442.1,
@@ -93,7 +93,7 @@
    "profit_margin": null
   },
   "AKS": {
-   "label": "Cordless screwdriver - AKS",
+   "label": "AKS - Cordless Screwdriver",
    "revenue": {
     "good": 8952,
     "better": 10071,
@@ -111,7 +111,7 @@
    "profit_margin": null
   },
   "KMK": {
-   "label": "Clamping Awning - KMK",
+   "label": "KMK - Clamping Awning",
    "revenue": {
     "good": 54742.4,
     "better": 61585.2,
@@ -127,14 +127,23 @@
     "best": 163159.2
    },
    "profit_margin": null
+  },
+  "ATM": {
+   "label": "ATM - Air Track Mat",
+   "revenue": {
+    "good": null,
+    "better": null,
+    "best": null
+   },
+   "profit_margin": null
   }
  },
  "launch_manager": {
   "germany": {
    "revenue": {
-    "good": 150155.1,
-    "better": 158497.05,
-    "best": 166839.0
+    "good": 171747.9,
+    "better": 181289.45,
+    "best": 190831.0
    },
    "profit_margin": {
     "good": 0.123,
@@ -144,9 +153,9 @@
   },
   "pan_eu": {
    "revenue": {
-    "good": 17384.4,
-    "better": 18350.2,
-    "best": 19316.0
+    "good": 6102,
+    "better": 6441,
+    "best": 6780.0
    },
    "profit_margin": {
     "good": 0.123,
@@ -205,6 +214,18 @@
      "good": null,
      "better": null,
      "best": null
+    }
+   },
+   "PY1": {
+    "revenue": {
+     "good": 5626.907,
+     "better": 5923.06,
+     "best": 6219.213
+    },
+    "profit_margin": {
+     "good": 0.275,
+     "better": 0.281875,
+     "best": 0.28875
     }
    }
   },
@@ -284,6 +305,18 @@
      "better": null,
      "best": null
     }
+   },
+   "PY1": {
+    "revenue": {
+     "good": 14085.207,
+     "better": 14867.7185,
+     "best": 15650.23
+    },
+    "profit_margin": {
+     "good": 0.115,
+     "better": 0.118,
+     "best": 0.135
+    }
    }
   },
   "PD": {
@@ -297,6 +330,18 @@
      "good": null,
      "better": null,
      "best": null
+    }
+   },
+   "PY1": {
+    "revenue": {
+     "good": 203290.5,
+     "better": 213990.0,
+     "best": 224689.5
+    },
+    "profit_margin": {
+     "good": 0.206,
+     "better": 0.226,
+     "best": 0.246
     }
    }
   },
@@ -379,14 +424,14 @@
   "TeichHeld": {
    "PY1": {
     "revenue": {
-     "good": null,
-     "better": null,
-     "best": null
+     "good": 14473.25,
+     "better": 15235.0,
+     "best": 15996.75
     },
     "profit_margin": {
-     "good": null,
-     "better": null,
-     "best": null
+     "good": 0.118,
+     "better": 0.138,
+     "best": 0.158
     }
    }
   }
