@@ -5,9 +5,9 @@
   "germany_source": "dedicated_upload",
   "pan_eu_source": "pending",
   "actual_germany": {
-   "sales": 66591.18,
+   "sales": 66605.41,
    "units": 1344,
-   "net_profit": 1876.3100000000006,
+   "net_profit": 1869.1100000000006,
    "sku_count": 10
   },
   "actual_pan_eu": {
@@ -18,17 +18,17 @@
   },
   "germany_contributions": {
    "sellerboard-sync::germany": {
-    "sales": 66591.18,
+    "sales": 66605.41,
     "units": 1344,
-    "net_profit": 1876.3100000000006,
+    "net_profit": 1869.1100000000006,
     "asins": [
      "B0HBXK2M39",
-     "B0GLPFRRBM",
      "B0GLPL3X9D",
+     "B0GLPFRRBM",
      "B0GLP7ZLXV",
      "B0GLPJG4YZ",
-     "B0GLPHB1GW",
      "B0GLPPYPRH",
+     "B0GLPHB1GW",
      "B0GLPL13W5",
      "B0GLPMKBRF",
      "B0GLPPML9K"
@@ -38,21 +38,21 @@
   "pan_eu_contributions": {},
   "germany_asins": [
    "B0HBXK2M39",
-   "B0GLPFRRBM",
    "B0GLPL3X9D",
+   "B0GLPFRRBM",
    "B0GLP7ZLXV",
    "B0GLPJG4YZ",
-   "B0GLPHB1GW",
    "B0GLPPYPRH",
+   "B0GLPHB1GW",
    "B0GLPL13W5",
    "B0GLPMKBRF",
    "B0GLPPML9K"
   ],
   "pan_eu_asins": [],
   "actual_combined": {
-   "sales": 66591.18,
+   "sales": 66605.41,
    "units": 1344,
-   "net_profit": 1876.3100000000006,
+   "net_profit": 1869.1100000000006,
    "sku_count": 10
   },
   "germany": {
@@ -125,13 +125,13 @@
    "FES": {
     "sales": 53211.770000000004,
     "units": 386,
-    "net_profit": 11944.4,
+    "net_profit": 12036.43,
     "sku_count": 2
    },
    "WGH25": {
     "sales": 14514.72,
     "units": 220,
-    "net_profit": 2399.3100000000004,
+    "net_profit": 2399.31,
     "sku_count": 7
    },
    "KMS": {
@@ -147,7 +147,7 @@
     "sku_count": 1
    },
    "GWK": {
-    "sales": 11214.63,
+    "sales": 11214.629999999997,
     "units": 188,
     "net_profit": 2029.1499999999999,
     "sku_count": 8
@@ -176,15 +176,15 @@
   "Tarpofix": {
    "stages": {
     "PY1": {
-     "sales": 416659.3899999999,
+     "sales": 416659.7499999999,
      "units": 9821,
-     "net_profit": 89118.01000000001,
+     "net_profit": 89439.77999999998,
      "sku_count": 172
     },
     "Y1 (F4-12)": {
      "sales": 14514.72,
      "units": 220,
-     "net_profit": 2399.3100000000004,
+     "net_profit": 2399.31,
      "sku_count": 7
     },
     "Discontinued": {
@@ -195,9 +195,9 @@
     }
    },
    "combined_actual": {
-    "sales": 434325.34999999986,
+    "sales": 434325.70999999985,
     "units": 10259,
-    "net_profit": 91729.73000000001,
+    "net_profit": 92051.49999999999,
     "sku_count": 194
    },
    "bm_group": "BM1"
@@ -207,7 +207,7 @@
     "PY1": {
      "sales": 414753.94,
      "units": 7297,
-     "net_profit": 118477.83000000002,
+     "net_profit": 118794.11,
      "sku_count": 25
     },
     "Y1 (F4-12)": {
@@ -226,7 +226,7 @@
    "combined_actual": {
     "sales": 416834.79,
     "units": 7338,
-    "net_profit": 117875.55000000002,
+    "net_profit": 118191.83,
     "sku_count": 36
    },
    "bm_group": "BM1"
@@ -234,9 +234,9 @@
   "Mattenheld": {
    "stages": {
     "PY1": {
-     "sales": 13424.84,
-     "units": 1030,
-     "net_profit": 1172.4200000000003,
+     "sales": 13344.5,
+     "units": 1024,
+     "net_profit": 1163.9600000000003,
      "sku_count": 1
     },
     "Y1 (F4-12)": {
@@ -253,9 +253,9 @@
     }
    },
    "combined_actual": {
-    "sales": 23039.39,
-    "units": 1227,
-    "net_profit": 3675.46,
+    "sales": 22959.05,
+    "units": 1221,
+    "net_profit": 3667,
     "sku_count": 6
    },
    "bm_group": "BM2"
@@ -265,7 +265,7 @@
     "PY1": {
      "sales": 65254.51,
      "units": 2807,
-     "net_profit": 11355.909999999996,
+     "net_profit": 11383.219999999996,
      "sku_count": 19
     },
     "Y1 (F4-12)": {
@@ -284,7 +284,7 @@
    "combined_actual": {
     "sales": 67015.99,
     "units": 2921,
-    "net_profit": 11530.589999999997,
+    "net_profit": 11557.899999999996,
     "sku_count": 23
    },
    "bm_group": "BM4"
@@ -321,9 +321,9 @@
   "PD": {
    "stages": {
     "PY1": {
-     "sales": 247128.21999999977,
-     "units": 21905,
-     "net_profit": 58664.11000000001,
+     "sales": 247110.71999999997,
+     "units": 21903,
+     "net_profit": 58811.219999999965,
      "sku_count": 976
     },
     "Y1 (F4-12)": {
@@ -340,9 +340,9 @@
     }
    },
    "combined_actual": {
-    "sales": 247128.21999999977,
-    "units": 21905,
-    "net_profit": 58664.11000000001,
+    "sales": 247110.71999999997,
+    "units": 21903,
+    "net_profit": 58811.219999999965,
     "sku_count": 976
    },
    "bm_group": "BM3"
@@ -350,15 +350,15 @@
   "Heimfleiss": {
    "stages": {
     "PY1": {
-     "sales": 344191.37999999995,
+     "sales": 344191.38,
      "units": 6642,
-     "net_profit": 62372.67,
+     "net_profit": 62667.06999999999,
      "sku_count": 105
     },
     "Y1 (F4-12)": {
      "sales": 159577.13,
      "units": 1898,
-     "net_profit": 29493.789999999997,
+     "net_profit": 29585.82,
      "sku_count": 20
     },
     "Discontinued": {
@@ -369,9 +369,9 @@
     }
    },
    "combined_actual": {
-    "sales": 503768.50999999995,
+    "sales": 503768.51,
     "units": 8540,
-    "net_profit": 91866.45999999999,
+    "net_profit": 92252.88999999998,
     "sku_count": 125
    },
    "bm_group": "BM2"
@@ -410,7 +410,7 @@
     "PY1": {
      "sales": 3287.6200000000003,
      "units": 126,
-     "net_profit": 829.4100000000001,
+     "net_profit": 849.57,
      "sku_count": 3
     },
     "Y1 (F4-12)": {
@@ -429,7 +429,7 @@
    "combined_actual": {
     "sales": 3287.6200000000003,
     "units": 126,
-    "net_profit": 829.4100000000001,
+    "net_profit": 849.57,
     "sku_count": 3
    },
    "bm_group": "BM1"
@@ -439,7 +439,7 @@
   "Van De Boos": {
    "sales": 8541.529999999999,
    "units": 469,
-   "net_profit": 2092.5899999999997,
+   "net_profit": 2104.7999999999997,
    "sku_count": 4
   },
   "stopnow": {
@@ -464,7 +464,7 @@
  "quality_issue_unassigned": {
   "sales": 4999.339999999998,
   "units": 162,
-  "net_profit": 340.53,
+  "net_profit": 362.5899999999999,
   "sku_count": 3
  },
  "meta": {
@@ -493,20 +493,8 @@
     "product": "Heimfleiss® Draht Driller Drillapparat mit aut. Rücklauf - (Orange)"
    },
    {
-    "asin": "B09KLYJZPK",
-    "product": "PH3 - Dreiloch Planenhaken mit Öse"
-   },
-   {
     "asin": "B08ZYJQKNT",
     "product": "ÖD20 - Ösendraht schwarz ummantelt"
-   },
-   {
-    "asin": "B09QWY2FLM",
-    "product": "WK01 - Ovale Würgeklemmen aus Aluminium"
-   },
-   {
-    "asin": "B08W297HZQ",
-    "product": "PH1 - Planenhaken verzinkter Stahl"
    },
    {
     "asin": "B08VDD358M",
@@ -523,6 +511,18 @@
    {
     "asin": "B09TKN1KMC",
     "product": "Tarpofix DH6 - Deichselhaube aus PVC-Planenmaterial (Weiß)"
+   },
+   {
+    "asin": "B09QWY2FLM",
+    "product": "WK01 - Ovale Würgeklemmen aus Aluminium"
+   },
+   {
+    "asin": "B08W297HZQ",
+    "product": "PH1 - Planenhaken verzinkter Stahl"
+   },
+   {
+    "asin": "B09KLYJZPK",
+    "product": "PH3 - Dreiloch Planenhaken mit Öse"
    },
    {
     "asin": "B09KCDJN8N",
@@ -545,9 +545,9 @@
   "future_launch_asins": []
  },
  "_sellerboard_sync": {
-  "last_synced_at": "2026-10-06T06:09:22.448Z",
-  "report_rows_total": 86066,
-  "report_rows_matched_month": 86066,
+  "last_synced_at": "2026-10-08T06:08:40.488Z",
+  "report_rows_total": 86083,
+  "report_rows_matched_month": 86083,
   "unmapped_germany_asins": 12,
   "unmapped_pan_eu_by_marketplace": {
    "Amazon.it": 993,
@@ -555,8 +555,8 @@
    "Amazon.es": 938,
    "Amazon.com.be": 555,
    "Amazon.nl": 610,
-   "Amazon.se": 508,
-   "Amazon.pl": 243
+   "Amazon.pl": 243,
+   "Amazon.se": 508
   }
  },
  "bm_groups": {
