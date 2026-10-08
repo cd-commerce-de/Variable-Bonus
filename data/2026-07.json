@@ -6,26 +6,20 @@
    "FRM02": {
     "sales": 11774.859999999995,
     "units": 308,
-    "net_profit": 1284.8,
+    "net_profit": 1289.57,
     "sku_count": 6
    },
    "KMK": {
     "sales": 16852.46,
     "units": 152,
-    "net_profit": -3768.819999999999,
+    "net_profit": -3797.1399999999994,
     "sku_count": 8
    },
    "SLP": {
     "sales": 55075.51999999999,
     "units": 995,
-    "net_profit": 6749.18,
+    "net_profit": 6827.910000000001,
     "sku_count": 15
-   },
-   "FES": {
-    "sales": 21633.569999999992,
-    "units": 157,
-    "net_profit": 4195.57,
-    "sku_count": 2
    },
    "AKS": {
     "sales": 3288.069999999999,
@@ -33,16 +27,22 @@
     "net_profit": -797.09,
     "sku_count": 1
    },
+   "FES": {
+    "sales": 21633.569999999992,
+    "units": 157,
+    "net_profit": 4208.67,
+    "sku_count": 2
+   },
    "WGH25": {
     "sales": 17129.07,
     "units": 282,
-    "net_profit": 808.71,
+    "net_profit": 804.9799999999999,
     "sku_count": 8
    },
    "GWK": {
     "sales": 745.1099999999999,
     "units": 10,
-    "net_profit": 51.85,
+    "net_profit": 51.57999999999999,
     "sku_count": 8
    },
    "KMS": {
@@ -64,13 +64,13 @@
   "actual_combined": {
    "sales": 253232.72,
    "units": 2216,
-   "net_profit": 39561.39,
+   "net_profit": 44336.97000000001,
    "sku_count": 19
   },
   "actual_germany": {
-   "sales": 506465.43999999994,
-   "units": 4432,
-   "net_profit": 79122.76999999999,
+   "sales": 253232.72,
+   "units": 2216,
+   "net_profit": 44336.97000000001,
    "sku_count": 19
   },
   "actual_pan_eu": {
@@ -133,28 +133,22 @@
   },
   "combined_bonus_eur": 131.31768,
   "germany_contributions": {
-   "__legacy__": {
-    "sales": 253232.71999999997,
-    "units": 2216,
-    "net_profit": 39561.38,
-    "asins": []
-   },
    "sellerboard-sync::germany": {
     "sales": 253232.72,
     "units": 2216,
-    "net_profit": 39561.39,
+    "net_profit": 44336.97000000001,
     "asins": [
      "B0GZ5KG2XW",
-     "B0H2BM3SJD",
      "B0GZ5GZBRK",
+     "B0H2BM3SJD",
      "B0H2BNX5K4",
-     "B0H5VM13XG",
      "B0GZ5K24L4",
+     "B0H5VM13XG",
      "B0H5VMXPJY",
      "B0H2BP8P7Z",
-     "B0H2BS1CB8",
      "B0H2BMJ8G6",
      "B0H2BG2TT3",
+     "B0H2BS1CB8",
      "B0H2BNG3XM",
      "B0H2BKVS97",
      "B0GLPHB1GW",
@@ -176,16 +170,16 @@
   },
   "germany_asins": [
    "B0GZ5KG2XW",
-   "B0H2BM3SJD",
    "B0GZ5GZBRK",
+   "B0H2BM3SJD",
    "B0H2BNX5K4",
-   "B0H5VM13XG",
    "B0GZ5K24L4",
+   "B0H5VM13XG",
    "B0H5VMXPJY",
    "B0H2BP8P7Z",
-   "B0H2BS1CB8",
    "B0H2BMJ8G6",
    "B0H2BG2TT3",
+   "B0H2BS1CB8",
    "B0H2BNG3XM",
    "B0H2BKVS97",
    "B0GLPHB1GW",
@@ -203,26 +197,26 @@
     "PY1": {
      "sales": 330099.11,
      "units": 15052,
-     "net_profit": 68891.59999999999,
+     "net_profit": 68432.72999999998,
      "sku_count": 19
     },
     "Y1 (F4-12)": {
      "sales": 546.28,
      "units": 16,
-     "net_profit": 57.879999999999995,
+     "net_profit": 57.38,
      "sku_count": 2
     },
     "Discontinued": {
      "sales": 890.1500000000001,
      "units": 52,
-     "net_profit": -45.83000000000002,
+     "net_profit": -47.359999999999985,
      "sku_count": 2
     }
    },
    "combined_actual": {
     "sales": 331535.54000000004,
     "units": 15120,
-    "net_profit": 68903.65,
+    "net_profit": 68442.74999999999,
     "sku_count": 23
    },
    "bm_group": "BM4"
@@ -230,15 +224,15 @@
   "Heimfleiss": {
    "stages": {
     "PY1": {
-     "sales": 435950.74000000005,
+     "sales": 435950.74000000017,
      "units": 7917,
-     "net_profit": 67508.34999999999,
+     "net_profit": 67352.16999999995,
      "sku_count": 106
     },
     "Y1 (F4-12)": {
      "sales": 25666.749999999996,
      "units": 219,
-     "net_profit": 3317.09,
+     "net_profit": 3329.92,
      "sku_count": 14
     },
     "Discontinued": {
@@ -249,9 +243,9 @@
     }
    },
    "combined_actual": {
-    "sales": 461617.49000000005,
+    "sales": 461617.49000000017,
     "units": 8136,
-    "net_profit": 70825.43999999999,
+    "net_profit": 70682.08999999995,
     "sku_count": 120
    },
    "bm_group": "BM2"
@@ -261,13 +255,13 @@
     "PY1": {
      "sales": 10658.2,
      "units": 750,
-     "net_profit": 511.4400000000001,
+     "net_profit": 432.79999999999995,
      "sku_count": 1
     },
     "Y1 (F4-12)": {
      "sales": 8156.250000000002,
      "units": 178,
-     "net_profit": 2098.5399999999995,
+     "net_profit": 2013.45,
      "sku_count": 5
     },
     "Discontinued": {
@@ -280,7 +274,7 @@
    "combined_actual": {
     "sales": 18814.450000000004,
     "units": 928,
-    "net_profit": 2609.9799999999996,
+    "net_profit": 2446.25,
     "sku_count": 6
    },
    "bm_group": "BM2"
@@ -290,26 +284,26 @@
     "PY1": {
      "sales": 61134.03999999999,
      "units": 2378,
-     "net_profit": 11621.92,
+     "net_profit": 11568.17,
      "sku_count": 5
     },
     "Y1 (F4-12)": {
      "sales": 476.75,
      "units": 11,
-     "net_profit": 82.56,
+     "net_profit": 87.33000000000001,
      "sku_count": 2
     },
     "Discontinued": {
      "sales": 24.95,
      "units": 1,
-     "net_profit": 2.88,
+     "net_profit": 2.84,
      "sku_count": 1
     }
    },
    "combined_actual": {
     "sales": 61635.73999999999,
     "units": 2390,
-    "net_profit": 11707.359999999999,
+    "net_profit": 11658.34,
     "sku_count": 8
    },
    "bm_group": "BM4"
@@ -319,26 +313,26 @@
     "PY1": {
      "sales": 333245.8000000002,
      "units": 9117,
-     "net_profit": 89040.74000000002,
+     "net_profit": 89003.96000000005,
      "sku_count": 164
     },
     "Y1 (F4-12)": {
      "sales": 28903.929999999997,
      "units": 590,
-     "net_profit": 2093.5099999999998,
+     "net_profit": 2094.5499999999993,
      "sku_count": 14
     },
     "Discontinued": {
-     "sales": 13095,
+     "sales": 13095.000000000004,
      "units": 584,
-     "net_profit": 1943.8499999999997,
+     "net_profit": 1924.4199999999998,
      "sku_count": 14
     }
    },
    "combined_actual": {
     "sales": 375244.7300000002,
     "units": 10291,
-    "net_profit": 93078.10000000002,
+    "net_profit": 93022.93000000005,
     "sku_count": 192
    },
    "bm_group": "BM1"
@@ -348,13 +342,13 @@
     "PY1": {
      "sales": 212368.84000000005,
      "units": 4091,
-     "net_profit": 35271.65,
+     "net_profit": 35177.72,
      "sku_count": 25
     },
     "Y1 (F4-12)": {
      "sales": 55075.51999999999,
      "units": 995,
-     "net_profit": 6749.18,
+     "net_profit": 6827.910000000001,
      "sku_count": 15
     },
     "Discontinued": {
@@ -367,7 +361,7 @@
    "combined_actual": {
     "sales": 267457.12000000005,
     "units": 5087,
-    "net_profit": 42014.96,
+    "net_profit": 41999.76,
     "sku_count": 42
    },
    "bm_group": "BM1"
@@ -375,9 +369,9 @@
   "PD": {
    "stages": {
     "PY1": {
-     "sales": 299627.2800000002,
+     "sales": 299627.27999999997,
      "units": 27609,
-     "net_profit": 75008.95000000004,
+     "net_profit": 75012.17000000006,
      "sku_count": 997
     },
     "Y1 (F4-12)": {
@@ -394,9 +388,9 @@
     }
    },
    "combined_actual": {
-    "sales": 299627.2800000002,
+    "sales": 299627.27999999997,
     "units": 27609,
-    "net_profit": 75008.95000000004,
+    "net_profit": 75012.17000000006,
     "sku_count": 997
    },
    "bm_group": "BM3"
@@ -406,7 +400,7 @@
     "PY1": {
      "sales": 18863.93,
      "units": 481,
-     "net_profit": 2103.3900000000003,
+     "net_profit": 2086.2799999999997,
      "sku_count": 4
     },
     "Y1 (F4-12)": {
@@ -425,7 +419,7 @@
    "combined_actual": {
     "sales": 18863.93,
     "units": 481,
-    "net_profit": 2103.3900000000003,
+    "net_profit": 2086.2799999999997,
     "sku_count": 4
    },
    "bm_group": "BM4"
@@ -433,9 +427,9 @@
   "Darwin": {
    "stages": {
     "PY1": {
-     "sales": 2743.5300000000007,
+     "sales": 2743.53,
      "units": 98,
-     "net_profit": 714.27,
+     "net_profit": 711.51,
      "sku_count": 3
     },
     "Y1 (F4-12)": {
@@ -452,9 +446,9 @@
     }
    },
    "combined_actual": {
-    "sales": 2743.5300000000007,
+    "sales": 2743.53,
     "units": 98,
-    "net_profit": 714.27,
+    "net_profit": 711.51,
     "sku_count": 3
    },
    "bm_group": "BM1"
@@ -464,7 +458,7 @@
   "stopnow": {
    "sales": 3429.570000000001,
    "units": 346,
-   "net_profit": 267.2800000000001,
+   "net_profit": 290.66,
    "sku_count": 3
   },
   "Van De Boos": {
@@ -482,7 +476,7 @@
   "Arganoel Zauber": {
    "sales": 29.9,
    "units": 2,
-   "net_profit": 5.71,
+   "net_profit": 5.67,
    "sku_count": 1
   }
  },
@@ -501,87 +495,47 @@
  "quality_issue_unassigned": {
   "sales": 8214.18,
   "units": 263,
-  "net_profit": 1522.0099999999998,
+  "net_profit": 1518.1599999999999,
   "sku_count": 2
  },
  "meta": {
-  "total_asins_processed": 1441,
+  "total_asins_processed": 1433,
   "mapped_asins": 1426,
   "mapped_rows": 1426,
-  "unmapped_rows": 15,
+  "unmapped_rows": 7,
   "unmapped_asins": [
    "B077ZH2W5C",
+   "B08VDD358M",
+   "B08W297HZQ",
+   "B08ZYJQKNT",
+   "B09KLYJZPK",
    "B0DYP5322J",
-   "B0H6BR87MS",
-   "B0H7CGYHZ1",
-   "B0H7CJ2V9Q",
-   "B0H7CM74SJ",
-   "B0H7CMFK53",
-   "B0H7CNS4SV",
-   "B0H7CPTZZ3",
-   "B0H7CPV3YG",
-   "B0H7CR7T2V",
-   "B0H7CTTPSK",
-   "B0H7CW9J4Y",
-   "B0H7CWMGLF",
    "B0H956YGYF"
   ],
   "unmapped_details": [
-   {
-    "asin": "B0DYP5322J",
-    "product": "PD® große Karosseriescheiben M6x20 (Kotflügelscheiben) | Hochwertige A2 V2A Edelstahl Unterlegscheiben | Rostfreie Edelstahlscheiben Beilagscheiben mit extra großem Außendurchmesser | 50 Stück"
-   },
    {
     "asin": "B077ZH2W5C",
     "product": "Arganoel-Zauber Haarspülung ohne Silikone und Tierversuche, mit Arganöl gegen trockenes Haar, 1 x 150 ml"
    },
    {
-    "asin": "B0H6BR87MS",
-    "product": "Drahtspanner + Drahtseil für PP01 (Ersatz)"
+    "asin": "B08ZYJQKNT",
+    "product": "ÖD20 - Ösendraht schwarz ummantelt"
    },
    {
-    "asin": "B0H7CMFK53",
-    "product": "Drahtspanner + Drahtseil für PP104 (Ersatz)"
+    "asin": "B0DYP5322J",
+    "product": "PD® große Karosseriescheiben M6x20 (Kotflügelscheiben) | Hochwertige A2 V2A Edelstahl Unterlegscheiben | Rostfreie Edelstahlscheiben Beilagscheiben mit extra großem Außendurchmesser | 50 Stück"
    },
    {
-    "asin": "B0H7CW9J4Y",
-    "product": "Drahtspanner + Drahtseil für PP103 (Ersatz)"
+    "asin": "B09KLYJZPK",
+    "product": "PH3 - Dreiloch Planenhaken mit Öse"
    },
    {
-    "asin": "B0H7CM74SJ",
-    "product": "Drahtspanner + Drahtseil für PP08 (Ersatz)"
+    "asin": "B08VDD358M",
+    "product": "PB2 - Planenbügel 1,40-2,10 m"
    },
    {
-    "asin": "B0H7CWMGLF",
-    "product": "Drahtspanner + Drahtseil für PP07 (Ersatz)"
-   },
-   {
-    "asin": "B0H7CPTZZ3",
-    "product": "Drahtspanner + Drahtseil für PP06 (Ersatz)"
-   },
-   {
-    "asin": "B0H7CNS4SV",
-    "product": "Drahtspanner + Drahtseil für PP05 (Ersatz)"
-   },
-   {
-    "asin": "B0H7CGYHZ1",
-    "product": "Drahtspanner + Drahtseil für PP04 (Ersatz)"
-   },
-   {
-    "asin": "B0H7CTTPSK",
-    "product": "Drahtspanner + Drahtseil für PP03 (Ersatz)"
-   },
-   {
-    "asin": "B0H7CR7T2V",
-    "product": "Drahtspanner + Drahtseil für PP02 (Ersatz)"
-   },
-   {
-    "asin": "B0H7CPV3YG",
-    "product": "Drahtspanner + Drahtseil für PP102 (Ersatz)"
-   },
-   {
-    "asin": "B0H7CJ2V9Q",
-    "product": "Drahtspanner + Drahtseil für PP101 (Ersatz)"
+    "asin": "B08W297HZQ",
+    "product": "PH1 - Planenhaken verzinkter Stahl"
    },
    {
     "asin": "B0H956YGYF",
@@ -633,18 +587,32 @@
   "used_real_monthly": true
  },
  "_sellerboard_sync": {
-  "last_synced_at": "2026-09-21T10:04:47.619Z",
-  "report_rows_total": 91927,
-  "report_rows_matched_month": 91927,
-  "unmapped_germany_asins": 15,
+  "last_synced_at": "2026-10-08T07:45:53.016Z",
+  "report_rows_total": 91635,
+  "report_rows_matched_month": 91635,
+  "unmapped_germany_asins": 7,
   "unmapped_pan_eu_by_marketplace": {
    "Amazon.it": 993,
-   "Amazon.es": 989,
-   "Amazon.fr": 1008,
-   "Amazon.com.be": 574,
-   "Amazon.nl": 684,
+   "Amazon.es": 988,
+   "Amazon.fr": 1007,
+   "Amazon.com.be": 573,
+   "Amazon.nl": 681,
    "Amazon.se": 497,
    "Amazon.pl": 187
-  }
+  },
+  "replaced_contributions": [
+   {
+    "country": "germany",
+    "key": "__legacy__",
+    "sales": 253232.71999999997
+   }
+  ],
+  "kept_contributions": [
+   {
+    "country": "pan_eu",
+    "key": "__legacy__",
+    "sales": 63088.56
+   }
+  ]
  }
 }
