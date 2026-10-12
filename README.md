@@ -339,33 +339,75 @@ unmapped ASINs instead of reporting zero.
 
 ## Stage is computed live, not read from a fixed TOC column
 
-This is the core fix: a SKU's stage (F3M / Y1 "M4-12" / PY1) is a **function
-of (Launch Date, the month being attributed)**, computed fresh every time —
-not a static label that goes stale as months pass. The same ASIN
-correctly reports a different stage in different months, with zero manual
-TOC editing required as existing products age:
+A SKU's stage (F3M / Y1 "M4-12" / PY1) is a **function of (the TOC's dates, the
+month being attributed)**, computed fresh every time -- not a static label
+that goes stale as months pass. The same ASIN reports a different stage in
+different months with no manual TOC editing as products age:
 
-- Months 1-3 since launch → **F3M**
-- Months 4-12 since launch → **M4-12** ("Y1 (F4-12)")
-- Month 13+ since launch → **PY1**
-- **Discontinued** / **Quality Issue** are manual overrides (there's no
-  calendar rule for these) — once their start date (still set in the TOC)
-  is reached, they take over from whatever the calendar would otherwise
-  say, for that month and every month after.
+- **F3M** -- months 0-2 after the launch month (calendar months)
+- **Y1 "M4-12"** -- after that, until the TOC's "EOM of Y1" (Y1 is months 4-12
+  only; F3M/launch products are NOT part of it)
+- **PY1** -- from the month after "EOM of Y1", following the TOC's own Stage
+  formula (ASIN Report, column G):
+  `R "EOM of Y1" = IF(Q>-8, eomonth(launch,11), eomonth(launch,12))`, where
+  `Q = -(day of month of launch)`. So a product launched on the **1st-7th** of a
+  month turns PY1 in month 12 after launch; one launched on the **8th or
+  later** turns PY1 a month later, in month 13.
+- **Quality Issue** (checked first, as in the TOC formula) and **Discontinued**
+  take over from their dated start columns, for that month and every month after.
+- **Acquisition** (Source = Acquisition, still inside Y1 and older than 13
+  weeks at month-end) is the TOC's fourth stage: not Y1, belongs to no Brand
+  Manager bucket, recorded in `meta.acquisition_stage_sales` so it can't drop
+  out silently (EUR 0 in Jul/Aug 2026).
 
-Verified directly: a real ASIN launched 2026-05-07 computes F3M for
-June/July 2026 and automatically flips to M4-12 for August 2026 — no TOC
-change involved.
+**Why PY1 follows the TOC.** Found in an audit against the manual scorecard:
+the 2 Nasswerk + 2 PoolLoewe ASINs launched Aug-2025 (after the 7th) were PY1
+in Aug 2026 here (the old rule was just "12 months since launch month") but
+Y1 in the TOC and the scorecard. After the fix, August Nasswerk PY1 is
+164,423 vs the scorecard's 164,506 (was +6.0%), PoolLoewe PY1 56,526 vs 56,603
+(was +12.9%), and both Y1 rows reconcile to within 0.1%. Across every ASIN and
+every month Jan-Oct 2026 only **56 of 24,270** ASIN-months change stage, all
+PY1 -> Y1 for one more month; R&D revenue and the Quality Issue bucket are
+unchanged in July and August.
 
-Implemented in `computeStageForMonth()` in `app.js`. The TOC's own `Stage`
-column is still extracted (as `toc_stage_snapshot`) but only used as a
-fallback for the rare ASIN with no Launch Date on file — everything else
-uses the live calculation.
+**What is deliberately NOT taken from the TOC formula, and why** (both tested on
+real data, both flagged for a decision):
 
-**Bonus totals will shift slightly** compared to earlier versions of this
-dashboard that read the TOC's static Stage column directly — that's
-expected and correct, not a regression: some ASINs were sitting in a
-stage the TOC hadn't gotten around to updating.
+1. **F3M window.** The formula's F3M is 12 weeks from the first Monday after
+   launch (to the day, `P<1`); the dashboard and the scorecard use 3 calendar
+   months. With the 12-week rule, July moves EUR 11.6K of Tarpofix revenue
+   (launched 22 Apr; F3M to 19 Jul) from Y1 into Launch -- Tarpofix July Y1
+   goes from 28,904 (= the scorecard, exactly) to 17,316, and Launch Germany
+   from 253,233 to 264,821 against the scorecard's 246,733 (which would also
+   flip July's Launch tier from MISS to GREEN). PY1, unlike F3M, always starts
+   on the 1st of a month, so it can follow the TOC without any per-day staging.
+2. **Inactive/Cancelled with no Discontinued Start Date -> Discontinued.** 994
+   ASINs have no start date. Applying it pulls ~EUR 3-5K/month of PD and
+   Heimfleiss revenue out of PY1 (PD PY1 July: scorecard 299,848, today
+   299,627, 296,467 if applied), which the scorecard keeps in PY1. The
+   dashboard uses the dated start columns only.
+
+**One implementation.** The rule lives in `computeStageForMonth()` in
+`api/_sellerboard.js`; `public/vendor/sellerboard-shared.js` is a byte-for-byte
+copy and `app.js` calls it. There used to be two copies that disagreed
+(`app.js` checked Quality Issue before Discontinued, the sync the other way
+round). Verified: the formula implemented per day reproduces the TOC's own
+cached Stage column for 1,439 of 1,452 comparable ASINs evaluated on the day
+the file was saved (975 undated Inactive/Cancelled set aside per point 2; the
+13 exceptions are stale Quality Issue cells and Discontinued dates still in the
+future), and 16 boundary unit tests pass (launch on day 7 vs 8, Feb, QI/Disc
+order, Acquisition, F3M as calendar months).
+
+**TOC refreshed.** `toc_mapping.json` was regenerated from the current TOC
+(2,427 ASINs, +11 new: ATM and ATS products launching Sep/Oct 2026, three
+Planenfux PKS00 and one Heimfleiss ASIN with no launch date, which therefore
+falls back to its TOC stage). 564 existing ASINs gained a previously blank
+product code (none an R&D code); 10 statuses changed Inactive -> Cancelled
+(same effect).
+
+Implemented in `computeStageForMonth()` (`api/_sellerboard.js`). The TOC's own
+`Stage` column is still extracted (as `toc_stage_snapshot`) but only used as a
+fallback for the rare ASIN with no Launch Date on file.
 
 ### ASIN Masterlist (Upload tab)
 
@@ -384,9 +426,9 @@ column):
   January 2026 through December 2027** (24 columns), color-coded (F3M
   blue, Y1 amber, PY1 green, Discontinued gray, Quality Issue red). This
   is what lets you visually confirm a product's stage actually changes as
-  it ages — verified directly: a product launched August 2025 correctly
-  shows Y1 for Jan-Jul 2026 and flips to PY1 exactly in August 2026, the
-  12-month mark. Capped at 100 matches given the wide table.
+  it ages — verified directly: a product launched 5 Aug 2025 shows Y1 for
+  Jan-Jul 2026 and flips to PY1 in August 2026, while one launched 11 Aug 2025
+  stays Y1 through August and flips in September (the TOC's launch-day rule). Capped at 100 matches given the wide table.
 - **Reverse-lookup mode** — pick a **Stage** and a **Month** from the two
   dropdowns (both required together — a stage alone isn't a valid lookup,
   since the same product can be a different stage in different months)

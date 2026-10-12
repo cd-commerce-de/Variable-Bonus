@@ -166,18 +166,65 @@ function monthIndex(dateStr) {
   return y * 12 + (m - 1);
 }
 
-// Same stage rule as the dashboard's own computeStageForMonth (app.js) --
-// month-granularity only, no day-level proration (see README for why).
+// ---------------------------------------------------------------------
+// STAGE RULE. One copy, shared by the browser (public/vendor/
+// sellerboard-shared.js is a byte-for-byte copy of this file) and the sync
+// -- they used to have two copies that disagreed (app.js checked Quality
+// Issue before Discontinued, this file the other way round).
+//
+//   F3M     months 0-2 after the launch month (calendar months)
+//   M4-12   after that, until the TOC's "EOM of Y1"
+//   PY1     from the month after "EOM of Y1"
+//   Quality Issue / Discontinued: from the month of their dated start column
+//
+// PY1 follows the TOC's own Stage formula (ASIN Report, column G):
+//     ... IF(S>0,"PY1", ...)      S = days past R
+//     R "EOM of Y1" = IF(Q>-8, eomonth(launch,11), eomonth(launch,12))
+//     Q = eomonth(launch,-1) - launch = -(day of month of launch)
+// i.e. a product launched on the 1st-7th of a month has its Y1 end at the
+// end of the 11th month after the launch month (PY1 from month 12, as this
+// file always did); one launched on the 8th or later has it end a month
+// later (PY1 from month 13). R is always a month-end, so PY1 begins on the
+// 1st of a month and this stays a whole-month rule. Found in an audit
+// against the manual scorecard: the 2 Nasswerk + 2 PoolLoewe ASINs launched
+// Aug-2025 (after the 7th) were PY1 in Aug-2026 here but Y1 in the TOC and
+// the scorecard -- EUR 9.9K / 7.4K in the wrong stage. After the fix both
+// reconcile to within 0.1% of the scorecard.
+//
+// DELIBERATELY NOT taken from the TOC formula:
+//  - F3M. The formula's F3M is 12 weeks from the first Monday after launch;
+//    this file (and the manual scorecard) use 3 calendar months. Tested both
+//    on real July/August data: the 12-week rule moves EUR 11.6K of Tarpofix
+//    revenue (launched 22 Apr, F3M to 19 Jul under the formula) from Y1 into
+//    Launch for July, away from the scorecard on BOTH Tarpofix Y1 (28,904 vs
+//    17,316) and Launch Germany (246,733 vs 253,233 -> 264,821).
+//  - Status Inactive/Cancelled with no Discontinued Start Date -> Discontinued
+//    (994 ASINs). It would pull ~EUR 3-5K/month of PD and Heimfleiss revenue
+//    out of PY1, which the scorecard keeps in PY1.
+// The formula's Acquisition stage IS applied (Source = Acquisition, still
+// inside Y1 and older than 13 weeks at the end of the month): it is not Y1.
+// ---------------------------------------------------------------------
+function monthEndDays(targetMonth) {
+  const [y, m] = targetMonth.split('-').map(Number);
+  return Math.round(Date.UTC(y, m, 0) / 86400000);            // day 0 of the next month = last day of this one
+}
 function computeStageForMonth(info, targetMonth) {
   if (!info) return null;
-  if (info.discontinued_start_date && targetMonth >= info.discontinued_start_date.slice(0, 7)) return 'Discontinued';
+  // Same order as the TOC formula: Quality Issue first, then Discontinued.
   if (info.quality_issue_start_date && targetMonth >= info.quality_issue_start_date.slice(0, 7)) return 'Quality Issue';
-  if (!info.launch_date) return info.toc_stage_snapshot || null;
+  if (info.discontinued_start_date && targetMonth >= info.discontinued_start_date.slice(0, 7)) return 'Discontinued';
+  if (!info.launch_date) return info.toc_stage_snapshot || null;   // no launch date on file -- whatever the TOC last recorded
   const monthsSince = monthIndex(targetMonth) - monthIndex(info.launch_date);
-  if (monthsSince < 0) return null;
+  if (monthsSince < 0) return null;                                // hasn't launched yet as of this month
   if (monthsSince < 3) return 'F3M';
-  if (monthsSince < 12) return 'M4-12';
-  return 'PY1';
+  const launchedOnDay = Number(info.launch_date.slice(8, 10));
+  if (monthsSince >= (launchedOnDay <= 7 ? 12 : 13)) return 'PY1';
+  if (info.source === 'Acquisition') {
+    const [ly, lm, ld] = info.launch_date.split('-').map(Number);
+    const ageWeeks = Math.floor((monthEndDays(targetMonth) - Math.round(Date.UTC(ly, lm - 1, ld) / 86400000)) / 7);
+    if (ageWeeks > 13) return 'Acquisition';
+  }
+  return 'M4-12';
 }
 
 // Splits the aggregated (asin, marketplace) entries into a Germany
@@ -302,6 +349,8 @@ function computeRdAndBrandManager(monthlyAsinEntries, month, mainToc, rdTeamTarg
 
   const launchPoolCombined = stageTotals['F3M'] || empty();
   const qualityIssue = stageTotals['Quality Issue'] || empty();
+  // 'Acquisition' (TOC stage: Source = Acquisition, still inside Y1) belongs to no Brand Manager bucket -- record it so it can't drop out silently.
+  const acquisitionStage = stageTotals['Acquisition'] || empty();
 
   const brandsSeen = new Set(byAsin.map(r => normBrand(r.brand)));
   const brandDisplay = {};
@@ -349,6 +398,7 @@ function computeRdAndBrandManager(monthlyAsinEntries, month, mainToc, rdTeamTarg
       // also read directly by the sync endpoint's own response payload,
       // a different context than the saved month data renderInner reads.
       mapped_rows: byAsin.length,
+      acquisition_stage_sales: acquisitionStage.sales,
       unmapped_rows: unmapped.filter(u => u.reason !== 'future_launch_or_unknown').length,
       unmapped_asins: Array.from(new Set(unmapped.filter(u => u.reason !== 'future_launch_or_unknown').map(u => u.asin))).filter(Boolean).sort(),
       unmapped_details: Object.values(Object.fromEntries(

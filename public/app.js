@@ -25,29 +25,21 @@ const PASSCODE_HASH = "REPLACE_WITH_SHA256_HASH"; // set via scripts/hash_passco
 const STAGE_LABELS = { 'PY1': 'PY1', 'M4-12': 'Y1 (F4-12)', 'Discontinued': 'Discontinued', 'F3M': 'F3M', 'Quality Issue': 'Quality Issue (unassigned)' };
 function displayStageLabel(label) { return label === 'Y1 (F4-12)' ? 'Y1 (M4-12)' : label; }
 
-// ---------- Stage computation, embedded (no manual TOC updates needed) ----------
-// A SKU's stage is a function of (launch date, the month being attributed),
-// NOT a fixed label -- it moves forward every month on its own:
-//   months 1-3 since launch  -> F3M
-//   months 4-12 since launch -> M4-12 ("Y1 (M4-12)")
-//   month 13+ since launch   -> PY1
-// Discontinued / Quality Issue are manual overrides (there's no calendar
-// rule for them) -- once their start date is reached, they take over from
-// whatever the calendar would otherwise say, for that month and onward.
+// Stage is computed live. The rule lives in vendor/sellerboard-shared.js so
+// the browser and the sync use exactly one copy (they used to have two that
+// disagreed) -- see the long comment above computeStageForMonth there for
+// the rule and for what is deliberately NOT taken from the TOC formula.
+//   F3M    = months 0-2 after the launch month
+//   M4-12  = after that, until the TOC's "EOM of Y1"
+//   PY1    = from the month after "EOM of Y1" (launched on the 1st-7th: month
+//            12; on the 8th or later: month 13)
+//   Quality Issue / Discontinued = from the month of their dated start column
 function monthIndex(dateStr) { // "2026-08" or "2026-08-15" -> single comparable integer
   const [y, m] = dateStr.split('-').map(Number);
   return y * 12 + (m - 1);
 }
 function computeStageForMonth(info, targetMonth) {
-  if (!info.launch_date) return info.toc_stage_snapshot || null; // no launch date on file -- fall back to whatever the TOC last recorded
-  const targetIdx = monthIndex(targetMonth);
-  if (info.quality_issue_start_date && monthIndex(info.quality_issue_start_date) <= targetIdx) return 'Quality Issue';
-  if (info.discontinued_start_date && monthIndex(info.discontinued_start_date) <= targetIdx) return 'Discontinued';
-  const monthsSinceLaunch = targetIdx - monthIndex(info.launch_date);
-  if (monthsSinceLaunch < 0) return null; // hasn't launched yet as of this month
-  if (monthsSinceLaunch < 3) return 'F3M';
-  if (monthsSinceLaunch < 12) return 'M4-12';
-  return 'PY1';
+  return window.SellerboardShared.computeStageForMonth(info, targetMonth);
 }
 
 function normBrand(b) { return (b || '').trim().toLowerCase(); } // TOC brand names sometimes differ in case/styling from the calculator's (e.g. "NASSWERK" vs "Nasswerk")
@@ -875,7 +867,7 @@ function stageHistoryMonths() {
 }
 function stageBadge(stage) {
   if (!stage) return '';
-  const map = { 'F3M': ['f3m', 'F3M'], 'M4-12': ['m412', 'Y1'], 'PY1': ['py1', 'PY1'], 'Discontinued': ['disc', 'DISC'], 'Quality Issue': ['qi', 'QI'] };
+  const map = { 'F3M': ['f3m', 'F3M'], 'M4-12': ['m412', 'Y1'], 'PY1': ['py1', 'PY1'], 'Discontinued': ['disc', 'DISC'], 'Quality Issue': ['qi', 'QI'], 'Acquisition': ['m412', 'ACQ'] };
   const [cls, label] = map[stage] || ['disc', stage];
   return `<span class="stage-badge ${cls}">${label}</span>`;
 }
