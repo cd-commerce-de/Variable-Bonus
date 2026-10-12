@@ -5,10 +5,10 @@
   "germany_source": "dedicated_upload",
   "pan_eu_source": "pending",
   "actual_germany": {
-   "sales": 66605.41,
-   "units": 1344,
-   "net_profit": 1869.1100000000006,
-   "sku_count": 10
+   "sales": 67626.52999999998,
+   "units": 1352,
+   "net_profit": 1340.310000000001,
+   "sku_count": 13
   },
   "actual_pan_eu": {
    "sales": 0,
@@ -18,9 +18,9 @@
   },
   "germany_contributions": {
    "sellerboard-sync::germany": {
-    "sales": 66605.41,
-    "units": 1344,
-    "net_profit": 1869.1100000000006,
+    "sales": 67626.52999999998,
+    "units": 1352,
+    "net_profit": 1340.310000000001,
     "asins": [
      "B0HBXK2M39",
      "B0GLPL3X9D",
@@ -31,6 +31,9 @@
      "B0GLPHB1GW",
      "B0GLPL13W5",
      "B0GLPMKBRF",
+     "B0HK51STJR",
+     "B0HK57545X",
+     "B0HK4ZHYY5",
      "B0GLPPML9K"
     ]
    }
@@ -46,14 +49,17 @@
    "B0GLPHB1GW",
    "B0GLPL13W5",
    "B0GLPMKBRF",
+   "B0HK51STJR",
+   "B0HK57545X",
+   "B0HK4ZHYY5",
    "B0GLPPML9K"
   ],
   "pan_eu_asins": [],
   "actual_combined": {
-   "sales": 66605.41,
-   "units": 1344,
-   "net_profit": 1869.1100000000006,
-   "sku_count": 10
+   "sales": 67626.52999999998,
+   "units": 1352,
+   "net_profit": 1340.310000000001,
+   "sku_count": 13
   },
   "germany": {
    "actual": {
@@ -131,8 +137,14 @@
    "WGH25": {
     "sales": 14514.72,
     "units": 220,
-    "net_profit": 2399.31,
+    "net_profit": 2399.3100000000004,
     "sku_count": 7
+   },
+   "FRM02": {
+    "sales": 5180.94,
+    "units": 134,
+    "net_profit": 617.3899999999999,
+    "sku_count": 6
    },
    "KMS": {
     "sales": 92772.36,
@@ -147,7 +159,7 @@
     "sku_count": 1
    },
    "GWK": {
-    "sales": 11214.629999999997,
+    "sales": 11214.63,
     "units": 188,
     "net_profit": 2029.1499999999999,
     "sku_count": 8
@@ -176,16 +188,16 @@
   "Tarpofix": {
    "stages": {
     "PY1": {
-     "sales": 416659.7499999999,
-     "units": 9821,
-     "net_profit": 89439.77999999998,
-     "sku_count": 172
+     "sales": 411441.83,
+     "units": 9683,
+     "net_profit": 89002.26,
+     "sku_count": 166
     },
     "Y1 (F4-12)": {
-     "sales": 14514.72,
-     "units": 220,
-     "net_profit": 2399.31,
-     "sku_count": 7
+     "sales": 19695.659999999996,
+     "units": 354,
+     "net_profit": 3016.7000000000003,
+     "sku_count": 13
     },
     "Discontinued": {
      "sales": 3151.2399999999993,
@@ -195,9 +207,9 @@
     }
    },
    "combined_actual": {
-    "sales": 434325.70999999985,
-    "units": 10259,
-    "net_profit": 92051.49999999999,
+    "sales": 434288.73,
+    "units": 10255,
+    "net_profit": 92231.37,
     "sku_count": 194
    },
    "bm_group": "BM1"
@@ -205,9 +217,9 @@
   "Planenfux": {
    "stages": {
     "PY1": {
-     "sales": 414753.94,
-     "units": 7297,
-     "net_profit": 118794.11,
+     "sales": 414713.94999999995,
+     "units": 7296,
+     "net_profit": 118837.99,
      "sku_count": 25
     },
     "Y1 (F4-12)": {
@@ -224,9 +236,9 @@
     }
    },
    "combined_actual": {
-    "sales": 416834.79,
-    "units": 7338,
-    "net_profit": 118191.83,
+    "sales": 416794.79999999993,
+    "units": 7337,
+    "net_profit": 118235.71,
     "sku_count": 36
    },
    "bm_group": "BM1"
@@ -236,7 +248,7 @@
     "PY1": {
      "sales": 13344.5,
      "units": 1024,
-     "net_profit": 1163.9600000000003,
+     "net_profit": 1164.1700000000003,
      "sku_count": 1
     },
     "Y1 (F4-12)": {
@@ -255,7 +267,7 @@
    "combined_actual": {
     "sales": 22959.05,
     "units": 1221,
-    "net_profit": 3667,
+    "net_profit": 3667.21,
     "sku_count": 6
    },
    "bm_group": "BM2"
@@ -265,7 +277,7 @@
     "PY1": {
      "sales": 65254.51,
      "units": 2807,
-     "net_profit": 11383.219999999996,
+     "net_profit": 11382.999999999996,
      "sku_count": 19
     },
     "Y1 (F4-12)": {
@@ -284,7 +296,7 @@
    "combined_actual": {
     "sales": 67015.99,
     "units": 2921,
-    "net_profit": 11557.899999999996,
+    "net_profit": 11557.679999999997,
     "sku_count": 23
    },
    "bm_group": "BM4"
@@ -321,9 +333,9 @@
   "PD": {
    "stages": {
     "PY1": {
-     "sales": 247110.71999999997,
-     "units": 21903,
-     "net_profit": 58811.219999999965,
+     "sales": 247086.17999999976,
+     "units": 21900,
+     "net_profit": 58834.780000000006,
      "sku_count": 976
     },
     "Y1 (F4-12)": {
@@ -340,9 +352,9 @@
     }
    },
    "combined_actual": {
-    "sales": 247110.71999999997,
-    "units": 21903,
-    "net_profit": 58811.219999999965,
+    "sales": 247086.17999999976,
+    "units": 21900,
+    "net_profit": 58834.780000000006,
     "sku_count": 976
    },
    "bm_group": "BM3"
@@ -350,29 +362,29 @@
   "Heimfleiss": {
    "stages": {
     "PY1": {
-     "sales": 344191.38,
+     "sales": 344192.8399999998,
      "units": 6642,
-     "net_profit": 62667.06999999999,
+     "net_profit": 62716.55999999999,
      "sku_count": 105
     },
     "Y1 (F4-12)": {
-     "sales": 159577.13,
+     "sales": 159577.12999999998,
      "units": 1898,
-     "net_profit": 29585.82,
+     "net_profit": 29585.819999999992,
      "sku_count": 20
     },
     "Discontinued": {
-     "sales": 0,
-     "units": 0,
-     "net_profit": 0,
-     "sku_count": 0
+     "sales": 636.59,
+     "units": 41,
+     "net_profit": 149.64000000000004,
+     "sku_count": 1
     }
    },
    "combined_actual": {
-    "sales": 503768.51,
-    "units": 8540,
-    "net_profit": 92252.88999999998,
-    "sku_count": 125
+    "sales": 504406.55999999976,
+    "units": 8581,
+    "net_profit": 92452.01999999997,
+    "sku_count": 126
    },
    "bm_group": "BM2"
   },
@@ -410,7 +422,7 @@
     "PY1": {
      "sales": 3287.6200000000003,
      "units": 126,
-     "net_profit": 849.57,
+     "net_profit": 849.8700000000001,
      "sku_count": 3
     },
     "Y1 (F4-12)": {
@@ -429,7 +441,7 @@
    "combined_actual": {
     "sales": 3287.6200000000003,
     "units": 126,
-    "net_profit": 849.57,
+    "net_profit": 849.8700000000001,
     "sku_count": 3
    },
    "bm_group": "BM1"
@@ -437,15 +449,15 @@
  },
  "other_brands_unassigned": {
   "Van De Boos": {
-   "sales": 8541.529999999999,
-   "units": 469,
-   "net_profit": 2104.7999999999997,
+   "sales": 8524.58,
+   "units": 468,
+   "net_profit": 2100.61,
    "sku_count": 4
   },
   "stopnow": {
-   "sales": 2363.26,
-   "units": 204,
-   "net_profit": 238.79000000000002,
+   "sales": 2349.2700000000004,
+   "units": 203,
+   "net_profit": 235.68,
    "sku_count": 3
   },
   "MESSEREI": {
@@ -469,9 +481,10 @@
  },
  "meta": {
   "total_asins_processed": 1411,
-  "mapped_asins": 1398,
-  "mapped_rows": 1398,
-  "unmapped_rows": 13,
+  "mapped_asins": 1402,
+  "mapped_rows": 1402,
+  "acquisition_stage_sales": 0,
+  "unmapped_rows": 9,
   "unmapped_asins": [
    "B077ZH2W5C",
    "B08VDD358M",
@@ -481,28 +494,24 @@
    "B09KLYJZPK",
    "B09QM8SF6F",
    "B09QWY2FLM",
-   "B09TKN1KMC",
-   "B0H956YGYF",
-   "B0HK4ZHYY5",
-   "B0HK51STJR",
-   "B0HK57545X"
+   "B09TKN1KMC"
   ],
   "unmapped_details": [
-   {
-    "asin": "B0H956YGYF",
-    "product": "Heimfleiss® Draht Driller Drillapparat mit aut. Rücklauf - (Orange)"
-   },
-   {
-    "asin": "B08ZYJQKNT",
-    "product": "ÖD20 - Ösendraht schwarz ummantelt"
-   },
    {
     "asin": "B08VDD358M",
     "product": "PB2 - Planenbügel 1,40-2,10 m"
    },
    {
-    "asin": "B077ZH2W5C",
-    "product": "Arganoel-Zauber Haarspülung ohne Silikone und Tierversuche, mit Arganöl gegen trockenes Haar, 1 x 150 ml"
+    "asin": "B08W297HZQ",
+    "product": "PH1 - Planenhaken verzinkter Stahl"
+   },
+   {
+    "asin": "B09QWY2FLM",
+    "product": "WK01 - Ovale Würgeklemmen aus Aluminium"
+   },
+   {
+    "asin": "B09KLYJZPK",
+    "product": "PH3 - Dreiloch Planenhaken mit Öse"
    },
    {
     "asin": "B09QM8SF6F",
@@ -513,51 +522,37 @@
     "product": "Tarpofix DH6 - Deichselhaube aus PVC-Planenmaterial (Weiß)"
    },
    {
-    "asin": "B09QWY2FLM",
-    "product": "WK01 - Ovale Würgeklemmen aus Aluminium"
+    "asin": "B08ZYJQKNT",
+    "product": "ÖD20 - Ösendraht schwarz ummantelt"
    },
    {
-    "asin": "B08W297HZQ",
-    "product": "PH1 - Planenhaken verzinkter Stahl"
-   },
-   {
-    "asin": "B09KLYJZPK",
-    "product": "PH3 - Dreiloch Planenhaken mit Öse"
+    "asin": "B077ZH2W5C",
+    "product": "Arganoel-Zauber Haarspülung ohne Silikone und Tierversuche, mit Arganöl gegen trockenes Haar, 1 x 150 ml"
    },
    {
     "asin": "B09KCDJN8N",
     "product": "Tarpofix® Bâche Protection Plate 211 x 116 x 8 cm avec Corde de bâche - Bâche de remorque renforcée en PVC - Bache pour remorque Divers modèles de remorques de Voitures de 750kg"
-   },
-   {
-    "asin": "B0HK51STJR",
-    "product": "Heimfleiss® Airtrack Matte 300x100x10 cm | Turnmatte mit Pumpe in Blau"
-   },
-   {
-    "asin": "B0HK57545X",
-    "product": "Heimfleiss® Airtrack Matte 300x100x10 cm | Turnmatte mit Pumpe in Mintgrün"
-   },
-   {
-    "asin": "B0HK4ZHYY5",
-    "product": "Heimfleiss® Airtrack Matte 300x100x10 cm | Turnmatte mit Pumpe in Schwarz"
    }
   ],
   "future_launch_rows": 0,
   "future_launch_asins": []
  },
  "_sellerboard_sync": {
-  "last_synced_at": "2026-10-08T06:08:40.488Z",
-  "report_rows_total": 86083,
-  "report_rows_matched_month": 86083,
-  "unmapped_germany_asins": 12,
+  "last_synced_at": "2026-10-12T06:44:37.354Z",
+  "report_rows_total": 86030,
+  "report_rows_matched_month": 86030,
+  "unmapped_germany_asins": 8,
   "unmapped_pan_eu_by_marketplace": {
    "Amazon.it": 993,
    "Amazon.fr": 980,
    "Amazon.es": 938,
    "Amazon.com.be": 555,
-   "Amazon.nl": 610,
+   "Amazon.nl": 609,
    "Amazon.pl": 243,
    "Amazon.se": 508
-  }
+  },
+  "replaced_contributions": [],
+  "kept_contributions": []
  },
  "bm_groups": {
   "BM1": {
