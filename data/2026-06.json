@@ -72,7 +72,7 @@
   },
   "rows": {
    "GWK": {
-    "label": "Mulled wine kettle - GWK",
+    "label": "GWK - Mulled Wine Kettle",
     "actual": {
      "sales": 2159.43,
      "units": 31,
@@ -106,7 +106,7 @@
     "gold_margin_pct": null
    },
    "TSE": {
-    "label": "Toilet seat - TSE",
+    "label": "TSE - Toilet Seat",
     "actual": {
      "sales": 7763.1,
      "units": 247,
@@ -123,7 +123,7 @@
     "gold_margin_pct": null
    },
    "TSF": {
-    "label": "Toilet seat kids - TSF",
+    "label": "TSF - Toilet Seat for Kids",
     "actual": {
      "sales": 0,
      "units": 0,
@@ -140,7 +140,7 @@
     "gold_margin_pct": null
    },
    "KMS": {
-    "label": "Fireplace guard - KMS",
+    "label": "KMS - Fireplace Guard",
     "actual": {
      "sales": 923.64,
      "units": 14,
@@ -157,7 +157,7 @@
     "gold_margin_pct": null
    },
    "FES": {
-    "label": "Fire Bowl - FES",
+    "label": "FES - Fire Bowl",
     "actual": {
      "sales": 34987.73,
      "units": 258,
@@ -242,7 +242,7 @@
     "gold_margin_pct": null
    },
    "AKS": {
-    "label": "Cordless screwdriver - AKS",
+    "label": "AKS - Cordless Screwdriver",
     "actual": {
      "sales": 2206.65,
      "units": 35,
@@ -276,7 +276,7 @@
     "gold_margin_pct": null
    },
    "KMK": {
-    "label": "Clamping Awning - KMK",
+    "label": "KMK - Clamping Awning",
     "actual": {
      "sales": 190644.46000000002,
      "units": 1841,
@@ -305,6 +305,23 @@
     "tier": "-",
     "bonus_eur": 0,
     "target_source": "real",
+    "actual_margin_pct": null,
+    "green_margin_pct": null,
+    "gold_margin_pct": null
+   },
+   "ATM": {
+    "label": "ATM - Air Track Mat",
+    "actual": {
+     "sales": 0,
+     "units": 0,
+     "net_profit": 0,
+     "sku_count": 0
+    },
+    "green_target": null,
+    "gold_target": null,
+    "tier": "AWAITING TARGET",
+    "bonus_eur": 0,
+    "target_source": "estimated",
     "actual_margin_pct": null,
     "green_margin_pct": null,
     "gold_margin_pct": null
@@ -781,14 +798,14 @@
       "net_profit": 70723.07999999999,
       "sku_count": 1787
      },
-     "green_target": 206505.33333333334,
-     "gold_target": 216830.6,
+     "green_target": 186264,
+     "gold_target": 195577.2,
      "tier": "🟢 GREEN",
-     "bonus_eur": 789.3126600000039,
-     "target_source": "estimated",
+     "bonus_eur": 971.484660000004,
+     "target_source": "real",
      "actual_margin_pct": 0.24038565533882697,
-     "green_margin_pct": 0.224,
-     "gold_margin_pct": 0.244
+     "green_margin_pct": 0.222,
+     "gold_margin_pct": 0.242
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -823,7 +840,7 @@
      "gold_margin_pct": null
     }
    },
-   "total_bonus": 789.3126600000039
+   "total_bonus": 971.484660000004
   },
   "PoolLöwe": {
    "stages": {
@@ -1021,14 +1038,14 @@
       "net_profit": 583.76,
       "sku_count": 1
      },
-     "green_target": 15243.940666666667,
-     "gold_target": 16046.253333333334,
+     "green_target": 15313.6105,
+     "gold_target": 16119.59,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated",
+     "target_source": "real",
      "actual_margin_pct": 0.0651441516340161,
      "green_margin_pct": 0.118,
-     "gold_margin_pct": 0.225
+     "gold_margin_pct": 0.126
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -1101,14 +1118,14 @@
       "net_profit": 1976.66,
       "sku_count": 4
      },
-     "green_target": 13768.666666666666,
-     "gold_target": 14457.1,
-     "tier": "🟢 GREEN",
-     "bonus_eur": 1.9594199999999982,
-     "target_source": "estimated",
+     "green_target": 32357,
+     "gold_target": 33974.85,
+     "tier": "❌ MISS",
+     "bonus_eur": 0,
+     "target_source": "real",
      "actual_margin_pct": 0.1413274914595485,
-     "green_margin_pct": 0.1363333333,
-     "gold_margin_pct": 0.1563333333
+     "green_margin_pct": 0.146,
+     "gold_margin_pct": 0.166
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -1143,7 +1160,7 @@
      "gold_margin_pct": null
     }
    },
-   "total_bonus": 1.9594199999999982
+   "total_bonus": 0
   },
   "Darwin": {
    "stages": {
@@ -1181,14 +1198,14 @@
       "net_profit": 1583.05,
       "sku_count": 3
      },
-     "green_target": 6047.963333333333,
-     "gold_target": 6350.3615,
+     "green_target": 5113.5,
+     "gold_target": 5369.175,
      "tier": "❌ MISS",
      "bonus_eur": 0,
-     "target_source": "estimated",
+     "target_source": "real",
      "actual_margin_pct": 0.3144953333783639,
-     "green_margin_pct": 0.2822166667,
-     "gold_margin_pct": 0.2891
+     "green_margin_pct": 0.2562,
+     "gold_margin_pct": 0.2684
     },
     "Y1 (F4-12)": {
      "actual": {
@@ -1259,7 +1276,16 @@
   }
  },
  "marketplace": {
-  "label": "Marketplace — manually entered"
+  "label": "Marketplace — manually entered",
+  "entered": true,
+  "actual_sales": 0.01,
+  "green_target": null,
+  "gold_target": null,
+  "actual_margin_pct": null,
+  "green_margin_pct": null,
+  "gold_margin_pct": null,
+  "tier": "AWAITING TARGET",
+  "bonus_eur": 0
  },
  "quality_issue_unassigned": {
   "sales": 7763.1,
@@ -1307,7 +1333,7 @@
    "brands": [
     "PD"
    ],
-   "total_bonus": 789.3126600000039,
+   "total_bonus": 971.484660000004,
    "total_sales": 298592.8900000005
   },
   "BM4": {
@@ -1316,11 +1342,11 @@
     "PoolLöwe",
     "TeichHeld"
    ],
-   "total_bonus": 4398.490290000001,
+   "total_bonus": 4396.5308700000005,
    "total_sales": 746014.27
   }
  },
- "bm_grand_total_bonus": 5191.576260000004,
+ "bm_grand_total_bonus": 5371.788840000005,
  "_targets_meta": {
   "quarter": "Q3",
   "is_quarterly_view": false,
