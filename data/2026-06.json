@@ -1278,7 +1278,7 @@
  "marketplace": {
   "label": "Marketplace — manually entered",
   "entered": true,
-  "actual_sales": 198804,
+  "actual_sales": null,
   "green_target": null,
   "gold_target": null,
   "actual_margin_pct": null,
