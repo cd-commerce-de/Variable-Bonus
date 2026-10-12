@@ -324,6 +324,7 @@
   "total_asins_processed": 0,
   "mapped_asins": 0,
   "mapped_rows": 0,
+  "acquisition_stage_sales": 0,
   "unmapped_rows": 0,
   "unmapped_asins": [],
   "unmapped_details": [],
@@ -331,8 +332,8 @@
   "future_launch_asins": []
  },
  "_sellerboard_sync": {
-  "last_synced_at": "2026-10-11T06:46:35.133Z",
-  "report_rows_total": 85393,
+  "last_synced_at": "2026-10-12T06:46:36.534Z",
+  "report_rows_total": 85267,
   "report_rows_matched_month": 0,
   "unmapped_germany_asins": 0,
   "unmapped_pan_eu_by_marketplace": {},
